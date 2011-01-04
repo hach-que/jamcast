@@ -1,0 +1,5 @@
+glob:Client/bin/*
+glob:Client/obj/*
+glob:Server/bin/*
+glob:Server/obj/*
+glob:*.suo
