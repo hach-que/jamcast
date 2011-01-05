@@ -64,7 +64,8 @@ namespace NetCast
             {
                 Message message = Queue.p_Formatter.Deserialize(stream) as Message;
                 MessageEventArgs e = new MessageEventArgs(message);
-                message.Source = endpoint;
+                // We trust that the message has the correct endpoint.
+                //message.Source = endpoint;
 
                 if (this.OnReceived != null)
                     this.OnReceived(this, e);

@@ -35,6 +35,7 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
@@ -52,6 +53,8 @@
     <Compile Include="MessageEventArgs.cs" />
     <Compile Include="Messages\ClientServiceStartingMessage.cs" />
     <Compile Include="Messages\ClientServiceStoppingMessage.cs" />
+    <Compile Include="Messages\ScreenResultMessage.cs" />
+    <Compile Include="Messages\ScreenRequestMessage.cs" />
     <Compile Include="Messages\CountdownBroadcastMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Queue.cs" />

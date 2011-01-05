@@ -5,6 +5,7 @@ using System.Text;
 using System.Net;
 using System.Drawing;
 using NetCast;
+using NetCast.Messages;
 
 namespace JamCast.Clients
 {
@@ -31,15 +32,31 @@ namespace JamCast.Clients
         /// <param name="e"></param>
         void m_Queue_OnReceived(object sender, MessageEventArgs e)
         {
+            if (e.Message is ScreenResultMessage)
+            {
+                ScreenResultMessage srm = e.Message as ScreenResultMessage;
+                this.m_Bitmap = srm.Bitmap.Clone() as Bitmap;
+            }
         }
 
         public override System.Drawing.Bitmap GetScreen()
         {
-            Bitmap b = new Bitmap(480, 480);
-            Graphics g = Graphics.FromImage(b);
-            g.Clear(Color.Red);
-            g.DrawString("NO SERVICE FROM " + this.p_Source.ToString(), SystemFonts.CaptionFont, Brushes.White, new PointF(24, 24));
-            return b;
+            // Send a request for a screen bitmap.
+            ScreenRequestMessage srm = new ScreenRequestMessage(this.m_Queue.Self);
+            srm.Send(this.p_Source);
+
+            // Check to see if we have bitmap data.  Since the above operation is asynchronous,
+            // it's likely we won't for the first few frame requests due to network delay.
+            if (this.m_Bitmap == null)
+            {
+                Bitmap b = new Bitmap(480, 480);
+                Graphics g = Graphics.FromImage(b);
+                g.Clear(Color.Red);
+                g.DrawString("WAITING FOR SCREEN FROM " + this.p_Source.ToString(), SystemFonts.CaptionFont, Brushes.White, new PointF(24, 24));
+                return b;
+            }
+            else
+                return this.m_Bitmap;
         }
 
         public IPEndPoint Source
