@@ -13,9 +13,13 @@ namespace JamCast
         [STAThread]
         static void Main()
         {
+            // Set the visual styles.
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Broadcast());
+
+            // Start and run the manager.
+            Manager m = new Manager();
+            m.Run();
         }
     }
 }
