@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{08D6037E-9728-4E19-A6AB-2DEFBD5BDDCD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetCast", "NetCast\NetCast.csproj", "{6D36404F-A493-4A1F-908B-4D473A93B8BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{08D6037E-9728-4E19-A6AB-2DEFBD5BDDCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08D6037E-9728-4E19-A6AB-2DEFBD5BDDCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08D6037E-9728-4E19-A6AB-2DEFBD5BDDCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D36404F-A493-4A1F-908B-4D473A93B8BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D36404F-A493-4A1F-908B-4D473A93B8BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D36404F-A493-4A1F-908B-4D473A93B8BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D36404F-A493-4A1F-908B-4D473A93B8BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -55,6 +55,7 @@
     <Compile Include="Broadcast.Designer.cs">
       <DependentUpon>Broadcast.cs</DependentUpon>
     </Compile>
+    <Compile Include="Clients\NetworkClient.cs" />
     <Compile Include="Clients\SelfClient.cs" />
     <Compile Include="Gdi.cs" />
     <Compile Include="Manager.cs" />
@@ -81,6 +82,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NetCast\NetCast.csproj">
+      <Project>{6D36404F-A493-4A1F-908B-4D473A93B8BC}</Project>
+      <Name>NetCast</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

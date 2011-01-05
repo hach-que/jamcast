@@ -34,9 +34,11 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(297, 275);
+            this.ClientSize = new System.Drawing.Size(392, 373);
             this.Name = "Broadcast";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Broadcast Screen";
+            this.TopMost = true;
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.Broadcast_Paint);
             this.ResumeLayout(false);
 

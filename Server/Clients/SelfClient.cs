@@ -31,6 +31,7 @@ namespace JamCast.Clients
                 this.m_Bitmap = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height, g1);
             }
             Graphics g2 = Graphics.FromImage(this.m_Bitmap);
+            g2.Clear(Color.Black);
 
             // Now reacquire the device context for both the bitmap and the screen
             // Apparently you have to do this and can't go directly from the original device context

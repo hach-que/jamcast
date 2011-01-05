@@ -5,6 +5,8 @@ using System.Text;
 using System.Windows.Forms;
 using JamCast.Clients;
 using System.Drawing;
+using NetCast;
+using NetCast.Messages;
 
 namespace JamCast
 {
@@ -13,6 +15,8 @@ namespace JamCast
         private Broadcast m_Broadcast = null;
         private List<Client> m_Clients = new List<Client>();
         private Timer m_RefreshTimer = null;
+        private NetCast.Queue p_NetCast = null;
+        private int m_CurrentClient = 0;
 
         /// <summary>
         /// Starts the manager cycle.
@@ -23,11 +27,35 @@ namespace JamCast
             this.InitalizeBroadcast();
             this.InitalizeTimer();
 
-            // TEST: Initalize a SelfClient, which sends the server's screen to it's broadcasting mechanism.
-            this.m_Clients.Add(new SelfClient());
+            // Start the NetCast listener.
+            this.p_NetCast = new NetCast.Queue(12001);
+            this.p_NetCast.OnReceived += new EventHandler<MessageEventArgs>(p_NetCast_OnReceived);
 
             // Start the application message loop.
             Application.Run();
+        }
+
+        /// <summary>
+        /// This event is fired when a network message has been received.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void p_NetCast_OnReceived(object sender, MessageEventArgs e)
+        {
+            if (e.Message is ClientServiceStartingMessage)
+            {
+                this.m_Clients.Add(new NetworkClient(this.p_NetCast, e.Message.Source));
+            }
+            else if (e.Message is CountdownBroadcastMessage)
+            {
+                this.m_Clients.RemoveAll((nc) =>
+                    {
+                        if (nc is NetworkClient)
+                            return ((nc as NetworkClient).Source == e.Message.Source);
+                        else
+                            return false;
+                    });
+            }
         }
 
         /// <summary>
@@ -40,7 +68,16 @@ namespace JamCast
                 // For the moment, grab the first client and show it's screen.
                 // Also implement some caching here since GetScreen() should be asynchronous.
                 if (this.m_Clients.Count > 0)
+                {
+                    // Clamp values.
+                    if (this.m_CurrentClient >= this.m_Clients.Count)
+                        this.m_CurrentClient = this.m_Clients.Count - 1;
+                    else if (this.m_CurrentClient < 0)
+                        this.m_CurrentClient = 0;
+
+                    // Get screen.
                     return this.m_Clients[0].GetScreen();
+                }                    
                 else
                     return null;
             }
