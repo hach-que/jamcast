@@ -52,7 +52,7 @@ namespace JamCast
                 // Draw the overlay.
                 e.Graphics.FillRectangle(new SolidBrush(Color.White), 0, 0, this.ClientSize.Width, 64);
                 e.Graphics.DrawString(
-                    "James Rhodes (" + b.Width + "x" + b.Height + ")",
+                    (this.m_Manager.CurrentClient + 1).ToString() + ": James Rhodes (" + b.Width + "x" + b.Height + ")",
                     new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
                     new SolidBrush(Color.Black),
                     new Rectangle(0, 0, this.ClientSize.Width, 64),

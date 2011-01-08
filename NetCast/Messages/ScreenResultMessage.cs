@@ -5,6 +5,7 @@ using System.Text;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Drawing;
+using System.IO;
 
 namespace NetCast.Messages
 {
@@ -22,13 +23,22 @@ namespace NetCast.Messages
         public ScreenResultMessage(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-            this.p_Bitmap = info.GetValue("data.bitmap", typeof(Bitmap)) as Bitmap;
+            using (MemoryStream stream = new MemoryStream())
+            {
+                byte[] data = info.GetValue("data.bitmap", typeof(byte[])) as byte[];
+                stream.Write(data, 0, data.Length);
+                this.p_Bitmap = new Bitmap(stream);
+            }
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            info.AddValue("data.bitmap", this.p_Bitmap, typeof(Bitmap));
+            using (MemoryStream stream = new MemoryStream())
+            {
+                this.p_Bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                info.AddValue("data.bitmap", stream.GetBuffer(), typeof(byte[]));
+            }
         }
 
         public Bitmap Bitmap

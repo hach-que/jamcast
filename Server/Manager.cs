@@ -15,8 +15,9 @@ namespace JamCast
         private Broadcast m_Broadcast = null;
         private List<Client> m_Clients = new List<Client>();
         private Timer m_RefreshTimer = null;
+        private Timer m_CycleTimer = null;
         private NetCast.Queue p_NetCast = null;
-        private int m_CurrentClient = 0;
+        private int p_CurrentClient = 0;
 
         /// <summary>
         /// Starts the manager cycle.
@@ -25,10 +26,10 @@ namespace JamCast
         {
             // Initalize everything.
             this.InitalizeBroadcast();
-            this.InitalizeTimer();
+            this.InitalizeTimers();
 
             // Start the NetCast listener.
-            this.p_NetCast = new NetCast.Queue(12001);
+            this.p_NetCast = new NetCast.Queue(13000, 13001);
             this.p_NetCast.OnReceived += new EventHandler<MessageEventArgs>(p_NetCast_OnReceived);
 
             // Start the application message loop.
@@ -44,7 +45,9 @@ namespace JamCast
         {
             if (e.Message is ClientServiceStartingMessage)
             {
-                this.m_Clients.Add(new NetworkClient(this.p_NetCast, e.Message.Source));
+                NetworkClient nc = new NetworkClient(this.p_NetCast, e.Message.Source);
+                nc.OnDisconnected += new EventHandler(nc_OnDisconnected);
+                this.m_Clients.Add(nc);
             }
             else if (e.Message is CountdownBroadcastMessage)
             {
@@ -59,6 +62,16 @@ namespace JamCast
         }
 
         /// <summary>
+        /// This event is fired when a client disconnects.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void nc_OnDisconnected(object sender, EventArgs e)
+        {
+            this.m_Clients.Remove(sender as Client);
+        }
+
+        /// <summary>
         /// The current bitmap data to be broadcasted.
         /// </summary>
         public Bitmap Screen
@@ -70,13 +83,13 @@ namespace JamCast
                 if (this.m_Clients.Count > 0)
                 {
                     // Clamp values.
-                    if (this.m_CurrentClient >= this.m_Clients.Count)
-                        this.m_CurrentClient = this.m_Clients.Count - 1;
-                    else if (this.m_CurrentClient < 0)
-                        this.m_CurrentClient = 0;
+                    if (this.p_CurrentClient >= this.m_Clients.Count)
+                        this.p_CurrentClient = this.m_Clients.Count - 1;
+                    else if (this.p_CurrentClient < 0)
+                        this.p_CurrentClient = 0;
 
                     // Get screen.
-                    return this.m_Clients[0].GetScreen();
+                    return this.m_Clients[this.p_CurrentClient].GetScreen();
                 }                    
                 else
                     return null;
@@ -101,8 +114,9 @@ namespace JamCast
         /// Initalizes the refresh timer, which is used to repaint
         /// the form at 60 FPS.
         /// </summary>
-        private void InitalizeTimer()
+        private void InitalizeTimers()
         {
+            // Set up the refresh timer.
             this.m_RefreshTimer = new Timer();
             this.m_RefreshTimer.Interval = 1000 / 60;
             this.m_RefreshTimer.Tick += (sender, e) =>
@@ -110,6 +124,27 @@ namespace JamCast
                     this.m_Broadcast.Invalidate();
                 };
             this.m_RefreshTimer.Start();
+
+            // Set up the cycle timer.
+            this.m_CycleTimer = new Timer();
+            this.m_CycleTimer.Interval = 3000;
+            this.m_CycleTimer.Tick += (sender, e) =>
+            {
+                this.p_CurrentClient += 1;
+
+                if (this.p_CurrentClient >= this.m_Clients.Count)
+                    this.p_CurrentClient = 0;
+            };
+            this.m_CycleTimer.Start();
+        }
+
+        /// <summary>
+        /// The current client ID.
+        /// </summary>
+        public int CurrentClient
+        {
+            get { return this.p_CurrentClient; }
+            set { this.p_CurrentClient = value; }
         }
     }
 }

@@ -38,7 +38,6 @@
             this.Name = "Broadcast";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Broadcast Screen";
-            this.TopMost = true;
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.Broadcast_Paint);
             this.ResumeLayout(false);
 

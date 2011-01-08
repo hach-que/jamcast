@@ -6,6 +6,7 @@ using System.Net;
 using System.Drawing;
 using NetCast;
 using NetCast.Messages;
+using System.Net.Sockets;
 
 namespace JamCast.Clients
 {
@@ -42,8 +43,16 @@ namespace JamCast.Clients
         public override System.Drawing.Bitmap GetScreen()
         {
             // Send a request for a screen bitmap.
-            ScreenRequestMessage srm = new ScreenRequestMessage(this.m_Queue.Self);
-            srm.Send(this.p_Source);
+            try
+            {
+                ScreenRequestMessage srm = new ScreenRequestMessage(this.m_Queue.TcpSelf);
+                srm.SendTCP(this.p_Source);
+            }
+            catch (SocketException)
+            {
+                // The client disconnected.
+                this.Disconnect(this, new EventArgs());
+            }
 
             // Check to see if we have bitmap data.  Since the above operation is asynchronous,
             // it's likely we won't for the first few frame requests due to network delay.

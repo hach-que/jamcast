@@ -35,20 +35,37 @@ namespace NetCast
         /// Sends the message to the specified endpoint.
         /// </summary>
         /// <param name="endpoint"></param>
-        public void Send(IPEndPoint endpoint)
+        public void SendUDP(IPEndPoint endpoint)
         {
-            // Send the message to the target.
+            // Send UDP instead.  Message must be smaller than UDP packet size.
             UdpClient udp = new UdpClient();
             using (MemoryStream writer = new MemoryStream())
             {
-                //this.Dht.Log(Dht.LogType.DEBUG, "Sending -");
-                //this.Dht.Log(Dht.LogType.DEBUG, "          Message - " + this.ToString());
-                //this.Dht.Log(Dht.LogType.DEBUG, "          Target - " + target.ToString());
                 Message.p_Formatter.Serialize(writer, this);
-                int bytes = udp.Send(writer.GetBuffer(), writer.GetBuffer().Length, endpoint);
-                //this.Dht.Log(Dht.LogType.DEBUG, bytes + " total bytes sent.");
+                udp.Send(writer.GetBuffer(), writer.GetBuffer().Length, endpoint);
             }
-            udp.Close();
+            return;
+        }
+
+        /// <summary>
+        /// Sends the message to the specified endpoint.
+        /// </summary>
+        /// <param name="endpoint"></param>
+        public void SendTCP(IPEndPoint endpoint)
+        {
+            // Send the message to the target.
+            TcpClient tcp = new TcpClient();
+            tcp.Connect(endpoint);
+            using (MemoryStream writer = new MemoryStream())
+            {
+                Message.p_Formatter.Serialize(writer, this);
+                byte[] len = System.BitConverter.GetBytes(writer.GetBuffer().Length);
+                if (len.Length != 4)
+                    throw new ApplicationException("Integer is not 4 bytes on this PC!");
+                tcp.Client.Send(len, SocketFlags.None);
+                tcp.Client.Send(writer.GetBuffer(), 0, writer.GetBuffer().Length, SocketFlags.None);
+            }
+            tcp.Close();
         }
 
         public IPEndPoint Source
