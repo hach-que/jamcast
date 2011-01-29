@@ -8,6 +8,9 @@ using System.Threading;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Diagnostics;
+using System.IO.Compression;
+using System.Runtime.InteropServices;
 
 namespace NetCast
 {
@@ -20,6 +23,7 @@ namespace NetCast
         private UdpClient m_UdpClient = null;
         private Thread m_TcpThread = null;
         private Thread m_UdpThread = null;
+        private bool p_Running = true;
         //private Dictionary<IPAddress, Dictionary<int, byte[]>> m_PacketReconstructor = new Dictionary<IPAddress, Dictionary<int, byte[]>>();
 
         public event EventHandler<MessageEventArgs> OnReceived;
@@ -34,80 +38,129 @@ namespace NetCast
 
             // Start listening for events on UDP.
             this.m_UdpClient = new UdpClient(this.p_UdpEndPoint.Port);
-            this.m_UdpThread = new Thread(delegate()
-            {
-                try
-                {
-                    while (true)
-                    {
-                        IPEndPoint from = null;
-                        byte[] result = this.m_UdpClient.Receive(ref from);
-                        this.OnReceive(from, result, result.Length);
-                        //this.Log(LogType.DEBUG, "Received a message from " + from.ToString());
-                    }
-                }
-                catch (Exception e)
-                {
-                    if (e is ThreadAbortException)
-                        return;
-                    Console.WriteLine(e.ToString());
-                    throw e;
-                }
-            }
-            );
+            this.m_UdpThread = new Thread(this.HandleUdpClient);
             this.m_UdpThread.IsBackground = true;
             this.m_UdpThread.Start();
 
             // Start listening for events on TCP.
             this.m_TcpListener = new TcpListener(this.p_TcpEndPoint.Port);
-            this.m_TcpThread = new Thread(delegate()
-            {
-                try
-                {
-                    this.m_TcpListener.Start();
-                    while (true)
-                    {
-                        TcpClient client = this.m_TcpListener.AcceptTcpClient();
-                        new Thread(() =>
-                            {
-                                try
-                                {
-                                    // Read the length header.
-                                    byte[] lenbytes = new byte[4];
-                                    int lbytesread = client.Client.Receive(lenbytes, 0, 4, SocketFlags.None);
-                                    if (lbytesread != 4) return; // drop this packet :(
-                                    int length = System.BitConverter.ToInt32(lenbytes, 0);
-                                    int r = 0;
-
-                                    // Read the actual data.
-                                    byte[] result = new byte[length];
-                                    while (r < length)
-                                    {
-                                        int bytes = client.Client.Receive(result, r, length - r, SocketFlags.None);
-                                        r += bytes;
-                                    }
-
-                                    this.OnReceive(client.Client.RemoteEndPoint as IPEndPoint, result, length);
-                                }
-                                catch (SocketException)
-                                {
-                                    // Do nothing.
-                                }
-                            }).Start();
-                        //this.Log(LogType.DEBUG, "Received a message from " + from.ToString());
-                    }
-                }
-                catch (Exception e)
-                {
-                    if (e is ThreadAbortException)
-                        return;
-                    Console.WriteLine(e.ToString());
-                    throw e;
-                }
-            }
-            );
+            this.m_TcpThread = new Thread(this.HandleTcpListener);
             this.m_TcpThread.IsBackground = true;
             this.m_TcpThread.Start();
+        }
+
+        /// <summary>
+        /// Handles messages arriving from the UDP client.
+        /// </summary>
+        private void HandleUdpClient()
+        {
+            try
+            {
+                while (this.p_Running)
+                {
+                    IPEndPoint from = null;
+                    byte[] result = this.m_UdpClient.Receive(ref from);
+                    if (result.Length != 0)
+                    {
+                        this.OnReceive(from, result.ToList(), result.Length);
+                        Console.WriteLine("Received UDP packet from " + from.Address.ToString() + ".");
+                    }
+                    //this.Log(LogType.DEBUG, "Received a message from " + from.ToString());
+                }
+            }
+            catch (Exception e)
+            {
+                if (e is ThreadAbortException)
+                    return;
+                Console.WriteLine(e.ToString());
+                throw e;
+            }
+        }
+
+        /// <summary>
+        /// Handles the TCP listener accept loop.
+        /// </summary>
+        private void HandleTcpListener()
+        {
+            try
+            {
+                this.m_TcpListener.Start();
+                while (this.p_Running)
+                {
+                    TcpClient client = this.m_TcpListener.AcceptTcpClient();
+                    Thread tt = new Thread(this.HandleTcpClient);
+                    tt.IsBackground = true;
+                    tt.Start(client as object);
+                    //this.Log(LogType.DEBUG, "Received a message from " + from.ToString());
+                }
+            }
+            catch (Exception e)
+            {
+                if (e is ThreadAbortException)
+                    return;
+                Console.WriteLine(e.ToString());
+                throw e;
+            }
+        }
+
+        /// <summary>
+        /// Handles the TCP client on the other end of the connection.
+        /// </summary>
+        /// <param name="o">The TCP client object.</param>
+        private void HandleTcpClient(object o)
+        {
+            TcpClient client = o as TcpClient;
+            IPEndPoint endpoint = null;
+            List<byte> data = new List<byte>();
+            try
+            {
+                // Copy endpoint information.
+                endpoint = new IPEndPoint((client.Client.RemoteEndPoint as IPEndPoint).Address, (client.Client.RemoteEndPoint as IPEndPoint).Port);
+
+                // Read the length header.
+                byte[] lenbytes = new byte[4];
+                int lbytesread = client.Client.Receive(lenbytes, 0, 4, SocketFlags.None);
+                if (lbytesread != 4) return; // drop this packet :(
+                int length = System.BitConverter.ToInt32(lenbytes, 0);
+                int r = 0;
+
+                // Read the actual data.
+                byte[] result = new byte[length];
+                while (r < length)
+                {
+                    int bytes = client.Client.Receive(result, r, length - r, SocketFlags.None);
+                    r += bytes;
+                }
+
+                // Copy the data.
+                data.AddRange(result);
+            }
+            catch (SocketException e)
+            {
+                // Socket exception raised, force disconnect.
+                this.ForceDisconnect(endpoint);
+            }
+            finally
+            {
+                client.Close();
+            }
+
+            // Perform the OnReceive event.
+            Console.WriteLine("Received TCP packet from " + endpoint.Address.ToString() + ".");
+            this.OnReceive(endpoint, data, data.Count);
+        }
+
+        /// <summary>
+        /// Simulates a correct client disconnection, used when the TCP socket fails or serialization fails.
+        /// </summary>
+        /// <param name="endpoint">The endpoint of the client.</param>
+        private void ForceDisconnect(IPEndPoint endpoint)
+        {
+            MessageEventArgs m = new MessageEventArgs(new Messages.ClientServiceStoppingMessage(endpoint));
+            m.Message.Source.Address = endpoint.Address;
+
+            if (this.OnReceived != null)
+                this.OnReceived(this, m);
         }
 
         /// <summary>
@@ -115,75 +168,54 @@ namespace NetCast
         /// </summary>
         /// <param name="endpoint">The endpoint from which the message was received.</param>
         /// <param name="result">The data that was received.</param>
-        private void OnReceive(IPEndPoint endpoint, byte[] result, int length)
+        private void OnReceive(IPEndPoint endpoint, List<byte> result, int length)
         {
-            // Do an OnReceive event.
-            using (MemoryStream stream = new MemoryStream(result, 0, length))
+            // Create the streams.
+            MemoryStream stream = new MemoryStream(result.ToArray());
+            GZipStream decompress = new GZipStream(stream, CompressionMode.Decompress, true);
+
+            Message message = null;
+            try
             {
-                Message message = Queue.p_Formatter.Deserialize(stream) as Message;
+                // Decompress.
+                message = Queue.p_Formatter.Deserialize(decompress) as Message;
+            }
+            catch (SerializationException)
+            {
+                // Corruption in the stream, force disconnect.
+                this.ForceDisconnect(endpoint);
+            }
+            finally
+            {
+                // Close the streams.
+                stream.Close();
+                stream.Dispose();
+                decompress.Close();
+                decompress.Dispose();
+            }
+
+            // Free memory.
+            result.Clear();
+
+            // Do the OnReceive call.
+            if (message != null)
+            {
                 MessageEventArgs e = new MessageEventArgs(message);
+                e.Message.Source.Address = endpoint.Address;
 
                 if (this.OnReceived != null)
                     this.OnReceived(this, e);
             }
-
-            /*
-
-            // Read ordering information.
-            short i = Convert.ToInt16(result[0]), t = Convert.ToInt16(result[1]);
-
-            // Check to see if there's a dictionary for this endpoint.
-            if (!this.m_PacketReconstructor.Keys.Contains(endpoint.Address))
-                this.m_PacketReconstructor.Add(endpoint.Address, new Dictionary<int,byte[]>());
-
-            // Add the data.
-            byte[] data = new byte[result.Length - 2];
-            for (int c = 2; c < result.Length; c += 1)
-                data[c - 2] = result[c];
-            this.m_PacketReconstructor[endpoint.Address].Add(i, data);
-
-            // Check to see if we have all the data.
-            if (this.HasAll(endpoint.Address, t))
-            {
-                // We have all the packets, reconstruct.
-                List<byte> full = new List<byte>();
-                for (int c = 0; c < t; c += 1)
-                {
-                    foreach (byte b in this.m_PacketReconstructor[endpoint.Address][c])
-                        full.Add(b);
-                }
-
-                this.m_PacketReconstructor.Remove(endpoint.Address);
-
-                // Do an OnReceive event.
-                using (MemoryStream stream = new MemoryStream(full.ToArray()))
-                {
-                    Message message = Queue.p_Formatter.Deserialize(stream) as Message;
-                    MessageEventArgs e = new MessageEventArgs(message);
-
-                    if (this.OnReceived != null)
-                        this.OnReceived(this, e);
-                }
-            }
         }
 
         /// <summary>
-        /// Whether all of the packets have arrived from a particular endpoint.
+        /// Shuts down the queue, forcing the TCP and UDP listeners and threads to close immediately.
         /// </summary>
-        /// <param name="address"></param>
-        /// <param name="total"></param>
-        /// <returns></returns>
-        private bool HasAll(IPAddress address, short total)
+        public void Stop()
         {
-            Dictionary<int, bool> count = new Dictionary<int, bool>();
-            foreach (KeyValuePair<int, byte[]> kv in this.m_PacketReconstructor[address])
-                count.Add(kv.Key, true);
-            for (int i = 0; i < total; i += 1)
-            {
-                if (!count.Keys.Contains(i) || count[i] != true)
-                    return false;
-            }
-            return true;*/
+            this.p_Running = false;
+            this.m_TcpThread.Abort();
+            this.m_UdpThread.Abort();
         }
 
         /// <summary>

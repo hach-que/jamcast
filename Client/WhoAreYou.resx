@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,14 +117,24 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="TrayCountdown" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\TrayCountdown.ico;System.Drawing.Icon, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="TrayOff" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\TrayOff.ico;System.Drawing.Icon, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="TrayOn" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\TrayOn.ico;System.Drawing.Icon, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        AAABAAEAEBAAAAAAGABoAwAAFgAAACgAAAAQAAAAIAAAAAEAGAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAREREREREREREREREREREREREAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAREREREREAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR
+        EREREREAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAREREREREREREREREAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAREREREREREREREREREREREREREREREREREREREREREREREREAAAAA
+        AAAAAAAREREAzP8AzP8AzP8AzP8AzP8AzP8AzP8AzP8AzP8AzP8AzP8AzP8REREAAAAAAAAREREAzP8R
+        EREREREREREREREREREREREREREREREREREREREAzP8REREAAAAAAAAREREAzP8RERHMZjPMZjPMZjPM
+        ZjPMZjPMZjPMZjPMZjMREREAzP8REREAAAAAAAAREREAzP8RERHMZjPMZjPMZjPMZjPMZjPMZjPMZjPM
+        ZjMREREAzP8REREAAAAAAAAREREAzP8RERHMZjPMZjPMZjPMZjPMZjPMZjPMZjPMZjMREREAzP8REREA
+        AAAAAAAREREAzP8RERHMZjPMZjPMZjPMZjPMZjPMZjPMZjPMZjMREREAzP8REREAAAAAAAAREREAzP8R
+        ERHMZjPMZjPMZjPMZjPMZjPMZjPMZjPMZjMREREAzP8REREAAAAAAAAREREAzP8RERERERERERERERER
+        EREREREREREREREREREREREAzP8REREAAAAAAAAREREAzP8AzP8AzP8AzP8AzP8AzP8AzP8AzP8AzP8A
+        zP8AzP8AzP8REREAAAAAAAAAAAAREREREREREREREREREREREREREREREREREREREREREREREREAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4HwAA/n8AAP5/
+        AAD8PwAAwAMAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAAD//wAA
+</value>
   </data>
 </root>

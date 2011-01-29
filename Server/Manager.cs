@@ -7,6 +7,7 @@ using JamCast.Clients;
 using System.Drawing;
 using NetCast;
 using NetCast.Messages;
+using System.Threading;
 
 namespace JamCast
 {
@@ -14,10 +15,11 @@ namespace JamCast
     {
         private Broadcast m_Broadcast = null;
         private List<Client> m_Clients = new List<Client>();
-        private Timer m_RefreshTimer = null;
-        private Timer m_CycleTimer = null;
+        private System.Windows.Forms.Timer m_RefreshTimer = null;
+        private System.Windows.Forms.Timer m_CycleTimer = null;
         private NetCast.Queue p_NetCast = null;
         private int p_CurrentClient = 0;
+        private string p_CurrentClientName = "Unknown!";
 
         /// <summary>
         /// Starts the manager cycle.
@@ -28,12 +30,20 @@ namespace JamCast
             this.InitalizeBroadcast();
             this.InitalizeTimers();
 
+            // Capture the application exit event.
+            Application.ApplicationExit += new EventHandler(Application_ApplicationExit);
+
             // Start the NetCast listener.
             this.p_NetCast = new NetCast.Queue(13000, 13001);
             this.p_NetCast.OnReceived += new EventHandler<MessageEventArgs>(p_NetCast_OnReceived);
 
             // Start the application message loop.
             Application.Run();
+        }
+
+        void Application_ApplicationExit(object sender, EventArgs e)
+        {
+            this.p_NetCast.Stop();
         }
 
         /// <summary>
@@ -45,11 +55,17 @@ namespace JamCast
         {
             if (e.Message is ClientServiceStartingMessage)
             {
-                NetworkClient nc = new NetworkClient(this.p_NetCast, e.Message.Source);
+                // Search for existing client in list.
+                NetworkClient nc = new NetworkClient(this.p_NetCast, e.Message.Source, (e.Message as ClientServiceStartingMessage).Name);
+                foreach (NetworkClient snc in this.m_Clients)
+                {
+                    if (snc.Source.Address.Equals(nc.Source.Address))
+                        return;
+                }
                 nc.OnDisconnected += new EventHandler(nc_OnDisconnected);
                 this.m_Clients.Add(nc);
             }
-            else if (e.Message is CountdownBroadcastMessage)
+            else if (e.Message is ClientServiceStoppingMessage)
             {
                 this.m_Clients.RemoveAll((nc) =>
                     {
@@ -89,7 +105,15 @@ namespace JamCast
                         this.p_CurrentClient = 0;
 
                     // Get screen.
-                    return this.m_Clients[this.p_CurrentClient].GetScreen();
+                    Bitmap b = this.m_Clients[this.p_CurrentClient].Screen;
+                    this.p_CurrentClientName = this.m_Clients[this.p_CurrentClient].Name;
+                    Thread t = new Thread(() =>
+                        {
+                            this.m_Clients[this.p_CurrentClient].Refresh();
+                        });
+                    t.IsBackground = true;
+                    t.Start();
+                    return b;
                 }                    
                 else
                     return null;
@@ -117,7 +141,7 @@ namespace JamCast
         private void InitalizeTimers()
         {
             // Set up the refresh timer.
-            this.m_RefreshTimer = new Timer();
+            this.m_RefreshTimer = new System.Windows.Forms.Timer();
             this.m_RefreshTimer.Interval = 1000 / 60;
             this.m_RefreshTimer.Tick += (sender, e) =>
                 {
@@ -126,8 +150,8 @@ namespace JamCast
             this.m_RefreshTimer.Start();
 
             // Set up the cycle timer.
-            this.m_CycleTimer = new Timer();
-            this.m_CycleTimer.Interval = 3000;
+            this.m_CycleTimer = new System.Windows.Forms.Timer();
+            this.m_CycleTimer.Interval = 30000;
             this.m_CycleTimer.Tick += (sender, e) =>
             {
                 this.p_CurrentClient += 1;
@@ -144,7 +168,15 @@ namespace JamCast
         public int CurrentClient
         {
             get { return this.p_CurrentClient; }
-            set { this.p_CurrentClient = value; }
+            set { this.p_CurrentClient = value; this.p_CurrentClientName = "Unknown!"; }
+        }
+
+        /// <summary>
+        /// The current client name.
+        /// </summary>
+        public string CurrentClientName
+        {
+            get { return this.p_CurrentClientName; }
         }
     }
 }

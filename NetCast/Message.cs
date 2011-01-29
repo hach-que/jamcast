@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.IO.Compression;
 
 namespace NetCast
 {
@@ -39,10 +40,52 @@ namespace NetCast
         {
             // Send UDP instead.  Message must be smaller than UDP packet size.
             UdpClient udp = new UdpClient();
-            using (MemoryStream writer = new MemoryStream())
+
+            try
             {
-                Message.p_Formatter.Serialize(writer, this);
-                udp.Send(writer.GetBuffer(), writer.GetBuffer().Length, endpoint);
+                // Create writing stream.
+                MemoryStream writer = new MemoryStream();
+
+                try
+                {
+                    // Serialize.
+                    Message.p_Formatter.Serialize(writer, this);
+
+                    // Create other streams.
+                    MemoryStream reader = new MemoryStream();
+                    GZipStream compress = new GZipStream(reader, CompressionMode.Compress);
+
+                    try
+                    {
+                        // Compress the data.
+                        writer.Seek(0, SeekOrigin.Begin);
+                        byte[] buffer = new byte[4096]; int read;
+                        while ((read = writer.Read(buffer, 0, buffer.Length)) != 0)
+                        {
+                            compress.Write(buffer, 0, read);
+                        }
+                        compress.Close();
+
+                        // Send the UDP packet.
+                        udp.Send(reader.GetBuffer(), reader.GetBuffer().Length, endpoint);
+                    }
+                    finally
+                    {
+                        compress.Close();
+                        compress.Dispose();
+                        reader.Close();
+                        reader.Dispose();
+                    }
+                }
+                finally
+                {
+                    writer.Close();
+                    writer.Dispose();
+                }
+            }
+            finally
+            {
+                udp.Close();
             }
             return;
         }
@@ -55,17 +98,60 @@ namespace NetCast
         {
             // Send the message to the target.
             TcpClient tcp = new TcpClient();
-            tcp.Connect(endpoint);
-            using (MemoryStream writer = new MemoryStream())
+            try
             {
-                Message.p_Formatter.Serialize(writer, this);
-                byte[] len = System.BitConverter.GetBytes(writer.GetBuffer().Length);
-                if (len.Length != 4)
-                    throw new ApplicationException("Integer is not 4 bytes on this PC!");
-                tcp.Client.Send(len, SocketFlags.None);
-                tcp.Client.Send(writer.GetBuffer(), 0, writer.GetBuffer().Length, SocketFlags.None);
+                tcp.Connect(endpoint);
+
+                // Create writing stream.
+                MemoryStream writer = new MemoryStream();
+
+                try
+                {
+                    // Serialize.
+                    Message.p_Formatter.Serialize(writer, this);
+
+                    // Create the other streams.
+                    MemoryStream reader = new MemoryStream();
+                    GZipStream compress = new GZipStream(reader, CompressionMode.Compress);
+
+                    try
+                    {
+                        // Compress the data.
+                        writer.Seek(0, SeekOrigin.Begin);
+                        byte[] buffer = new byte[4096]; int read;
+                        while ((read = writer.Read(buffer, 0, buffer.Length)) != 0)
+                        {
+                            compress.Write(buffer, 0, read);
+                        }
+                        compress.Close();
+
+                        // Send length information.
+                        byte[] len = System.BitConverter.GetBytes(reader.GetBuffer().Length);
+                        if (len.Length != 4)
+                            throw new ApplicationException("Integer is not 4 bytes on this PC!");
+                        tcp.Client.Send(len, SocketFlags.None);
+
+                        // Send TCP packet.
+                        tcp.Client.Send(reader.GetBuffer(), 0, reader.GetBuffer().Length, SocketFlags.None);
+                    }
+                    finally
+                    {
+                        compress.Close();
+                        compress.Dispose();
+                        reader.Close();
+                        reader.Dispose();
+                    }
+                }
+                finally
+                {
+                    writer.Close();
+                    writer.Dispose();
+                }
             }
-            tcp.Close();
+            finally
+            {
+                tcp.Close();
+            }
         }
 
         public IPEndPoint Source

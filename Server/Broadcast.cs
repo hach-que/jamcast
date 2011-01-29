@@ -12,6 +12,7 @@ namespace JamCast
     public partial class Broadcast : Form
     {
         private Manager m_Manager = null;
+        private readonly DateTime m_End = new DateTime(2011, 01, 30, 15, 0, 0, DateTimeKind.Local);
 
         public Broadcast(Manager manager)
         {
@@ -45,19 +46,35 @@ namespace JamCast
                 e.Graphics.DrawImage(b, r, new Rectangle(0, 0, b.Width, b.Height), GraphicsUnit.Pixel);
 
                 // Get a center string style.
-                StringFormat center = new StringFormat();
-                center.Alignment = StringAlignment.Center;
-                center.LineAlignment = StringAlignment.Center;
+                StringFormat left = new StringFormat();
+                left.Alignment = StringAlignment.Near;
+                left.LineAlignment = StringAlignment.Center;
+                StringFormat right = new StringFormat();
+                right.Alignment = StringAlignment.Far;
+                right.LineAlignment = StringAlignment.Center;
 
                 // Draw the overlay.
                 e.Graphics.FillRectangle(new SolidBrush(Color.White), 0, 0, this.ClientSize.Width, 64);
                 e.Graphics.DrawString(
-                    (this.m_Manager.CurrentClient + 1).ToString() + ": James Rhodes (" + b.Width + "x" + b.Height + ")",
+                    (this.m_Manager.CurrentClient + 1).ToString() + ": " + this.m_Manager.CurrentClientName + " (" + b.Width + "x" + b.Height + ")",
                     new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
                     new SolidBrush(Color.Black),
-                    new Rectangle(0, 0, this.ClientSize.Width, 64),
-                    center
+                    new Rectangle(32, 0, this.ClientSize.Width, 64),
+                    left
                     );
+
+                // Draw the COUNTDOWN!
+                TimeSpan span = new TimeSpan(this.m_End.Ticks - DateTime.Now.Ticks);
+                string ms = span.Milliseconds.ToString().PadLeft(4, '0').Substring(1, 3);
+                string hrs = (span.Hours + (span.Days * 24)).ToString();
+                e.Graphics.DrawString(
+                    hrs + " hours " + span.Minutes + " minutes " + span.Seconds + "." + ms + " seconds ",
+                    new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
+                    new SolidBrush(Color.Red),
+                    new Rectangle(0, 0, this.ClientSize.Width - 32, 64),
+                    right
+                    );
+
             }
             else
             {
@@ -114,6 +131,15 @@ namespace JamCast
             result.Y = (outside.Height - result.Height) / 2;
 
             return result;
+        }
+
+        private void Broadcast_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                // Shutdown.
+                Application.Exit();
+            }
         }
     }
 }

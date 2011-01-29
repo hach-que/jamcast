@@ -15,20 +15,30 @@ namespace JamCast.Clients
         {
         }
 
-        public override Bitmap GetScreen()
+        public override Bitmap Screen
+        {
+            get { return this.m_Bitmap; }
+        }
+
+        public override string Name
+        {
+            get { return "Local Server"; }
+        }
+
+        public override void Refresh()
         {
             // Use the GDI call to create a DC to the whole display.
             IntPtr dc1 = Gdi.CreateDisplay();
             Graphics g1 = Graphics.FromHdc(dc1);
 
             // Get the bitmap to draw on, creating it if necessary.
-            if (this.m_Bitmap == null || this.m_Bitmap.Width != Screen.PrimaryScreen.Bounds.Width ||
-                this.m_Bitmap.Height != Screen.PrimaryScreen.Bounds.Height)
+            if (this.m_Bitmap == null || this.m_Bitmap.Width != System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width ||
+                this.m_Bitmap.Height != System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height)
             {
                 if (this.m_Bitmap != null)
                     this.m_Bitmap.Dispose();
 
-                this.m_Bitmap = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height, g1);
+                this.m_Bitmap = new Bitmap(System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width, System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height, g1);
             }
             Graphics g2 = Graphics.FromImage(this.m_Bitmap);
             g2.Clear(Color.Black);
@@ -40,7 +50,7 @@ namespace JamCast.Clients
             IntPtr dc2 = g2.GetHdc();
 
             // Bit blast the screen onto the bitmap.
-            Gdi.BitBlt(dc2, 0, 0, Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height, dc1, 0, 0, 13369376);
+            Gdi.BitBlt(dc2, 0, 0, System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width, System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height, dc1, 0, 0, 13369376);
 
             // Release the device contexts.
             g1.ReleaseHdc(dc1);
@@ -54,9 +64,6 @@ namespace JamCast.Clients
                     ),
                 new Size(32, 32)
                 ));
-
-            // Return the image.
-            return this.m_Bitmap;
         }
     }
 }
