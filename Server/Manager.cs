@@ -149,7 +149,14 @@ namespace JamCast
                     this.p_CurrentClientName = this.m_Clients[this.p_CurrentClient].Name;
                     Thread t = new Thread(() =>
                         {
-                            this.m_Clients[this.p_CurrentClient].Refresh();
+                            try
+                            {
+                                this.m_Clients[this.p_CurrentClient].Refresh();
+                            }
+                            catch (ArgumentOutOfRangeException)
+                            {
+                                this.p_CurrentClient = 0;
+                            }
                         });
                     t.IsBackground = true;
                     t.Start();
