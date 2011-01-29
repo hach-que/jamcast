@@ -8,6 +8,7 @@ using System.Drawing;
 using NetCast;
 using NetCast.Messages;
 using System.Threading;
+using System.Compat.Web;
 
 namespace JamCast
 {
@@ -20,6 +21,9 @@ namespace JamCast
         private NetCast.Queue p_NetCast = null;
         private int p_CurrentClient = 0;
         private string p_CurrentClientName = "Unknown!";
+        private Twitter m_Twitter = null;
+        private int p_TweetID = 0;
+        private System.Windows.Forms.Timer p_TweetTimer = null;
 
         /// <summary>
         /// Starts the manager cycle.
@@ -29,6 +33,9 @@ namespace JamCast
             // Initalize everything.
             this.InitalizeBroadcast();
             this.InitalizeTimers();
+
+            // Initalize Twitter.
+            this.InitalizeTwitter();
 
             // Capture the application exit event.
             Application.ApplicationExit += new EventHandler(Application_ApplicationExit);
@@ -41,9 +48,42 @@ namespace JamCast
             Application.Run();
         }
 
-        void Application_ApplicationExit(object sender, EventArgs e)
+        private void InitalizeTwitter()
+        {
+            this.m_Twitter = new Twitter();
+            this.p_TweetID = 0;
+            this.p_TweetTimer = new System.Windows.Forms.Timer();
+            this.p_TweetTimer.Tick += new EventHandler(p_TweetTimer_Tick);
+            this.p_TweetTimer.Interval = 3000;
+            this.p_TweetTimer.Start();
+        }
+
+        private void p_TweetTimer_Tick(object sender, EventArgs e)
+        {
+            this.p_TweetID += 1;
+            if (this.p_TweetID == this.m_Twitter.Total)
+                this.p_TweetID = 0;
+        }
+
+        private void Application_ApplicationExit(object sender, EventArgs e)
         {
             this.p_NetCast.Stop();
+        }
+
+        public string GetTweetStream()
+        {
+            string t = "";
+            for (int i = 0; i < this.m_Twitter.Total; i += 1)
+            {
+                TweetSharp.TwitterSearchStatus tss = this.m_Twitter.Get(i);
+                t += "*" + HttpUtility.HtmlDecode(tss.Author.ScreenName) + "* - " + HttpUtility.HtmlDecode(tss.Text) + "                    ";
+            }
+            return t;
+        }
+
+        public TweetSharp.TwitterSearchStatus GetTweet()
+        {
+            return this.m_Twitter.Get(this.p_TweetID);
         }
 
         /// <summary>

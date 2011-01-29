@@ -13,6 +13,7 @@ namespace JamCast
     {
         private Manager m_Manager = null;
         private readonly DateTime m_End = new DateTime(2011, 01, 30, 15, 0, 0, DateTimeKind.Local);
+        private int m_StreamX = 0;
 
         public Broadcast(Manager manager)
         {
@@ -39,7 +40,7 @@ namespace JamCast
             {
                 // .. and draw it.
                 Rectangle r = this.ScaleToFit(
-                        new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height - 64),
+                        new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height - 128),
                         new Rectangle(0, 0, b.Width, b.Height)
                         );
                 r.Location = new Point(r.Location.X, r.Location.Y + 64);
@@ -53,7 +54,7 @@ namespace JamCast
                 right.Alignment = StringAlignment.Far;
                 right.LineAlignment = StringAlignment.Center;
 
-                // Draw the overlay.
+                // Draw the top overlay.
                 e.Graphics.FillRectangle(new SolidBrush(Color.White), 0, 0, this.ClientSize.Width, 64);
                 e.Graphics.DrawString(
                     (this.m_Manager.CurrentClient + 1).ToString() + ": " + this.m_Manager.CurrentClientName + " (" + b.Width + "x" + b.Height + ")",
@@ -75,6 +76,28 @@ namespace JamCast
                     right
                     );
 
+                // Draw the bottom overlay.
+                e.Graphics.FillRectangle(new SolidBrush(Color.Black), 0, this.ClientSize.Height - 64, this.ClientSize.Width, 64);
+
+                // Draw the TWEETS! ~.o
+                string st = this.m_Manager.GetTweetStream();
+                SizeF size = e.Graphics.MeasureString(st, new Font(FontFamily.GenericSansSerif, 16, FontStyle.Bold, GraphicsUnit.Pixel));
+
+                if (this.m_StreamX < -size.Width + this.ClientSize.Width - 32)
+                    this.m_StreamX = 0;
+                else
+                    this.m_StreamX -= 2;
+
+                //TweetSharp.TwitterSearchStatus tss = this.m_Manager.GetTweet();
+                //string a = System.Compat.Web.HttpUtility.HtmlDecode(tss.Author.ScreenName);
+                //string t = System.Compat.Web.HttpUtility.HtmlDecode(tss.Text);
+                e.Graphics.DrawString(
+                    st + st,
+                    new Font(FontFamily.GenericSansSerif, 16, FontStyle.Bold, GraphicsUnit.Pixel),
+                    new SolidBrush(Color.White),
+                    new Rectangle(this.m_StreamX + 32, this.ClientSize.Height - 64, (int)size.Width * 2 + this.ClientSize.Width, 64),
+                    left
+                    );
             }
             else
             {
