@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Drawing.Drawing2D;
 
 namespace JamCast
 {
@@ -57,6 +58,9 @@ namespace JamCast
                 center.Alignment = StringAlignment.Center;
                 center.LineAlignment = StringAlignment.Center;
 
+                e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
                 // Draw the top overlay.
                 e.Graphics.FillRectangle(new SolidBrush(Color.White), 0, 0, this.ClientSize.Width, 64);
                 e.Graphics.DrawString(
@@ -67,17 +71,53 @@ namespace JamCast
                     left
                     );
 
-                // Draw the COUNTDOWN!
+                // Draw the COUNTDOWN! (top-right)
                 TimeSpan span = new TimeSpan(this.m_End.Ticks - DateTime.Now.Ticks);
                 string ms = span.Milliseconds.ToString().PadLeft(4, '0').Substring(1, 3);
                 string hrs = (span.Hours + (span.Days * 24)).ToString();
                 e.Graphics.DrawString(
-                    hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ",
-                    new Font(FontFamily.GenericSansSerif, 128 + 32, FontStyle.Regular, GraphicsUnit.Pixel),
+                    hrs + " hours " + span.Minutes + " minutes " + span.Seconds + "." + ms + " seconds ",
+                    new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
                     new SolidBrush(Color.Red),
-                    new Rectangle(0, 32, this.ClientSize.Width - 32, this.ClientSize.Height - 64),
+                    new Rectangle(0, 0, this.ClientSize.Width - 32, 64),
+                    right
+                    );
+
+                if (Math.Floor((double)span.Milliseconds / 500) % 2 == 0)
+                {
+                    // Draw the COUNTDOWN! (center)
+                    e.Graphics.DrawString(
+                        hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ",
+                        new Font(FontFamily.GenericSansSerif, 128, FontStyle.Regular, GraphicsUnit.Pixel),
+                        new SolidBrush(Color.Red),
+                        new PointF(this.ClientSize.Width / 2, this.ClientSize.Height / 2),
+                        center
+                        );
+                }
+                else
+                {
+                    // Draw the COUNTDOWN! (center)
+                    e.Graphics.DrawString(
+                        hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ",
+                        new Font(FontFamily.GenericSansSerif, 128, FontStyle.Regular, GraphicsUnit.Pixel),
+                        new SolidBrush(Color.White),
+                        new PointF(this.ClientSize.Width / 2, this.ClientSize.Height / 2),
+                        center
+                        );
+                }
+
+                // Draw border.
+                GraphicsPath gp = new GraphicsPath();
+                gp.AddString(
+                    hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ",
+                    FontFamily.GenericSansSerif,
+                    (int)FontStyle.Regular,
+                    128,
+                    new PointF(this.ClientSize.Width / 2, this.ClientSize.Height / 2),
                     center
                     );
+                e.Graphics.DrawPath(new Pen(Brushes.Black, 2), gp);
+
 
                 // Draw the bottom overlay.
                 e.Graphics.FillRectangle(new SolidBrush(Color.Black), 0, this.ClientSize.Height - 64, this.ClientSize.Width, 64);
