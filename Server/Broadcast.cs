@@ -76,21 +76,30 @@ namespace JamCast
                 TimeSpan span = new TimeSpan(this.m_End.Ticks - DateTime.Now.Ticks);
                 string ms = span.Milliseconds.ToString().PadLeft(4, '0').Substring(1, 3);
                 string hrs = (span.Hours + (span.Days * 24)).ToString();
+                string sstr = hrs + " hours " + span.Minutes + " minutes " + span.Seconds + "." + ms + " seconds ";
+                if (span.Ticks <= 0)
+                    sstr = "GAME OVER!";
                 e.Graphics.DrawString(
-                    hrs + " hours " + span.Minutes + " minutes " + span.Seconds + "." + ms + " seconds ",
+                    sstr,
                     new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
                     new SolidBrush(Color.Red),
                     new Rectangle(0, 0, this.ClientSize.Width - 32, 64),
                     right
                     );
 
-                if (Math.Floor((double)span.Milliseconds / 500) % 2 == 0)
+                string str = "";
+                if (span.Ticks < 0)
+                    str = "GAME OVER!";
+                else
+                    str = hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ";
+
+                if (span.Hours > 1 || Math.Floor((double)span.Milliseconds / 500) % 2 == 0 || span.Seconds < 0)
                 {
                     // Draw the COUNTDOWN! (center)
                     e.Graphics.DrawString(
-                        hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ",
-                    new Font(FontFamily.GenericSansSerif, 128, FontStyle.Regular, GraphicsUnit.Pixel),
-                    new SolidBrush(Color.FromArgb(200 + this.m_Random.Next(32), 0, 0)),
+                        str,
+                        new Font(FontFamily.GenericSansSerif, 128, FontStyle.Regular, GraphicsUnit.Pixel),
+                        new SolidBrush(Color.FromArgb(200 + this.m_Random.Next(32), 0, 0)),
                         new PointF(this.ClientSize.Width / 2, this.ClientSize.Height / 2),
                         center
                         );
@@ -99,7 +108,7 @@ namespace JamCast
                 {
                     // Draw the COUNTDOWN! (center)
                     e.Graphics.DrawString(
-                        hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ",
+                        str,
                         new Font(FontFamily.GenericSansSerif, 128, FontStyle.Regular, GraphicsUnit.Pixel),
                         new SolidBrush(Color.White),
                         new PointF(this.ClientSize.Width / 2, this.ClientSize.Height / 2),
@@ -110,7 +119,7 @@ namespace JamCast
                 // Draw border.
                 GraphicsPath gp = new GraphicsPath();
                 gp.AddString(
-                    hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ",
+                    str,
                     FontFamily.GenericSansSerif,
                     (int)FontStyle.Regular,
                     128,
