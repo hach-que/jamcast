@@ -53,6 +53,9 @@ namespace JamCast
                 StringFormat right = new StringFormat();
                 right.Alignment = StringAlignment.Far;
                 right.LineAlignment = StringAlignment.Center;
+                StringFormat center = new StringFormat();
+                center.Alignment = StringAlignment.Center;
+                center.LineAlignment = StringAlignment.Center;
 
                 // Draw the top overlay.
                 e.Graphics.FillRectangle(new SolidBrush(Color.White), 0, 0, this.ClientSize.Width, 64);
@@ -69,11 +72,11 @@ namespace JamCast
                 string ms = span.Milliseconds.ToString().PadLeft(4, '0').Substring(1, 3);
                 string hrs = (span.Hours + (span.Days * 24)).ToString();
                 e.Graphics.DrawString(
-                    hrs + " hours " + span.Minutes + " minutes " + span.Seconds + "." + ms + " seconds ",
-                    new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
+                    hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ",
+                    new Font(FontFamily.GenericSansSerif, 128 + 32, FontStyle.Regular, GraphicsUnit.Pixel),
                     new SolidBrush(Color.Red),
-                    new Rectangle(0, 0, this.ClientSize.Width - 32, 64),
-                    right
+                    new Rectangle(0, 32, this.ClientSize.Width - 32, this.ClientSize.Height - 64),
+                    center
                     );
 
                 // Draw the bottom overlay.
