@@ -180,7 +180,7 @@ namespace NetCast
                 // Decompress.
                 message = Queue.p_Formatter.Deserialize(decompress) as Message;
             }
-            catch (SerializationException)
+            catch (SerializationException e)
             {
                 // Corruption in the stream, force disconnect.
                 this.ForceDisconnect(endpoint);

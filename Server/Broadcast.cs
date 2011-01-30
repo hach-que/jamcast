@@ -15,6 +15,7 @@ namespace JamCast
         private Manager m_Manager = null;
         private readonly DateTime m_End = new DateTime(2011, 01, 30, 15, 0, 0, DateTimeKind.Local);
         private int m_StreamX = 0;
+        private Random m_Random = new Random();
 
         public Broadcast(Manager manager)
         {
@@ -88,8 +89,8 @@ namespace JamCast
                     // Draw the COUNTDOWN! (center)
                     e.Graphics.DrawString(
                         hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ",
-                        new Font(FontFamily.GenericSansSerif, 128, FontStyle.Regular, GraphicsUnit.Pixel),
-                        new SolidBrush(Color.Red),
+                    new Font(FontFamily.GenericSansSerif, 128, FontStyle.Regular, GraphicsUnit.Pixel),
+                    new SolidBrush(Color.FromArgb(200 + this.m_Random.Next(32), 0, 0)),
                         new PointF(this.ClientSize.Width / 2, this.ClientSize.Height / 2),
                         center
                         );
