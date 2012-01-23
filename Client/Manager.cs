@@ -68,6 +68,9 @@ namespace Client
 
         void Application_ApplicationExit(object sender, EventArgs e)
         {
+            ClientServiceStoppingMessage cssm = new ClientServiceStoppingMessage(this.p_NetCast.TcpSelf);
+            cssm.SendUDP(new IPEndPoint(IPAddress.Broadcast, 13000));
+            Thread.Sleep(1000);
             this.p_NetCast.Stop();
         }
 

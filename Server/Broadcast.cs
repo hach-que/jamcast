@@ -13,7 +13,7 @@ namespace JamCast
     public partial class Broadcast : Form
     {
         private Manager m_Manager = null;
-        private readonly DateTime m_End = new DateTime(2011, 01, 30, 15, 0, 0, DateTimeKind.Local);
+        private readonly DateTime m_End = new DateTime(2012, 01, 30, 15, 0, 0, DateTimeKind.Local);
         private int m_StreamX = 0;
         private Random m_Random = new Random();
 
@@ -38,6 +38,17 @@ namespace JamCast
             // Get our bitmap data from the Manager.
             Bitmap b = this.m_Manager.Screen;
 
+            // Get a center string style.
+            StringFormat left = new StringFormat();
+            left.Alignment = StringAlignment.Near;
+            left.LineAlignment = StringAlignment.Center;
+            StringFormat right = new StringFormat();
+            right.Alignment = StringAlignment.Far;
+            right.LineAlignment = StringAlignment.Center;
+            StringFormat center = new StringFormat();
+            center.Alignment = StringAlignment.Center;
+            center.LineAlignment = StringAlignment.Center;
+
             if (b != null)
             {
                 // .. and draw it.
@@ -47,18 +58,6 @@ namespace JamCast
                         );
                 r.Location = new Point(r.Location.X, r.Location.Y + 64);
                 e.Graphics.DrawImage(b, r, new Rectangle(0, 0, b.Width, b.Height), GraphicsUnit.Pixel);
-
-                // Get a center string style.
-                StringFormat left = new StringFormat();
-                left.Alignment = StringAlignment.Near;
-                left.LineAlignment = StringAlignment.Center;
-                StringFormat right = new StringFormat();
-                right.Alignment = StringAlignment.Far;
-                right.LineAlignment = StringAlignment.Center;
-                StringFormat center = new StringFormat();
-                center.Alignment = StringAlignment.Center;
-                center.LineAlignment = StringAlignment.Center;
-
                 e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
                 e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
@@ -71,25 +70,39 @@ namespace JamCast
                     new Rectangle(32, 0, this.ClientSize.Width, 64),
                     left
                     );
-
-                // Draw the COUNTDOWN! (top-right)
-                TimeSpan span = new TimeSpan(this.m_End.Ticks - DateTime.Now.Ticks);
-                string ms = span.Milliseconds.ToString().PadLeft(4, '0').Substring(1, 3);
-                string hrs = (span.Hours + (span.Days * 24)).ToString();
-                string sstr = hrs + " hours " + span.Minutes + " minutes " + span.Seconds + "." + ms + " seconds ";
-                if (span.Ticks <= 0)
-                    sstr = "GAME OVER!";
+            }
+            else
+            {
+                // ... there's no clients.
                 e.Graphics.DrawString(
-                    sstr,
+                    "No clients connected.",
                     new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
-                    new SolidBrush(Color.Red),
-                    new Rectangle(0, 0, this.ClientSize.Width - 32, 64),
-                    right
+                    new SolidBrush(Color.White),
+                    new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height),
+                    center
                     );
+            }
 
+            // Draw the COUNTDOWN! (top-right)
+            TimeSpan span = new TimeSpan(this.m_End.Ticks - DateTime.Now.Ticks);
+            string ms = span.Milliseconds.ToString().PadLeft(4, '0').Substring(1, 3);
+            string hrs = (span.Hours + (span.Days * 24)).ToString();
+            string sstr = hrs + " hours " + span.Minutes + " minutes " + span.Seconds + "." + ms + " seconds ";
+            if (span.Ticks <= 0)
+                sstr = "GAME JAM OVER!";
+            e.Graphics.DrawString(
+                sstr,
+                new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
+                new SolidBrush(Color.Red),
+                new Rectangle(0, 0, this.ClientSize.Width - 32, 64),
+                right
+                );
+
+            if (span.Hours < 2)
+            {
                 string str = "";
                 if (span.Ticks < 0)
-                    str = "GAME OVER!";
+                    str = "GAME JAM OVER!";
                 else
                     str = hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ";
 
@@ -127,46 +140,30 @@ namespace JamCast
                     center
                     );
                 e.Graphics.DrawPath(new Pen(Brushes.Black, 2), gp);
-
-
-                // Draw the bottom overlay.
-                e.Graphics.FillRectangle(new SolidBrush(Color.Black), 0, this.ClientSize.Height - 64, this.ClientSize.Width, 64);
-
-                // Draw the TWEETS! ~.o
-                string st = this.m_Manager.GetTweetStream();
-                SizeF size = e.Graphics.MeasureString(st, new Font(FontFamily.GenericSansSerif, 16, FontStyle.Bold, GraphicsUnit.Pixel));
-
-                if (this.m_StreamX < -size.Width + this.ClientSize.Width - 32)
-                    this.m_StreamX = 0;
-                else
-                    this.m_StreamX -= 2;
-
-                //TweetSharp.TwitterSearchStatus tss = this.m_Manager.GetTweet();
-                //string a = System.Compat.Web.HttpUtility.HtmlDecode(tss.Author.ScreenName);
-                //string t = System.Compat.Web.HttpUtility.HtmlDecode(tss.Text);
-                e.Graphics.DrawString(
-                    st + st,
-                    new Font(FontFamily.GenericSansSerif, 16, FontStyle.Bold, GraphicsUnit.Pixel),
-                    new SolidBrush(Color.White),
-                    new Rectangle(this.m_StreamX + 32, this.ClientSize.Height - 64, (int)size.Width * 2 + this.ClientSize.Width, 64),
-                    left
-                    );
             }
+
+            // Draw the bottom overlay.
+            e.Graphics.FillRectangle(new SolidBrush(Color.Black), 0, this.ClientSize.Height - 64, this.ClientSize.Width, 64);
+
+            // Draw the TWEETS! ~.o
+            string st = this.m_Manager.GetTweetStream();
+            SizeF size = e.Graphics.MeasureString(st, new Font(FontFamily.GenericSansSerif, 16, FontStyle.Bold, GraphicsUnit.Pixel));
+
+            if (this.m_StreamX < -size.Width + this.ClientSize.Width - 32)
+                this.m_StreamX = 0;
             else
-            {
-                // ... there's no clients.
-                StringFormat center = new StringFormat();
-                center.Alignment = StringAlignment.Center;
-                center.LineAlignment = StringAlignment.Center;
+                this.m_StreamX -= 2;
 
-                e.Graphics.DrawString(
-                    "No clients connected.",
-                    new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
-                    new SolidBrush(Color.White),
-                    new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height),
-                    center
-                    );
-            }
+            //TweetSharp.TwitterSearchStatus tss = this.m_Manager.GetTweet();
+            //string a = System.Compat.Web.HttpUtility.HtmlDecode(tss.Author.ScreenName);
+            //string t = System.Compat.Web.HttpUtility.HtmlDecode(tss.Text);
+            e.Graphics.DrawString(
+                st + st,
+                new Font(FontFamily.GenericSansSerif, 16, FontStyle.Bold, GraphicsUnit.Pixel),
+                new SolidBrush(Color.White),
+                new Rectangle(this.m_StreamX + 32, this.ClientSize.Height - 64, (int)size.Width * 2 + this.ClientSize.Width, 64),
+                left
+                );
         }
 
         /// <summary>

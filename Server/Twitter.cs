@@ -40,7 +40,7 @@ namespace JamCast
         {
             Thread t = new Thread(() =>
                 {
-                    this.m_SearchResult = this.m_Service.Search("#ggj11");
+                    this.m_SearchResult = this.m_Service.Search("#ggj12");
                     lock (this.m_ThreadLock)
                     {
                         this.m_StatusCount = this.m_SearchResult.Statuses.Count();
