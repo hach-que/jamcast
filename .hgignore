@@ -3,3 +3,5 @@ glob:Client/obj/*
 glob:Server/bin/*
 glob:Server/obj/*
 glob:*.suo
+syntax: glob
+Server/AppSettings.cs

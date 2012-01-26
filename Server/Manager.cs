@@ -24,6 +24,7 @@ namespace JamCast
         private Twitter m_Twitter = null;
         private int p_TweetID = 0;
         private System.Windows.Forms.Timer p_TweetTimer = null;
+        private List<string> m_Chat = new List<string>();
 
         /// <summary>
         /// Starts the manager cycle.
@@ -84,6 +85,24 @@ namespace JamCast
         public TweetSharp.TwitterSearchStatus GetTweet()
         {
             return this.m_Twitter.Get(this.p_TweetID);
+        }
+
+        private void UpdateChat()
+        {
+            string s = this.m_Twitter.GetNextChatMessage();
+            while (s != null)
+            {
+                this.m_Chat.Insert(0, s);
+                if (this.m_Chat.Count > 20)
+                    this.m_Chat.RemoveAt(20);
+
+                s = this.m_Twitter.GetNextChatMessage();
+            }
+        }
+
+        public List<string> GetChatStream()
+        {
+            return this.m_Chat;
         }
 
         /// <summary>
@@ -192,6 +211,7 @@ namespace JamCast
             this.m_RefreshTimer.Interval = 1000 / 60;
             this.m_RefreshTimer.Tick += (sender, e) =>
                 {
+                    this.UpdateChat();
                     this.m_Broadcast.Invalidate();
                 };
             this.m_RefreshTimer.Start();

@@ -16,6 +16,7 @@ namespace JamCast
         private readonly DateTime m_End = new DateTime(2012, 01, 30, 15, 0, 0, DateTimeKind.Local);
         private int m_StreamX = 0;
         private Random m_Random = new Random();
+        private List<string> m_Chat = new List<string>();
 
         public Broadcast(Manager manager)
         {
@@ -48,12 +49,15 @@ namespace JamCast
             StringFormat center = new StringFormat();
             center.Alignment = StringAlignment.Center;
             center.LineAlignment = StringAlignment.Center;
+            StringFormat tleft = new StringFormat();
+            tleft.Alignment = StringAlignment.Near;
+            tleft.LineAlignment = StringAlignment.Near;
 
             if (b != null)
             {
                 // .. and draw it.
                 Rectangle r = this.ScaleToFit(
-                        new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height - 128),
+                        new Rectangle(0, 0, this.ClientSize.Width - 256, this.ClientSize.Height - 128),
                         new Rectangle(0, 0, b.Width, b.Height)
                         );
                 r.Location = new Point(r.Location.X, r.Location.Y + 64);
@@ -82,6 +86,22 @@ namespace JamCast
                     center
                     );
             }
+
+            // Draw the chat.
+            List<string> chat = this.m_Manager.GetChatStream();
+            string d = null;
+            if (chat.Count == 0)
+                d = "Tweet at @MelbourneJam to show messages here!";
+            else
+                d = chat.Reverse<string>().Aggregate((a2, b2) => a2 + "\r\n" + b2);
+            e.Graphics.FillRectangle(new SolidBrush(Color.White), this.ClientSize.Width - 256 + 16, 64, 256, this.ClientSize.Height - 128);
+            e.Graphics.DrawString(
+                d,
+                new Font(FontFamily.GenericSansSerif, 14, FontStyle.Regular, GraphicsUnit.Pixel),
+                new SolidBrush(Color.Black),
+                new Rectangle(this.ClientSize.Width - 256 + 16, 64, 256 - 32, this.ClientSize.Height - 128 - 32),
+                tleft
+                );
 
             // Draw the COUNTDOWN! (top-right)
             TimeSpan span = new TimeSpan(this.m_End.Ticks - DateTime.Now.Ticks);
@@ -154,9 +174,6 @@ namespace JamCast
             else
                 this.m_StreamX -= 2;
 
-            //TweetSharp.TwitterSearchStatus tss = this.m_Manager.GetTweet();
-            //string a = System.Compat.Web.HttpUtility.HtmlDecode(tss.Author.ScreenName);
-            //string t = System.Compat.Web.HttpUtility.HtmlDecode(tss.Text);
             e.Graphics.DrawString(
                 st + st,
                 new Font(FontFamily.GenericSansSerif, 16, FontStyle.Bold, GraphicsUnit.Pixel),
