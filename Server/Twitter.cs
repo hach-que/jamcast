@@ -93,7 +93,7 @@ namespace JamCast
         {
             Thread t = new Thread(() =>
                 {
-                    this.m_SearchResult = this.m_Service.Search("#ggj12");
+                    this.m_SearchResult = this.m_Service.Search("#ggj13");
                     lock (this.m_ThreadLock)
                     {
                         this.m_StatusCount = this.m_SearchResult.Statuses.Count();
@@ -108,18 +108,30 @@ namespace JamCast
 
         private void StartStreaming()
         {
-            string url = "https://stream.twitter.com/1/statuses/filter.json?track=MelbourneJam";
+            string url = "https://stream.twitter.com/1/statuses/filter.json?track=" + AppSettings.MessagingUser;
 
             WebRequest request = WebRequest.Create(url);
-            request.Credentials = new NetworkCredential(AppSettings.Username, AppSettings.Password);
+            request.Credentials = new NetworkCredential(AppSettings.StreamUsername, AppSettings.StreamPassword);
+            ServicePointManager.ServerCertificateValidationCallback = (sender, ICertificatePolicy, chain, error) =>
+            {
+                return true;
+            };
 
-            var webResponse = request.GetResponse();
+            try
+            {
+                var webResponse = request.GetResponse();
 
-            Encoding encode = Encoding.GetEncoding("utf-8");
+                Encoding encode = Encoding.GetEncoding("utf-8");
 
-            this.m_ChatStream = new StreamReader(webResponse.GetResponseStream(), encode);
+                this.m_ChatStream = new StreamReader(webResponse.GetResponseStream(), encode);
 
-            new Thread(m_ChatThread_Run).Start();
+                var t = new Thread(m_ChatThread_Run);
+                t.IsBackground = true;
+                t.Start();
+            }
+            catch (WebException)
+            {
+            }
         }
 
         public TwitterSearchStatus Get(int i)

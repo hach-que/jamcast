@@ -40,6 +40,9 @@ Global
 		{6D36404F-A493-4A1F-908B-4D473A93B8BC}.Release|x86.ActiveCfg = Release|x86
 		{6D36404F-A493-4A1F-908B-4D473A93B8BC}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Server\Server.csproj
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
