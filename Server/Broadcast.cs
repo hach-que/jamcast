@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Drawing.Drawing2D;
+using System.Diagnostics;
 
 namespace JamCast
 {
@@ -32,6 +33,9 @@ namespace JamCast
 
         private void Broadcast_Paint(object sender, PaintEventArgs e)
         {
+            // Hide mouse cursor.
+            Cursor.Hide();
+
             // Clear our window first.
             e.Graphics.Clear(Color.Black);
 
@@ -54,25 +58,39 @@ namespace JamCast
 
             if (b != null)
             {
-                // .. and draw it.
-                Rectangle r = this.ScaleToFit(
-                        new Rectangle(0, 0, this.ClientSize.Width - (AppSettings.EnableChat ? 256 : 0), this.ClientSize.Height - 128),
-                        new Rectangle(0, 0, b.Width, b.Height)
-                        );
-                r.Location = new Point(r.Location.X, r.Location.Y + 64);
-                e.Graphics.DrawImage(b, r, new Rectangle(0, 0, b.Width, b.Height), GraphicsUnit.Pixel);
-                e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                try
+                {
+                    // .. and draw it.
+                    Rectangle r = this.ScaleToFit(
+                            new Rectangle(0, 0, this.ClientSize.Width - (AppSettings.EnableChat ? 256 : 0), this.ClientSize.Height - 128),
+                            new Rectangle(0, 0, b.Width, b.Height)
+                            );
+                    r.Location = new Point(r.Location.X, r.Location.Y + 64);
+                    e.Graphics.DrawImage(b, r, new Rectangle(0, 0, b.Width, b.Height), GraphicsUnit.Pixel);
+                    e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+                    e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-                // Draw the top overlay.
-                e.Graphics.FillRectangle(new SolidBrush(Color.White), 0, 0, this.ClientSize.Width, 64);
-                e.Graphics.DrawString(
-                    (this.m_Manager.CurrentClient + 1).ToString() + ": " + this.m_Manager.CurrentClientName + " (" + b.Width + "x" + b.Height + ")",
-                    new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
-                    new SolidBrush(Color.Black),
-                    new Rectangle(32, 0, this.ClientSize.Width, 64),
-                    left
-                    );
+                    // Draw the top overlay.
+                    e.Graphics.FillRectangle(new SolidBrush(Color.White), 0, 0, this.ClientSize.Width, 64);
+                    e.Graphics.DrawString(
+                        (this.m_Manager.CurrentClient + 1).ToString() + ": " + this.m_Manager.CurrentClientName + " (" + b.Width + "x" + b.Height + ")",
+                        new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
+                        new SolidBrush(Color.Black),
+                        new Rectangle(32, 0, this.ClientSize.Width, 64),
+                        left
+                        );
+                }
+                catch (Exception)
+                {
+                    // ... there's no clients.
+                    e.Graphics.DrawString(
+                        "Failed to render known clients...",
+                        new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
+                        new SolidBrush(Color.White),
+                        new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height),
+                        center
+                        );
+                }
             }
             else
             {
@@ -104,6 +122,16 @@ namespace JamCast
                     tleft
                     );
             }
+
+            // Draw memory usage (top-middle)
+            string mem = (Process.GetCurrentProcess().WorkingSet64 / 1024 / 1024).ToString() + "MB";
+            e.Graphics.DrawString(
+                mem,
+                new Font(FontFamily.GenericSansSerif, 10, FontStyle.Regular, GraphicsUnit.Pixel),
+                new SolidBrush(Color.Gray),
+                new Rectangle(this.ClientSize.Width / 2 - 64, 0, 128, 64),
+                center
+                );
 
             // Draw the COUNTDOWN! (top-right)
             TimeSpan span = new TimeSpan(AppSettings.EndTime.Ticks - DateTime.Now.Ticks);
@@ -232,6 +260,11 @@ namespace JamCast
             {
                 // Shutdown.
                 Application.Exit();
+            }
+            else if (e.KeyCode == Keys.Space)
+            {
+                // Next client.
+                this.m_Manager.NextClient();
             }
         }
     }

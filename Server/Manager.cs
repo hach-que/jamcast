@@ -164,6 +164,7 @@ namespace JamCast
                         this.p_CurrentClient = 0;
 
                     // Get screen.
+                    this.m_Clients[this.p_CurrentClient].DisposeBitmaps(true);
                     Bitmap b = this.m_Clients[this.p_CurrentClient].Screen;
                     this.p_CurrentClientName = this.m_Clients[this.p_CurrentClient].Name;
                     Thread t = new Thread(() =>
@@ -221,12 +222,19 @@ namespace JamCast
             this.m_CycleTimer.Interval = 30000;
             this.m_CycleTimer.Tick += (sender, e) =>
             {
-                this.p_CurrentClient += 1;
-
-                if (this.p_CurrentClient >= this.m_Clients.Count)
-                    this.p_CurrentClient = 0;
+                NextClient();
             };
             this.m_CycleTimer.Start();
+        }
+
+        public void NextClient()
+        {
+            foreach (var c in this.m_Clients)
+                c.DisposeBitmaps(false);
+            this.p_CurrentClient += 1;
+
+            if (this.p_CurrentClient >= this.m_Clients.Count)
+                this.p_CurrentClient = 0;
         }
 
         /// <summary>

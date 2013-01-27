@@ -37,5 +37,12 @@ namespace JamCast
         /// Refreshs the cached image of the client's screen.
         /// </summary>
         public abstract void Refresh();
+
+        /// <summary>
+        /// Disposes the bitmaps that need to be freed.  This should
+        /// be called on the main UI thread WHEN SWITCHING CLIENTS
+        /// so that bitmaps are not disposed while still being used.
+        /// </summary>
+        public abstract void DisposeBitmaps(bool isActive);
     }
 }

@@ -93,14 +93,18 @@ namespace JamCast
         {
             Thread t = new Thread(() =>
                 {
-                    this.m_SearchResult = this.m_Service.Search("#ggj13");
-                    lock (this.m_ThreadLock)
+                    try
                     {
-                        this.m_StatusCount = this.m_SearchResult.Statuses.Count();
-                        this.m_StatusList.Clear();
-                        foreach (TwitterSearchStatus tss in this.m_SearchResult.Statuses)
-                            this.m_StatusList.Add(tss);
+                        this.m_SearchResult = this.m_Service.Search("#ggj13");
+                        lock (this.m_ThreadLock)
+                        {
+                            this.m_StatusCount = this.m_SearchResult.Statuses.Count();
+                            this.m_StatusList.Clear();
+                            foreach (TwitterSearchStatus tss in this.m_SearchResult.Statuses)
+                                this.m_StatusList.Add(tss);
+                        }
                     }
+                    catch (Exception) { } 
                 });
             t.IsBackground = false;
             t.Start();
