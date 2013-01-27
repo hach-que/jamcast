@@ -25,10 +25,6 @@ namespace JamCast.Clients
             get { return "Local Server"; }
         }
 
-        public override void DisposeBitmaps(bool isActive)
-        {
-        }
-
         public override void Refresh()
         {
             // Use the GDI call to create a DC to the whole display.

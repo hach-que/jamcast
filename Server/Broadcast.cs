@@ -40,7 +40,8 @@ namespace JamCast
             e.Graphics.Clear(Color.Black);
 
             // Get our bitmap data from the Manager.
-            Bitmap b = this.m_Manager.Screen;
+            BitmapTracker.Purge();
+            Bitmap b = BitmapTracker.Tag(this.m_Manager.Screen);
 
             // Get a center string style.
             StringFormat left = new StringFormat();

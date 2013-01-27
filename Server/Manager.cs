@@ -164,7 +164,6 @@ namespace JamCast
                         this.p_CurrentClient = 0;
 
                     // Get screen.
-                    this.m_Clients[this.p_CurrentClient].DisposeBitmaps(true);
                     Bitmap b = this.m_Clients[this.p_CurrentClient].Screen;
                     this.p_CurrentClientName = this.m_Clients[this.p_CurrentClient].Name;
                     Thread t = new Thread(() =>
@@ -229,8 +228,7 @@ namespace JamCast
 
         public void NextClient()
         {
-            foreach (var c in this.m_Clients)
-                c.DisposeBitmaps(false);
+            BitmapTracker.Purge();
             this.p_CurrentClient += 1;
 
             if (this.p_CurrentClient >= this.m_Clients.Count)

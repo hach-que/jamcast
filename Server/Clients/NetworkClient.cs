@@ -22,7 +22,6 @@ namespace JamCast.Clients
         private IPEndPoint p_Source = null;
         private string p_CachedName = "Unknown!";
         private bool m_Waiting = false;
-        private ConcurrentBag<Bitmap> m_BitmapsToDispose = new ConcurrentBag<Bitmap>();
 
         public NetworkClient(Queue queue, IPEndPoint source, string name)
         {
@@ -33,6 +32,11 @@ namespace JamCast.Clients
 
             // Register OnReceived handler.
             this.m_Queue.OnReceived += new EventHandler<MessageEventArgs>(m_Queue_OnReceived);
+        }
+
+        ~NetworkClient()
+        {
+            BitmapTracker.Purge();
         }
 
         public override Bitmap Screen
@@ -57,36 +61,10 @@ namespace JamCast.Clients
                 ScreenResultMessage srm = e.Message as ScreenResultMessage;
                 lock (this.m_BitmapLocker)
                 {
-                    this.m_BitmapsToDispose.Add(srm.Bitmap);
+                    BitmapTracker.Tag(this.m_RealBitmap);
                     this.m_RealBitmap = srm.Bitmap;
                     this.m_Waiting = false;
                 }
-            }
-        }
-
-        private object m_DisposeLock = new object();
-        public override void DisposeBitmaps(bool isActive)
-        {
-            lock (m_DisposeLock)
-            {
-                Bitmap b;
-                while (m_BitmapsToDispose.TryTake(out b))
-                {
-                    /*if (this.p_CachedBitmap == null)
-                    {*/
-                    if (b != null && !isActive)
-                        b.Dispose();
-                    if (b != null && b != this.m_RealBitmap && b != this.p_CachedBitmap)
-                        b.Dispose();
-                    /*}
-                    else
-                    {
-                        if (b != null && b != this.p_CachedBitmap)
-                            b.Dispose();
-                    }*/
-                }
-                /*if (this.p_CachedBitmap != null)
-                this.m_RealBitmap = this.p_CachedBitmap;*/
             }
         }
 
@@ -112,19 +90,20 @@ namespace JamCast.Clients
                 // it's likely we won't for the first few frame requests due to network delay.
                 lock (this.m_BitmapLocker)
                 {
-                    //if (this.p_CachedBitmap != null)
-                    //    this.p_CachedBitmap.Dispose();
                     if (this.m_RealBitmap == null)
                     {
                         Bitmap b = new Bitmap(640, 360);
                         Graphics g = Graphics.FromImage(b);
                         g.Clear(Color.Black);
                         g.DrawString("Waiting for screen from " + this.p_Source.ToString(), SystemFonts.CaptionFont, Brushes.White, new PointF(24, 24));
-                        this.m_BitmapsToDispose.Add(b);
+                        BitmapTracker.Tag(b);
                         this.p_CachedBitmap = b;
                     }
                     else
+                    {
+                        BitmapTracker.Tag(this.m_RealBitmap);
                         this.p_CachedBitmap = this.m_RealBitmap;
+                    }
                 }
             }
         }

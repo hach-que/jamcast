@@ -105,6 +105,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettings.cs" />
+    <Compile Include="BitmapTracker.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="Broadcast.cs">
       <SubType>Form</SubType>
