@@ -69,6 +69,10 @@ namespace NetCast
                         // Send the UDP packet.
                         udp.Send(reader.GetBuffer(), reader.GetBuffer().Length, endpoint);
                     }
+                    catch (Exception)
+                    {
+                        // Silence errors.
+                    }
                     finally
                     {
                         compress.Close();
@@ -77,11 +81,19 @@ namespace NetCast
                         reader.Dispose();
                     }
                 }
+                catch (Exception)
+                {
+                    // Silence errors.
+                }
                 finally
                 {
                     writer.Close();
                     writer.Dispose();
                 }
+            }
+            catch (Exception)
+            {
+                // Silence errors.
             }
             finally
             {
@@ -134,6 +146,10 @@ namespace NetCast
                         // Send TCP packet.
                         tcp.Client.Send(reader.GetBuffer(), 0, reader.GetBuffer().Length, SocketFlags.None);
                     }
+                    catch (Exception)
+                    {
+                        // Silence errors.
+                    }
                     finally
                     {
                         compress.Close();
@@ -142,11 +158,19 @@ namespace NetCast
                         reader.Dispose();
                     }
                 }
+                catch (Exception)
+                {
+                    // Silence errors.
+                }
                 finally
                 {
                     writer.Close();
                     writer.Dispose();
                 }
+            }
+            catch (Exception)
+            {
+                // Silence errors.
             }
             finally
             {

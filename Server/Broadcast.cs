@@ -13,7 +13,6 @@ namespace JamCast
     public partial class Broadcast : Form
     {
         private Manager m_Manager = null;
-        private readonly DateTime m_End = new DateTime(2012, 01, 30, 15, 0, 0, DateTimeKind.Local);
         private int m_StreamX = 0;
         private Random m_Random = new Random();
         private List<string> m_Chat = new List<string>();
@@ -57,7 +56,7 @@ namespace JamCast
             {
                 // .. and draw it.
                 Rectangle r = this.ScaleToFit(
-                        new Rectangle(0, 0, this.ClientSize.Width - 256, this.ClientSize.Height - 128),
+                        new Rectangle(0, 0, this.ClientSize.Width - (AppSettings.EnableChat ? 256 : 0), this.ClientSize.Height - 128),
                         new Rectangle(0, 0, b.Width, b.Height)
                         );
                 r.Location = new Point(r.Location.X, r.Location.Y + 64);
@@ -79,7 +78,7 @@ namespace JamCast
             {
                 // ... there's no clients.
                 e.Graphics.DrawString(
-                    "No clients connected.",
+                    "Waiting on clients...",
                     new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
                     new SolidBrush(Color.White),
                     new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height),
@@ -87,24 +86,27 @@ namespace JamCast
                     );
             }
 
-            // Draw the chat.
-            List<string> chat = this.m_Manager.GetChatStream();
-            string d = null;
-            if (chat.Count == 0)
-                d = "Tweet at @MelbourneJam to show messages here!";
-            else
-                d = chat.Reverse<string>().Aggregate((a2, b2) => a2 + "\r\n" + b2);
-            e.Graphics.FillRectangle(new SolidBrush(Color.White), this.ClientSize.Width - 256 + 16, 64, 256, this.ClientSize.Height - 128);
-            e.Graphics.DrawString(
-                d,
-                new Font(FontFamily.GenericSansSerif, 14, FontStyle.Regular, GraphicsUnit.Pixel),
-                new SolidBrush(Color.Black),
-                new Rectangle(this.ClientSize.Width - 256 + 16, 64, 256 - 32, this.ClientSize.Height - 128 - 32),
-                tleft
-                );
+            if (AppSettings.EnableChat)
+            {
+                // Draw the chat.
+                List<string> chat = this.m_Manager.GetChatStream();
+                string d = null;
+                if (chat.Count == 0)
+                    d = "Tweet at @MelbourneJam to show messages here!";
+                else
+                    d = chat.Reverse<string>().Aggregate((a2, b2) => a2 + "\r\n" + b2);
+                e.Graphics.FillRectangle(new SolidBrush(Color.White), this.ClientSize.Width - 256 + 16, 64, 256, this.ClientSize.Height - 128);
+                e.Graphics.DrawString(
+                    d,
+                    new Font(FontFamily.GenericSansSerif, 14, FontStyle.Regular, GraphicsUnit.Pixel),
+                    new SolidBrush(Color.Black),
+                    new Rectangle(this.ClientSize.Width - 256 + 16, 64, 256 - 32, this.ClientSize.Height - 128 - 32),
+                    tleft
+                    );
+            }
 
             // Draw the COUNTDOWN! (top-right)
-            TimeSpan span = new TimeSpan(this.m_End.Ticks - DateTime.Now.Ticks);
+            TimeSpan span = new TimeSpan(AppSettings.EndTime.Ticks - DateTime.Now.Ticks);
             string ms = span.Milliseconds.ToString().PadLeft(4, '0').Substring(1, 3);
             string hrs = (span.Hours + (span.Days * 24)).ToString();
             string sstr = hrs + " hours " + span.Minutes + " minutes " + span.Seconds + "." + ms + " seconds ";
@@ -175,10 +177,11 @@ namespace JamCast
                 this.m_StreamX -= 2;
 
             e.Graphics.DrawString(
-                st + st,
+                (st + st).Replace("\n", "").Replace("\r", ""),
                 new Font(FontFamily.GenericSansSerif, 16, FontStyle.Bold, GraphicsUnit.Pixel),
                 new SolidBrush(Color.White),
-                new Rectangle(this.m_StreamX + 32, this.ClientSize.Height - 64, (int)size.Width * 2 + this.ClientSize.Width, 64),
+                //new Point(this.m_StreamX + 32, this.ClientSize.Height - 64),
+                new Rectangle(this.m_StreamX + 32, this.ClientSize.Height - 64, (int)size.Width * 9 + this.ClientSize.Width, 64),
                 left
                 );
         }

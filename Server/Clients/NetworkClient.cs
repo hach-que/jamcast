@@ -56,6 +56,14 @@ namespace JamCast.Clients
                 lock (this.m_BitmapLocker)
                 {
                     //Bitmap old = this.m_RealBitmap;
+#if FALSE
+                    try
+                    {
+                        if (this.m_RealBitmap != null)
+                            this.m_RealBitmap.Dispose();
+                    }
+                    catch (ObjectDisposedException) { }
+#endif
                     this.m_RealBitmap = srm.Bitmap;
                     this.m_Waiting = false;
                     //if (old != null)
@@ -95,10 +103,28 @@ namespace JamCast.Clients
                         Graphics g = Graphics.FromImage(b);
                         g.Clear(Color.Red);
                         g.DrawString("WAITING FOR SCREEN FROM " + this.p_Source.ToString(), SystemFonts.CaptionFont, Brushes.White, new PointF(24, 24));
+#if FALSE
+                        try
+                        {
+                            if (this.p_CachedBitmap != null)
+                                this.p_CachedBitmap.Dispose();
+                        }
+                        catch (ObjectDisposedException) { }
+#endif
                         this.p_CachedBitmap = b;
                     }
                     else
+                    {
+#if FALSE
+                        try
+                        {
+                            if (this.p_CachedBitmap != null)
+                                this.p_CachedBitmap.Dispose();
+                        }
+                        catch (ObjectDisposedException) { }
+#endif
                         this.p_CachedBitmap = this.m_RealBitmap;
+                    }
                 }
             }
         }

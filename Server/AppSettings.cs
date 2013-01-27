@@ -19,6 +19,8 @@ namespace JamCast
 
         public static string MessagingUser = "";
 
+        public static bool EnableChat = false;
+
         public readonly static DateTime EndTime = new DateTime(2013, 01, 27, 15, 0, 0, DateTimeKind.Local);
 
         static AppSettings()
@@ -36,6 +38,7 @@ namespace JamCast
                         StreamUsername = reader.ReadLine();
                         StreamPassword = reader.ReadLine();
                         MessagingUser = reader.ReadLine();
+                        EnableChat = Convert.ToBoolean(reader.ReadLine());
                     }
                 }
             }

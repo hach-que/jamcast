@@ -5,3 +5,6 @@ glob:Server/obj/*
 glob:*.suo
 syntax: glob
 Server/AppSettings.cs
+NetCast/bin/*
+NetCast/obj/*
+*.csproj.user
