@@ -215,7 +215,10 @@ namespace JamCast
             {
                 if (this.IsLocked)
                 {
+                    this.m_CycleTimer.Interval = 30000;
                     this.IsLocked = false;
+                    this.LockedClientName = null;
+                    this.LockingUserName = null;
                 }
 
                 NextClient();
@@ -287,6 +290,9 @@ namespace JamCast
 
         public void Unlock()
         {
+            this.m_CycleTimer.Stop();
+            this.m_CycleTimer.Interval = 30000;
+            this.m_CycleTimer.Start();
             this.IsLocked = false;
             this.LockedClientName = null;
             this.LockingUserName = null;
