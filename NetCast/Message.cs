@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.Serialization;
+using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
-using System.IO;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.IO.Compression;
 
 namespace NetCast
 {
@@ -49,7 +46,7 @@ namespace NetCast
                 try
                 {
                     // Serialize.
-                    Message.p_Formatter.Serialize(writer, this);
+                    p_Formatter.Serialize(writer, this);
 
                     // Create other streams.
                     MemoryStream reader = new MemoryStream();
@@ -120,7 +117,7 @@ namespace NetCast
                 try
                 {
                     // Serialize.
-                    Message.p_Formatter.Serialize(writer, this);
+                    p_Formatter.Serialize(writer, this);
 
                     // Create the other streams.
                     MemoryStream reader = new MemoryStream();
@@ -138,7 +135,7 @@ namespace NetCast
                         compress.Close();
 
                         // Send length information.
-                        byte[] len = System.BitConverter.GetBytes(reader.GetBuffer().Length);
+                        byte[] len = BitConverter.GetBytes(reader.GetBuffer().Length);
                         if (len.Length != 4)
                             throw new ApplicationException("Integer is not 4 bytes on this PC!");
                         tcp.Client.Send(len, SocketFlags.None);

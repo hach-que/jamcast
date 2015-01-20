@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using System.Drawing.Drawing2D;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Text;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace JamCast
 {
@@ -16,7 +14,6 @@ namespace JamCast
         private Manager m_Manager = null;
         private int m_StreamX = 0;
         private Random m_Random = new Random();
-        private List<string> m_Chat = new List<string>();
 
         public Broadcast(Manager manager)
         {
@@ -68,8 +65,8 @@ namespace JamCast
                             );
                     r.Location = new Point(r.Location.X, r.Location.Y + 64);
                     e.Graphics.DrawImage(b, r, new Rectangle(0, 0, b.Width, b.Height), GraphicsUnit.Pixel);
-                    e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-                    e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                    e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
+                    e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
                     // Draw the top overlay.
                     e.Graphics.FillRectangle(new SolidBrush(Color.White), 0, 0, this.ClientSize.Width, 64);
@@ -111,7 +108,7 @@ namespace JamCast
                 List<string> chat = this.m_Manager.GetChatStream();
                 string d = null;
                 if (chat.Count == 0)
-                    d = "Tweet at @MelbourneJam to show messages here!";
+                    d = "Showing messages from the " + string.Join(", ", AppSettings.SlackChannels.Select(x => "#" + x)) + " slack channels.";
                 else
                     d = chat.Reverse<string>().Aggregate((a2, b2) => a2 + "\r\n" + b2);
                 e.Graphics.FillRectangle(new SolidBrush(Color.White), this.ClientSize.Width - 256 + 16, 64, 256, this.ClientSize.Height - 128);

@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
-using System.Text;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
-using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Diagnostics;
-using System.IO.Compression;
-using System.Runtime.InteropServices;
+using System.Threading;
+using NetCast.Messages;
 
 namespace NetCast
 {
@@ -121,7 +119,7 @@ namespace NetCast
                 byte[] lenbytes = new byte[4];
                 int lbytesread = client.Client.Receive(lenbytes, 0, 4, SocketFlags.None);
                 if (lbytesread != 4) return; // drop this packet :(
-                int length = System.BitConverter.ToInt32(lenbytes, 0);
+                int length = BitConverter.ToInt32(lenbytes, 0);
                 int r = 0;
 
                 // Read the actual data.
@@ -156,7 +154,7 @@ namespace NetCast
         /// <param name="endpoint">The endpoint of the client.</param>
         private void ForceDisconnect(IPEndPoint endpoint)
         {
-            MessageEventArgs m = new MessageEventArgs(new Messages.ClientServiceStoppingMessage(endpoint));
+            MessageEventArgs m = new MessageEventArgs(new ClientServiceStoppingMessage(endpoint));
             m.Message.Source.Address = endpoint.Address;
 
             if (this.OnReceived != null)
@@ -178,7 +176,7 @@ namespace NetCast
             try
             {
                 // Decompress.
-                message = Queue.p_Formatter.Deserialize(decompress) as Message;
+                message = p_Formatter.Deserialize(decompress) as Message;
             }
             catch (SerializationException e)
             {

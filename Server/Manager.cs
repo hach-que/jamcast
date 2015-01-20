@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Compat.Web;
+using System.Drawing;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 using JamCast.Clients;
-using System.Drawing;
 using NetCast;
 using NetCast.Messages;
-using System.Threading;
-using System.Compat.Web;
+using TweetSharp;
+using Timer = System.Windows.Forms.Timer;
 
 namespace JamCast
 {
@@ -16,15 +17,15 @@ namespace JamCast
     {
         private Broadcast m_Broadcast = null;
         private List<Client> m_Clients = new List<Client>();
-        private System.Windows.Forms.Timer m_RefreshTimer = null;
-        private System.Windows.Forms.Timer m_CycleTimer = null;
-        private NetCast.Queue p_NetCast = null;
+        private Timer m_RefreshTimer = null;
+        private Timer m_CycleTimer = null;
+        private Queue p_NetCast = null;
         private int p_CurrentClient = 0;
         private string p_CurrentClientName = "Unknown!";
         private Twitter m_Twitter = null;
         private int p_TweetID = 0;
-        private System.Windows.Forms.Timer p_TweetTimer = null;
-        private List<string> m_Chat = new List<string>();
+        private Timer p_TweetTimer = null;
+        private SlackController m_Slack;
 
         /// <summary>
         /// Starts the manager cycle.
@@ -38,22 +39,32 @@ namespace JamCast
             // Initalize Twitter.
             this.InitalizeTwitter();
 
+            // Initialize Slack.
+            this.InitializeSlack();
+
             // Capture the application exit event.
             Application.ApplicationExit += new EventHandler(Application_ApplicationExit);
 
             // Start the NetCast listener.
-            this.p_NetCast = new NetCast.Queue(13000, 13001);
+            this.p_NetCast = new Queue(13000, 13001);
             this.p_NetCast.OnReceived += new EventHandler<MessageEventArgs>(p_NetCast_OnReceived);
 
             // Start the application message loop.
             Application.Run();
         }
 
+        private void InitializeSlack()
+        {
+            this.m_Slack = new SlackController(this);
+
+            this.IsLocked = false;
+        }
+
         private void InitalizeTwitter()
         {
             this.m_Twitter = new Twitter();
             this.p_TweetID = 0;
-            this.p_TweetTimer = new System.Windows.Forms.Timer();
+            this.p_TweetTimer = new Timer();
             this.p_TweetTimer.Tick += new EventHandler(p_TweetTimer_Tick);
             this.p_TweetTimer.Interval = 3000;
             this.p_TweetTimer.Start();
@@ -76,33 +87,15 @@ namespace JamCast
             string t = "";
             for (int i = 0; i < this.m_Twitter.Total; i += 1)
             {
-                TweetSharp.TwitterSearchStatus tss = this.m_Twitter.Get(i);
+                TwitterSearchStatus tss = this.m_Twitter.Get(i);
                 t += "*" + HttpUtility.HtmlDecode(tss.Author.ScreenName) + "* - " + HttpUtility.HtmlDecode(tss.Text) + "                    ";
             }
             return t;
         }
 
-        public TweetSharp.TwitterSearchStatus GetTweet()
-        {
-            return this.m_Twitter.Get(this.p_TweetID);
-        }
-
-        private void UpdateChat()
-        {
-            string s = this.m_Twitter.GetNextChatMessage();
-            while (s != null)
-            {
-                this.m_Chat.Insert(0, s);
-                if (this.m_Chat.Count > 20)
-                    this.m_Chat.RemoveAt(20);
-
-                s = this.m_Twitter.GetNextChatMessage();
-            }
-        }
-
         public List<string> GetChatStream()
         {
-            return this.m_Chat;
+            return this.m_Slack.UpdateAndGetChat();
         }
 
         /// <summary>
@@ -207,20 +200,24 @@ namespace JamCast
         private void InitalizeTimers()
         {
             // Set up the refresh timer.
-            this.m_RefreshTimer = new System.Windows.Forms.Timer();
+            this.m_RefreshTimer = new Timer();
             this.m_RefreshTimer.Interval = 1000 / 60;
             this.m_RefreshTimer.Tick += (sender, e) =>
                 {
-                    this.UpdateChat();
                     this.m_Broadcast.Invalidate();
                 };
             this.m_RefreshTimer.Start();
 
             // Set up the cycle timer.
-            this.m_CycleTimer = new System.Windows.Forms.Timer();
+            this.m_CycleTimer = new Timer();
             this.m_CycleTimer.Interval = 30000;
             this.m_CycleTimer.Tick += (sender, e) =>
             {
+                if (this.IsLocked)
+                {
+                    this.IsLocked = false;
+                }
+
                 NextClient();
             };
             this.m_CycleTimer.Start();
@@ -250,6 +247,49 @@ namespace JamCast
         public string CurrentClientName
         {
             get { return this.p_CurrentClientName; }
+        }
+
+        public bool SetSpecificClient(string name)
+        {
+            for (var i = 0; i < this.m_Clients.Count; i++)
+            {
+                if (this.m_Clients[i].Name == name)
+                {
+                    this.p_CurrentClient = i;
+                    this.p_CurrentClientName = name;
+                    this.m_CycleTimer.Stop();
+                    this.m_CycleTimer.Start();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public string[] GetClientNames()
+        {
+            return this.m_Clients.Select(x => x.Name).ToArray();
+        }
+
+        public bool IsLocked { get; set; }
+        public string LockedClientName { get; set; }
+        public string LockingUserName { get; set; }
+
+        public void Lock(string target, string lockingUser)
+        {
+            this.IsLocked = true;
+            this.LockedClientName = target;
+            this.LockingUserName = lockingUser;
+            this.m_CycleTimer.Stop();
+            this.m_CycleTimer.Interval = 1000*60 * 10;
+            this.m_CycleTimer.Start();
+        }
+
+        public void Unlock()
+        {
+            this.IsLocked = false;
+            this.LockedClientName = null;
+            this.LockingUserName = null;
         }
     }
 }

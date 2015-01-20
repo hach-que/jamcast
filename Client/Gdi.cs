@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Runtime.InteropServices;
 
 namespace Client
@@ -18,7 +15,7 @@ namespace Client
             IntPtr hdcSrc,  // handle to source DC
             int nXSrc,   // x-coordinate of source upper-left corner
             int nYSrc,   // y-coordinate of source upper-left corner
-            System.Int32 dwRop  // raster operation code
+            Int32 dwRop  // raster operation code
             );
 
         [DllImport("gdi32.dll")]
@@ -31,7 +28,7 @@ namespace Client
 
         public static IntPtr CreateDisplay()
         {
-            return Gdi.CreateDC("DISPLAY", null, null, null);
+            return CreateDC("DISPLAY", null, null, null);
         }
     }
 }

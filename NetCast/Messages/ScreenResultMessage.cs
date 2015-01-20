@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Net;
 using System.Runtime.Serialization;
-using System.Drawing;
-using System.IO;
 
 namespace NetCast.Messages
 {
@@ -36,7 +34,7 @@ namespace NetCast.Messages
             base.GetObjectData(info, context);
             using (MemoryStream stream = new MemoryStream())
             {
-                this.p_Bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                this.p_Bitmap.Save(stream, ImageFormat.Png);
                 info.AddValue("data.bitmap", stream.GetBuffer(), typeof(byte[]));
             }
         }

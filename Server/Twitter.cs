@@ -1,41 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using TweetSharp;
-using System.Windows.Forms;
-using System.Threading;
-using System.Net;
-using System.IO;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
+using System.Threading;
+using TweetSharp;
+using Timer = System.Windows.Forms.Timer;
 
 namespace JamCast
 {
     class Twitter
     {
-        private TwitterService m_Service = null;
+        private readonly TwitterService m_Service = null;
         private TwitterSearchResult m_SearchResult = null;
-        private System.Windows.Forms.Timer m_RefreshTimer = new System.Windows.Forms.Timer();
-        private object m_ThreadLock = new object();
-        private List<TwitterSearchStatus> m_StatusList = new List<TwitterSearchStatus>();
+        private readonly Timer m_RefreshTimer = new Timer();
+        private readonly object m_ThreadLock = new object();
+        private readonly List<TwitterSearchStatus> m_StatusList = new List<TwitterSearchStatus>();
         private int m_StatusCount = 0;
-        private StreamReader m_ChatStream = null;
-        private Thread m_ChatThread = null;
-        private Queue<string> m_ChatQueue = new Queue<string>();
-        private object m_ChatLock = new object();
 
         public Twitter()
         {
             this.m_Service = new TwitterService(
-                AppSettings.ConsumerKey,
-                AppSettings.ConsumerSecret,
-                AppSettings.OAuthToken,
-                AppSettings.OAuthSecret
+                AppSettings.TwitterConsumerKey,
+                AppSettings.TwitterConsumerSecret,
+                AppSettings.TwitterOAuthToken,
+                AppSettings.TwitterOAuthSecret
                 );
-
-            // Create thread for streaming API.
-            this.StartStreaming();
 
             // Refresh now.
             this.m_RefreshTimer_Tick(this, new EventArgs());
@@ -44,31 +33,6 @@ namespace JamCast
             this.m_RefreshTimer.Tick += new EventHandler(m_RefreshTimer_Tick);
             this.m_RefreshTimer.Interval = 60000;
             this.m_RefreshTimer.Start();
-        }
-
-        void m_ChatThread_Run()
-        {
-            Encoding encode = Encoding.GetEncoding("utf-8");
-            DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(Status));
-
-            while (!this.m_ChatStream.EndOfStream)
-            {
-                string l = this.m_ChatStream.ReadLine();
-                if (l.Trim() == "") continue;
-                Status s = null;
-                try
-                {
-                    s = ser.ReadObject(new MemoryStream(encode.GetBytes(l))) as Status;
-                }
-                catch (Exception) { continue; }
-                if (s.Text.ToLower().Contains("@melbournejam"))
-                    lock (this.m_ChatLock)
-                        this.m_ChatQueue.Enqueue(s.User.Name + ": " + s.Text
-                            .Replace("@MelbourneJam", "")
-                            .Replace("@melbourneJam", "")
-                            .Replace("@Melbournejam", "")
-                            .Replace("@melbournejam", "").Trim());
-            }
         }
 
         [DataContract]
@@ -95,7 +59,7 @@ namespace JamCast
                 {
                     try
                     {
-                        this.m_SearchResult = this.m_Service.Search("#ggj13");
+                        this.m_SearchResult = this.m_Service.Search(AppSettings.TwitterSearchQuery);
                         lock (this.m_ThreadLock)
                         {
                             this.m_StatusCount = this.m_SearchResult.Statuses.Count();
@@ -110,34 +74,6 @@ namespace JamCast
             t.Start();
         }
 
-        private void StartStreaming()
-        {
-            string url = "https://stream.twitter.com/1/statuses/filter.json?track=" + AppSettings.MessagingUser;
-
-            WebRequest request = WebRequest.Create(url);
-            request.Credentials = new NetworkCredential(AppSettings.StreamUsername, AppSettings.StreamPassword);
-            ServicePointManager.ServerCertificateValidationCallback = (sender, ICertificatePolicy, chain, error) =>
-            {
-                return true;
-            };
-
-            try
-            {
-                var webResponse = request.GetResponse();
-
-                Encoding encode = Encoding.GetEncoding("utf-8");
-
-                this.m_ChatStream = new StreamReader(webResponse.GetResponseStream(), encode);
-
-                var t = new Thread(m_ChatThread_Run);
-                t.IsBackground = true;
-                t.Start();
-            }
-            catch (WebException)
-            {
-            }
-        }
-
         public TwitterSearchStatus Get(int i)
         {
             lock (this.m_ThreadLock)
@@ -149,16 +85,6 @@ namespace JamCast
         public int Total
         {
             get { return this.m_StatusCount; }
-        }
-
-        public string GetNextChatMessage()
-        {
-            lock (this.m_ChatLock)
-            {
-                if (this.m_ChatQueue.Count == 0)
-                    return null;
-                return this.m_ChatQueue.Dequeue();
-            }
         }
     }
 }

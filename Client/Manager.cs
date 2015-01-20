@@ -1,23 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using NetCast.Messages;
-using NetCast;
-using System.Net;
 using System.Drawing;
+using System.Net;
 using System.Threading;
+using System.Windows.Forms;
 using Client.Properties;
+using NetCast;
+using NetCast.Messages;
+using Timer = System.Windows.Forms.Timer;
 
 namespace Client
 {
     public class Manager
     {
-        private NetCast.Queue p_NetCast = null;
+        private Queue p_NetCast = null;
         //private Bitmap m_Bitmap = null;
         private TrayIcon m_TrayIcon = null;
-        private System.Windows.Forms.Timer m_OffTimer = new System.Windows.Forms.Timer();
+        private Timer m_OffTimer = new Timer();
         private string m_Name = "Unknown!";
 
         /// <summary>
@@ -40,7 +38,7 @@ namespace Client
             Application.ApplicationExit += new EventHandler(Application_ApplicationExit);
 
             // Start the NetCast listener.
-            this.p_NetCast = new NetCast.Queue(12000, 12001);
+            this.p_NetCast = new Queue(12000, 12001);
             this.p_NetCast.OnReceived += new EventHandler<MessageEventArgs>(p_NetCast_OnReceived);
 
             // Show the system tray icon.
@@ -107,7 +105,7 @@ namespace Client
             this.m_OffTimer.Stop();
         }
 
-        public NetCast.Queue NetCast
+        public Queue NetCast
         {
             get { return this.p_NetCast; }
         }

@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using NetCast.Messages;
-using System.Net;
-using Client.Properties;
 using System.ComponentModel;
 using System.Drawing;
+using System.Net;
+using System.Windows.Forms;
+using Client.Properties;
+using NetCast.Messages;
 
 namespace Client
 {

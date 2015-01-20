@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
 using System.Drawing;
+using System.Net;
+using System.Net.Sockets;
 using NetCast;
 using NetCast.Messages;
-using System.Net.Sockets;
-using System.Windows.Forms;
-using System.Threading;
-using System.Collections.Concurrent;
 
 namespace JamCast.Clients
 {

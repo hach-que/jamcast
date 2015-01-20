@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 
 namespace Client
@@ -19,7 +13,7 @@ namespace Client
         private void c_NameTextBox_TextChanged(object sender, EventArgs e)
         {
             string trim = this.c_NameTextBox.Text.Trim();
-            if (trim.IndexOf(' ') != -1 && trim.Length > 0)
+            if (trim.Length > 0)
                 this.c_GoButton.Enabled = true;
             else
                 this.c_GoButton.Enabled = false;

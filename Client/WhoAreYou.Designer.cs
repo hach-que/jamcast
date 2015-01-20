@@ -1,11 +1,14 @@
-﻿namespace Client
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace Client
 {
     partial class WhoAreYou
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -40,9 +43,9 @@
             this.c_EnterYourNameLabel.AutoSize = true;
             this.c_EnterYourNameLabel.Location = new System.Drawing.Point(9, 9);
             this.c_EnterYourNameLabel.Name = "c_EnterYourNameLabel";
-            this.c_EnterYourNameLabel.Size = new System.Drawing.Size(103, 13);
+            this.c_EnterYourNameLabel.Size = new System.Drawing.Size(159, 13);
             this.c_EnterYourNameLabel.TabIndex = 0;
-            this.c_EnterYourNameLabel.Text = "Enter your full name:";
+            this.c_EnterYourNameLabel.Text = "Enter your Slack account name:";
             // 
             // c_NameTextBox
             // 
@@ -96,9 +99,9 @@
 
         #endregion
 
-        private System.Windows.Forms.Label c_EnterYourNameLabel;
-        private System.Windows.Forms.TextBox c_NameTextBox;
-        private System.Windows.Forms.Button c_GoButton;
-        private System.Windows.Forms.Button c_CancelButton;
+        private Label c_EnterYourNameLabel;
+        private TextBox c_NameTextBox;
+        private Button c_GoButton;
+        private Button c_CancelButton;
     }
 }
