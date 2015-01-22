@@ -11,6 +11,7 @@ namespace JamCast
         [STAThread]
         static void Main()
         {
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             // Set the visual styles.
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -18,6 +19,11 @@ namespace JamCast
             // Start and run the manager.
             Manager m = new Manager();
             m.Run();
+        }
+
+        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            System.IO.File.AppendAllText("Error.txt", e.ExceptionObject.ToString());
         }
     }
 }

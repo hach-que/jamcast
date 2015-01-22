@@ -87,8 +87,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="SlackAPI">
-      <HintPath>..\packages\SlackAPI.1.0.0\SlackAPI.dll</HintPath>
+    <Reference Include="SlackRTM">
+      <HintPath>..\packages\SlackRTM.1.0.0-CI00008\lib\net40\SlackRTM.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -128,6 +128,9 @@
     </Reference>
     <Reference Include="TweetSharp.Next">
       <HintPath>Dependencies\TweetSharp.Next.dll</HintPath>
+    </Reference>
+    <Reference Include="websocket-sharp">
+      <HintPath>..\packages\WebSocketSharp.1.0.3-rc6\lib\websocket-sharp.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
