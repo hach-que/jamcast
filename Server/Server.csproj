@@ -87,8 +87,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="SlackRTM">
-      <HintPath>..\packages\SlackRTM.1.0.0-CI00008\lib\net40\SlackRTM.dll</HintPath>
+    <Reference Include="SlackRTM, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\SlackRTM.1.0.0-CI00010\lib\net40\SlackRTM.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
