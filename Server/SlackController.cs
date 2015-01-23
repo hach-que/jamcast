@@ -11,6 +11,7 @@ using Dapr.WebSockets;
 using Newtonsoft.Json;
 using SlackRTM;
 //using SlackAPI;
+using System.Text.RegularExpressions;
 
 namespace JamCast
 {
@@ -112,7 +113,12 @@ namespace JamCast
                         if (AppSettings.SlackChannels.Contains(p_Slack.GetChannel(message.Channel).Name))
                         {
                             var user = p_Slack.GetUser(message.User).Name;
-                            this.m_MessagesQueued.Enqueue(user + ": " + message.Text);
+
+							var text = message.Text;
+							text = Regex.Replace(text, @"\<\@(U[0-9A-Z]+)\>", (m) => "@" + p_Slack.GetUser(m.Groups[1].Value).Name);
+							text = Regex.Replace(text, @"\<\#(C[0-9A-Z]+)\>", (m) => "#" + p_Slack.GetChannel(m.Groups[1].Value).Name);
+
+                            this.m_MessagesQueued.Enqueue(user + ": " + text);
                         }
                     }
                     else if (message.Channel[0] == 'D') // DMs.
