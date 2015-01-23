@@ -9,7 +9,8 @@ using System.Text;
 using System.Threading;
 using Dapr.WebSockets;
 using Newtonsoft.Json;
-using SlackAPI;
+using SlackRTM;
+//using SlackAPI;
 
 namespace JamCast
 {
@@ -17,10 +18,11 @@ namespace JamCast
     {
         private readonly Manager m_Manager;
         private Thread m_SlackThread;
-        private IObservableSocket m_Socket;
+        //private IObservableSocket m_Socket;
         private ConcurrentQueue<string> m_MessagesQueued;
-        private IDisposable m_Subscription;
+        //private IDisposable m_Subscription;
         private List<string> m_Messages;
+        private Slack p_Slack;
 
         public SlackController(Manager manager)
         {
@@ -35,70 +37,105 @@ namespace JamCast
 
         private void Run()
         {
-            var client = new WebClient();
-            var result = client.DownloadString("https://slack.com/api/rtm.start?token=" + AppSettings.SlackToken);
-            var data = JsonConvert.DeserializeObject<dynamic>(result);
+            //var client = new WebClient();
+            //var result = client.DownloadString("https://slack.com/api/rtm.start?token=" + AppSettings.SlackToken);
+            //var data = JsonConvert.DeserializeObject<dynamic>(result);
 
-            var channelMap = new Dictionary<string, string>();
-            foreach (var v in data.channels)
+            //var channelMap = new Dictionary<string, string>();
+            //foreach (var v in data.channels)
+            //{
+            //    channelMap[(string)v.id] = (string)v.name;
+            //}
+
+            //var userMap = new Dictionary<string, string>();
+            //foreach (var v in data.users)
+            //{
+            //    userMap[(string)v.id] = (string)v.name;
+            //}
+
+            //var imsMap = new Dictionary<string, string>();
+            //foreach (var v in data.ims)
+            //{
+            //    imsMap[(string)v.id] = (string)v.user;
+            //}
+
+            //bool running = true;
+            //this.m_Socket = WebSocket.Connect(new Uri((string)data.url), new CancellationToken());
+            //this.m_Subscription = this.m_Socket.Incoming.Subscribe(
+            //    x =>
+            //    {
+            //        var message = JsonConvert.DeserializeObject<dynamic>(x);
+
+            //        switch ((string)message.type)
+            //        {
+            //            case "message":
+            //                // get channel and user name.
+            //                if (channelMap.ContainsKey((string) message.channel))
+            //                {
+            //                    if (AppSettings.SlackChannels.Contains(channelMap[(string) message.channel]))
+            //                    {
+            //                        var user = userMap[(string) message.user];
+            //                        this.m_MessagesQueued.Enqueue(user + ": " + (string) message.text);
+            //                    }
+            //                }
+            //                else if (imsMap.ContainsKey((string) message.channel))
+            //                {
+            //                    var userId = imsMap[(string) message.channel];
+            //                    var user = userMap[userId];
+            //                    this.HandleCommand(userId, user, channelMap.First(kv => kv.Value == AppSettings.SlackChannels.First()).Key, (string) message.channel, (string)message.text);
+            //                }
+
+            //                break;
+            //        }
+            //    },
+            //    ex =>
+            //    {
+            //        this.m_MessagesQueued.Enqueue(ex.ToString());
+            //    },
+            //    () =>
+            //    {
+            //        this.m_MessagesQueued.Enqueue("WEBSOCKET DISCONNECTED!");
+            //        running = false;
+            //    });
+
+            p_Slack = new Slack();
+            p_Slack.Init(AppSettings.SlackToken);
+            p_Slack.OnEvent += (s, e) =>
             {
-                channelMap[(string)v.id] = (string)v.name;
-            }
-
-            var userMap = new Dictionary<string, string>();
-            foreach (var v in data.users)
-            {
-                userMap[(string)v.id] = (string)v.name;
-            }
-
-            var imsMap = new Dictionary<string, string>();
-            foreach (var v in data.ims)
-            {
-                imsMap[(string)v.id] = (string)v.user;
-            }
-
-            bool running = true;
-            this.m_Socket = WebSocket.Connect(new Uri((string)data.url), new CancellationToken());
-            this.m_Subscription = this.m_Socket.Incoming.Subscribe(
-                x =>
+                if (e.Data.Type == "message")
                 {
-                    var message = JsonConvert.DeserializeObject<dynamic>(x);
-
-                    switch ((string)message.type)
+                    var message = e.Data as SlackRTM.Events.Message;
+                    if (message.Hidden) // Slack sometimes sends Hidden messages. [Edits, deletes, and other updates.]
+                        return;         // They're often unreliable and not useful for bots.  Let's just drop them.
+                    if (message.Channel[0] == 'C') // Channels
                     {
-                        case "message":
-                            // get channel and user name.
-                            if (channelMap.ContainsKey((string) message.channel))
-                            {
-                                if (AppSettings.SlackChannels.Contains(channelMap[(string) message.channel]))
-                                {
-                                    var user = userMap[(string) message.user];
-                                    this.m_MessagesQueued.Enqueue(user + ": " + (string) message.text);
-                                }
-                            }
-                            else if (imsMap.ContainsKey((string) message.channel))
-                            {
-                                var userId = imsMap[(string) message.channel];
-                                var user = userMap[userId];
-                                this.HandleCommand(userId, user, channelMap.First(kv => kv.Value == AppSettings.SlackChannels.First()).Key, (string) message.channel, (string)message.text);
-                            }
-
-                            break;
+                        if (AppSettings.SlackChannels.Contains(p_Slack.GetChannel(message.Channel).Name))
+                        {
+                            var user = p_Slack.GetUser(message.User).Name;
+                            this.m_MessagesQueued.Enqueue(user + ": " + message.Text);
+                        }
                     }
-                },
-                ex =>
-                {
-                    this.m_MessagesQueued.Enqueue(ex.ToString());
-                },
-                () =>
-                {
-                    this.m_MessagesQueued.Enqueue("WEBSOCKET DISCONNECTED!");
-                    running = false;
-                });
-            while (running)
+                    else if (message.Channel[0] == 'D') // DMs.
+                    {
+                        var userId = message.User;
+                        var user = p_Slack.GetUser(userId).Name;
+                        this.HandleCommand(userId, user, p_Slack.GetChannel(AppSettings.SlackChannels.First()).Id, message.Channel, message.Text);
+                    }
+
+                }
+            };
+            p_Slack.Connect();
+
+            while (true)
             {
-                Thread.Sleep(100);
+                while (p_Slack.Connected)
+                {
+                    Thread.Sleep(100);
+                }
+                p_Slack.Init(AppSettings.SlackToken);
+                p_Slack.Connect();
             }
+
         }
 
         private void HandleCommand(string userId, string user, string primaryChannelId, string imId, string text)
@@ -278,27 +315,27 @@ users [projector] - list all known users by this projector");
         {
             if (AppSettings.IsPrimary)
             {
-                var content = JsonConvert.SerializeObject(new
-                {
-                    id = 1,
-                    type = "message",
-                    channel = imOrChannelId,
-                    text = message.Trim(),
-                });
-                this.m_Socket.Send(content);
+                //var content = JsonConvert.SerializeObject(new
+                //{
+                //    id = 1,
+                //    type = "message",
+                //    channel = imOrChannelId,
+                //    text = message.Trim(),
+                //});
+                this.p_Slack.SendMessage(imOrChannelId, message);
             }
         }
 
         private void Respond(string imOrChannelId, string message)
         {
-            var content = JsonConvert.SerializeObject(new
-            {
-                id = 1,
-                type = "message",
-                channel = imOrChannelId,
-                text = message.Trim(),
-            });
-            this.m_Socket.Send(content);
+            //var content = JsonConvert.SerializeObject(new
+            //{
+            //    id = 1,
+            //    type = "message",
+            //    channel = imOrChannelId,
+            //    text = message.Trim(),
+            //});
+            this.p_Slack.SendMessage(imOrChannelId, message);
         }
 
         public List<string> UpdateAndGetChat()
