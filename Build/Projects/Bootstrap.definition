@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Name="Bootstrap" Path="Bootstrap" Type="App" Platforms="Windows">
+  <References>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+	<Reference Include="slack-rtm" />
+  </References>
+  <Files>
+    <Compile Include="Program.cs" />
+    <Content Include="token.txt" />
+    <None Include="packages.config" />
+  </Files>
+</Project>

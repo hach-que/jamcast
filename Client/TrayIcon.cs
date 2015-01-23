@@ -34,7 +34,7 @@ namespace Client
             this.m_NotifyIcon = new NotifyIcon(container);
             this.m_NotifyIcon.Icon = Resources.TrayOff;
             this.m_NotifyIcon.ContextMenu = context;
-            this.m_NotifyIcon.Text = "JamCast Client";
+            this.m_NotifyIcon.Text = "JamCast Client - " + manager.User;
             this.m_NotifyIcon.Visible = true;
             this.m_NotifyIcon.DoubleClick += new EventHandler(item_Click);
         }

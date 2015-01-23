@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ExternalProject Name="Server.ThirdParty">
-
-  <Binary Name="Hammock.ClientProfile" Path="Server/Dependencies/Hammock.ClientProfile.dll" />
-  <Binary Name="TweetSharp.Next" Path="Server/Dependencies/TweetSharp.Next.dll" />
-
-</ExternalProject>

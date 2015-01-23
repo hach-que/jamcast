@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Name="Controller" Path="Controller" Type="App" Platforms="Windows">
+  <References>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Bootstrap" />
+	<Reference Include="slack-rtm" />
+  </References>
+  <Files>
+    <Compile Include="Computer.cs" />
+    <Compile Include="Forms\JamEditForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\JamEditForm.Designer.cs">
+      <DependentUpon>JamEditForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Jam.cs" />
+    <Compile Include="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Platform.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Role.cs" />
+    <Compile Include="SlackController.cs" />
+    <Compile Include="TreeNode\JamTreeNode.cs" />
+    <EmbeddedResource Include="Forms\JamEditForm.resx">
+      <DependentUpon>JamEditForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+  </Files>
+</Project>

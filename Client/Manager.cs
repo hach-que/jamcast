@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Net;
 using System.Threading;
 using System.Windows.Forms;
@@ -23,16 +24,31 @@ namespace Client
         /// </summary>
         public void Run()
         {
-            // Ask the person who they are ;)
-            WhoAreYou way = new WhoAreYou();
-            if (way.ShowDialog() != DialogResult.OK)
+            if (File.Exists("user.txt"))
             {
-                Application.Exit();
-                return;
+                using (var reader = new StreamReader("user.txt"))
+                {
+                    this.m_Name = reader.ReadToEnd().Trim();
+                }
             }
-            this.m_Name = way.Name;
-            way.Dispose();
-            GC.Collect();
+            else
+            {
+                // Ask the person who they are ;)
+                WhoAreYou way = new WhoAreYou();
+                if (way.ShowDialog() != DialogResult.OK)
+                {
+                    Application.Exit();
+                    return;
+                }
+                this.m_Name = way.Name;
+                way.Dispose();
+                GC.Collect();
+
+                using (var writer = new StreamWriter("user.txt"))
+                {
+                    writer.Write(this.m_Name);
+                }
+            }
 
             // Listen for the application exit event.
             Application.ApplicationExit += new EventHandler(Application_ApplicationExit);
@@ -109,6 +125,8 @@ namespace Client
         {
             get { return this.p_NetCast; }
         }
+
+        public string User { get { return this.m_Name; } }
 
         public Bitmap GetScreen()
         {
