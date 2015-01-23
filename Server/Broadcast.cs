@@ -28,6 +28,11 @@ namespace JamCast
             this.SetStyle(ControlStyles.UserPaint, true);
         }
 
+		public void AddControl(Control c)
+		{
+			this.Controls.Add (c);
+		}
+
         private void Broadcast_Paint(object sender, PaintEventArgs e)
         {
             // Hide mouse cursor.

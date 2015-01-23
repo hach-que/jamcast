@@ -31,16 +31,16 @@ namespace JamCast
         /// Starts the manager cycle.
         /// </summary>
         public void Run()
-        {
+		{
+			// Initalize Twitter.
+			this.InitalizeTwitter();
+
+			// Initialize Slack.
+			this.InitializeSlack();
+
             // Initalize everything.
             this.InitalizeBroadcast();
             this.InitalizeTimers();
-
-            // Initalize Twitter.
-            this.InitalizeTwitter();
-
-            // Initialize Slack.
-            this.InitializeSlack();
 
             // Capture the application exit event.
             Application.ApplicationExit += new EventHandler(Application_ApplicationExit);
@@ -200,6 +200,17 @@ namespace JamCast
         private void InitalizeTimers()
         {
             // Set up the refresh timer.
+			#if PLATFORM_MACOS
+			var thread = new Thread(new ThreadStart(() =>
+				{
+					while (true) {
+						this.m_Broadcast.Invalidate();
+						Thread.Sleep(1000 / 60);
+					}
+				}));
+			thread.IsBackground = true;
+			thread.Start();
+			#else
             this.m_RefreshTimer = new Timer();
             this.m_RefreshTimer.Interval = 1000 / 60;
             this.m_RefreshTimer.Tick += (sender, e) =>
@@ -207,9 +218,10 @@ namespace JamCast
                     this.m_Broadcast.Invalidate();
                 };
             this.m_RefreshTimer.Start();
+		    #endif
 
-            // Set up the cycle timer.
-            this.m_CycleTimer = new Timer();
+			// Set up the cycle timer.
+			this.m_CycleTimer = new Timer();
             this.m_CycleTimer.Interval = 30000;
             this.m_CycleTimer.Tick += (sender, e) =>
             {

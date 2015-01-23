@@ -2,3 +2,7 @@ bin
 obj
 *.suo
 packages/*
+*.csproj
+*.sln
+*.userprefs
+*.speccache

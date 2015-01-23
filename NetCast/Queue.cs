@@ -31,8 +31,16 @@ namespace NetCast
             // Automatically get the internal IP address (since JamCast is designed for
             // LAN networks).
             string hostname = Dns.GetHostName();
-            this.p_UdpEndPoint = new IPEndPoint(Dns.GetHostByName(hostname).AddressList[0], udpport);
-            this.p_TcpEndPoint = new IPEndPoint(Dns.GetHostByName(hostname).AddressList[0], tcpport);
+			IPAddress address = IPAddress.Loopback;
+			try
+			{
+				address = Dns.GetHostByName(hostname).AddressList[0];
+			}
+			catch {
+			}
+
+			this.p_UdpEndPoint = new IPEndPoint(address, udpport);
+            this.p_TcpEndPoint = new IPEndPoint(address, tcpport);
 
             // Start listening for events on UDP.
             this.m_UdpClient = new UdpClient(this.p_UdpEndPoint.Port);
