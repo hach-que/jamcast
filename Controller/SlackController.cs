@@ -22,14 +22,14 @@ namespace Controller
         private readonly MainForm _form;
         private Dictionary<Guid, Thread> m_JamThreads;
         private ConcurrentDictionary<Guid, SlackConnectionStatus> m_IsConnected;
-        private Dictionary<Guid, ConcurrentQueue<string>> m_JamQueues; 
+        private Dictionary<Guid, ConcurrentQueue<dynamic>> m_JamQueues; 
 
         public SlackController(MainForm form)
         {
             _form = form;
             m_JamThreads = new Dictionary<Guid, Thread>();
             m_IsConnected = new ConcurrentDictionary<Guid, SlackConnectionStatus>();
-            m_JamQueues = new Dictionary<Guid, ConcurrentQueue<string>>();
+            m_JamQueues = new Dictionary<Guid, ConcurrentQueue<dynamic>>();
         }
 
         public void RegisterJam(Jam jam)
@@ -39,7 +39,7 @@ namespace Controller
 
             m_JamThreads.Add(jam.Guid, thread);
             m_IsConnected.TryAdd(jam.Guid, SlackConnectionStatus.Disconnected);
-            m_JamQueues.Add(jam.Guid, new ConcurrentQueue<string>());
+            m_JamQueues.Add(jam.Guid, new ConcurrentQueue<dynamic>());
 
             thread.Start(jam);
         }
@@ -130,13 +130,25 @@ namespace Controller
                             {
                                 while (slack.Connected)
                                 {
-                                    string value;
+                                    dynamic value;
                                     if (m_JamQueues[jam.Guid].TryDequeue(out value))
                                     {
-                                        switch (value)
+                                        switch ((string)value.Type)
                                         {
                                             case "pong":
                                                 this.SendPong(slack, jam.ControllerSlackToken, jam);
+                                                break;
+                                            case "designate":
+                                                this.SendDesignate(slack, jam.ControllerSlackToken, value.Target, value.Role);
+                                                break;
+                                            case "client-settings":
+                                                this.SendSettings(slack, jam.ControllerSlackToken, value.Target, "client-settings", value.Settings);
+                                                break;
+                                            case "projector-settings":
+                                                this.SendSettings(slack, jam.ControllerSlackToken, value.Target, "projector-settings", value.Settings);
+                                                break;
+                                            default:
+                                                this.SendCustom(slack, jam.ControllerSlackToken, value);
                                                 break;
                                         }
                                     }
@@ -191,6 +203,52 @@ namespace Controller
 
         private void SendPong(Slack slack, string token, Jam jam)
         {
+            var jamcastChannel = GetJamcastChannel(slack, token);
+
+            slack.SendMessage(jamcastChannel, Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
+            {
+                Target = "",
+                Type = "pong",
+                AvailableClientVersion = jam.AvailableClientVersion,
+                AvailableProjectorVersion = jam.AvailableProjectorVersion,
+                AvailableClientFile = jam.AvailableClientFile,
+                AvailableProjectorFile = jam.AvailableProjectorFile,
+            }))));
+        }
+
+        private void SendDesignate(Slack slack, string token, string target, string role)
+        {
+            var jamcastChannel = GetJamcastChannel(slack, token);
+
+            slack.SendMessage(jamcastChannel, Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
+            {
+                Target = target,
+                Type = "designate",
+                Role = role,
+            }))));
+        }
+
+        private void SendSettings(Slack slack, string token, string target, string settingsType, string settings)
+        {
+            var jamcastChannel = GetJamcastChannel(slack, token);
+
+            slack.SendMessage(jamcastChannel, Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
+            {
+                Target = target,
+                Type = settingsType,
+                Settings = settings,
+            }))));
+        }
+
+        private void SendCustom(Slack slack, string token, object data)
+        {
+            var jamcastChannel = GetJamcastChannel(slack, token);
+
+            slack.SendMessage(jamcastChannel, Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(data))));
+        }
+
+        private static string GetJamcastChannel(Slack slack, string token)
+        {
             var jamcastChannel =
                 slack.Ims.Where(x => x.User == slack.GetUser("jamcast").Id).Select(x => x.Id).FirstOrDefault();
             if (jamcastChannel == null)
@@ -200,18 +258,9 @@ namespace Controller
                                                    slack.GetUser("jamcast").Id);
                 var response = JsonConvert.DeserializeObject<dynamic>(result);
 
-                jamcastChannel = (string)response.channel.id;
+                jamcastChannel = (string) response.channel.id;
             }
-
-            slack.SendMessage(jamcastChannel, Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
-            {
-                Source = "",
-                Type = "pong",
-                AvailableClientVersion = jam.AvailableClientVersion,
-                AvailableProjectorVersion = jam.AvailableProjectorVersion,
-                AvailableClientFile = jam.AvailableClientFile,
-                AvailableProjectorFile = jam.AvailableProjectorFile,
-            }))));
+            return jamcastChannel;
         }
 
         public SlackConnectionStatus GetConnectionStatus(Guid guid)
@@ -227,7 +276,22 @@ namespace Controller
 
         public void ScanComputers(Guid guid)
         {
-            this.m_JamQueues[guid].Enqueue("pong");
+            this.m_JamQueues[guid].Enqueue(new { Type = "pong" });
+        }
+
+        public void DesignateComputer(Guid jamGuid, Guid computerGuid, Role role)
+        {
+            this.m_JamQueues[jamGuid].Enqueue(new { Type = "designate", Target = computerGuid.ToString(), Role = role.ToString() });
+        }
+
+        public void UpdateComputerSettings(Guid jamGuid, Guid computerGuid, string settingsType, string settingsJson)
+        {
+            this.m_JamQueues[jamGuid].Enqueue(new { Type = settingsType, Target = computerGuid.ToString(), Settings = settingsJson });
+        }
+
+        public void SendCustomMessage(Guid guid, object data)
+        {
+            this.m_JamQueues[guid].Enqueue(data);
         }
     }
 }

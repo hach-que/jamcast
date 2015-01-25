@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace JamCast
 {
@@ -23,30 +24,40 @@ namespace JamCast
 
         static AppSettings()
         {
-            if (!File.Exists("appsettings.txt"))
+            var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "JamCast",
+                "projector-settings.json");
+
+            if (!File.Exists(path))
             {
-                MessageBox.Show("The appsettings.txt file is missing!");
+                MessageBox.Show(
+                    "projector-settings.json has not been set.  Configure " +
+                    "this projector in the controller software.");
                 Application.Exit();
             }
 
             try
             {
-                using (var reader = new StreamReader("appsettings.txt"))
+                using (var reader = new StreamReader(path))
                 {
-                    TwitterConsumerKey = reader.ReadLine();
-                    TwitterConsumerSecret = reader.ReadLine();
-                    TwitterOAuthToken = reader.ReadLine();
-                    TwitterOAuthSecret = reader.ReadLine();
-                    TwitterSearchQuery = reader.ReadLine();
-                    ProjectorName = reader.ReadLine();
-                    SlackChannels = reader.ReadLine().Split(',');
-                    SlackToken = reader.ReadLine();
-                    IsPrimary = bool.Parse(reader.ReadLine());
+                    var settings = JsonConvert.DeserializeObject<dynamic>(reader.ReadToEnd());
+                    TwitterConsumerKey = (string) settings.TwitterConsumerKey;
+                    TwitterConsumerSecret = (string) settings.TwitterConsumerSecret;
+                    TwitterOAuthToken = (string) settings.TwitterOAuthToken;
+                    TwitterOAuthSecret = (string) settings.TwitterOAuthSecret;
+                    TwitterSearchQuery = (string) settings.TwitterSearchQuery;
+                    ProjectorName = (string) settings.ProjectorName;
+                    SlackChannels = ((string) settings.SlackChannels).Split(',');
+                    SlackToken = (string) settings.SlackToken;
+                    IsPrimary = (bool) settings.IsPrimary;
                 }
             }
             catch (Exception)
             {
-                MessageBox.Show("The appsettings.txt file contains incorrect configuration!");
+                MessageBox.Show(
+                    "projector-settings.json is not valid.  Configure " +
+                    "this projector in the controller software.");
                 Application.Exit();
             }
         }

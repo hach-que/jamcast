@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Linq;
 using System.Windows.Forms;
+using Controller.Forms;
 
 namespace Controller.TreeNode
 {
     public class ComputerTreeNode : System.Windows.Forms.TreeNode, IDoubleClick
     {
-        public ComputerTreeNode(Computer computer)
+        public ComputerTreeNode(Jam jam, Computer computer)
         {
             if (computer == null)
             {
@@ -13,27 +15,57 @@ namespace Controller.TreeNode
             }
 
             Computer = computer;
+            Jam = jam;
             Update();
 
             ContextMenuStrip = new ContextMenuStrip();
             this.ContextMenuStrip.Items.Add("Designate as Client", null, (sender, args) =>
             {
                 Computer.Role = Role.Client;
+                Computer.WaitingForPing = true;
                 this.UpdateImage();
+
+                var mainForm = this.TreeView.FindForm() as MainForm;
+                mainForm.SlackController.DesignateComputer(Jam.Guid, Computer.Guid, Computer.Role);
             });
             this.ContextMenuStrip.Items.Add("Designate as Projector", null, (sender, args) =>
             {
                 Computer.Role = Role.Projector;
+                Computer.WaitingForPing = true;
                 this.UpdateImage();
+
+                var mainForm = this.TreeView.FindForm() as MainForm;
+                mainForm.SlackController.DesignateComputer(Jam.Guid, Computer.Guid, Computer.Role);
+            });
+            this.ContextMenuStrip.Items.Add("Show IP Addresses", null, (sender, args) =>
+            {
+                var addresses = string.Join("\r\n", Computer.IPAddresses.Select(x => x.ToString()));
+                MessageBox.Show(addresses);
             });
 
             this.UpdateImage();
         }
 
+        public Jam Jam { get; private set; }
+
         public Computer Computer { get; private set; }
 
         public void DoubleClicked(MainForm mainForm)
         {
+            if (Computer.Role == Role.Projector)
+            {
+                var child = mainForm.MdiChildren.OfType<ProjectorEditForm>().FirstOrDefault(x => x.ComputerTreeNode == this);
+                if (child != null)
+                {
+                    child.Focus();
+                }
+                else
+                {
+                    var projectorEditForm = new ProjectorEditForm(this.Jam, this);
+                    projectorEditForm.MdiParent = mainForm;
+                    projectorEditForm.Show();
+                }
+            }
         }
 
         public void Update()

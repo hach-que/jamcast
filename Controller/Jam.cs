@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.Serialization.Json;
 using Controller.TreeNode;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SlackRTM;
 
 namespace Controller
@@ -36,6 +38,10 @@ namespace Controller
 
         [NonSerialized]
         public List<Computer> Computers = new List<Computer>();
+
+        public Dictionary<string, string> CachedProjectorSettings = new Dictionary<string, string>();
+
+        public Dictionary<string, string> CachedClientSettings = new Dictionary<string, string>();
 
         public string AvailableClientVersion;
 
@@ -72,6 +78,16 @@ namespace Controller
             {
                 case "ping":
                     var guid = Guid.Parse(source);
+
+                    var ipaddresses = new List<IPAddress>();
+                    if (data.IPAddresses != null && data.IPAddresses is JArray)
+                    {
+                        foreach (var ip in data.IPAddresses)
+                        {
+                            ipaddresses.Add(IPAddress.Parse((string)ip));
+                        }
+                    }
+
                     if (Computers.All(x => x.Guid != guid))
                     {
                         var computer = new Computer
@@ -82,6 +98,7 @@ namespace Controller
                             Role = (Role)Enum.Parse(typeof(Role), (string)data.Role),
                             HasReceivedVersionInformation = (bool)(data.HasReceivedVersionInformation ?? false),
                             WaitingForPing = false,
+                            IPAddresses = ipaddresses.ToArray(),
                         };
                         Computers.Add(computer);
                         _node.NewComputerRegistered(computer);
@@ -93,6 +110,7 @@ namespace Controller
                         computer.Role = (Role)Enum.Parse(typeof(Role), (string)data.Role);
                         computer.HasReceivedVersionInformation = (bool) (data.HasReceivedVersionInformation ?? false);
                         computer.WaitingForPing = false;
+                        computer.IPAddresses = ipaddresses.ToArray();
                         foreach (var node in _node.Nodes.OfType<ComputerTreeNode>())
                         {
                             node.Update();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Compat.Web;
 using System.Drawing;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Windows.Forms;
 using JamCast.Clients;
@@ -107,15 +108,7 @@ namespace JamCast
         {
             if (e.Message is ClientServiceStartingMessage)
             {
-                // Search for existing client in list.
-                NetworkClient nc = new NetworkClient(this.p_NetCast, e.Message.Source, (e.Message as ClientServiceStartingMessage).Name);
-                foreach (NetworkClient snc in this.m_Clients)
-                {
-                    if (snc.Source.Address.Equals(nc.Source.Address))
-                        return;
-                }
-                nc.OnDisconnected += new EventHandler(nc_OnDisconnected);
-                this.m_Clients.Add(nc);
+                AddClientExplicitly(e.Message.Source, (e.Message as ClientServiceStartingMessage).Name);
             }
             else if (e.Message is ClientServiceStoppingMessage)
             {
@@ -127,6 +120,18 @@ namespace JamCast
                             return false;
                     });
             }
+        }
+
+        public void AddClientExplicitly(IPEndPoint source, string name)
+        {
+            NetworkClient nc = new NetworkClient(this.p_NetCast, source, name);
+            foreach (NetworkClient snc in this.m_Clients)
+            {
+                if (snc.Source.Address.Equals(nc.Source.Address))
+                    return;
+            }
+            nc.OnDisconnected += new EventHandler(nc_OnDisconnected);
+            this.m_Clients.Add(nc);
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
@@ -29,6 +30,30 @@ namespace Controller.TreeNode
 
                 var mainForm = this.TreeView.FindForm() as MainForm;
                 mainForm.SlackController.ScanComputers(this.Jam.Guid);
+            });
+            this.ContextMenuStrip.Items.Add("Push Client IPs to Projectors", null, (sender, args) =>
+            {
+                var iplist = new List<object>();
+
+                foreach (var node in this.Nodes.OfType<ComputerTreeNode>())
+                {
+                    if (node.Computer.Role == Role.Client)
+                    {
+                        foreach (var ip in node.Computer.IPAddresses)
+                        {
+                            iplist.Add(new { IPAddress = ip.ToString(), Name = node.Computer.Hostname });
+                        }
+                    }
+                }
+
+                var data = new
+                {
+                    Type = "ipaddress-list",
+                    IPAddresses = iplist,
+                };
+
+                var mainForm = this.TreeView.FindForm() as MainForm;
+                mainForm.SlackController.SendCustomMessage(this.Jam.Guid, data);
             });
 
             this.ImageKey = @"bullet_red.png";
@@ -122,7 +147,7 @@ namespace Controller.TreeNode
 
         public void NewComputerRegistered(Computer computer)
         {
-            this.Nodes.Add(new ComputerTreeNode(computer));
+            this.Nodes.Add(new ComputerTreeNode(Jam, computer));
 
             if (!this.IsExpanded)
             {

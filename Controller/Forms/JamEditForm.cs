@@ -20,6 +20,18 @@ namespace Controller.Forms
 
         public JamTreeNode JamTreeNode { get; private set; }
 
+        private const string NewtonsoftJsonRedirect = @"<?xml version=""1.0"" encoding=""utf-8"" ?>
+<configuration>
+  <runtime>
+    <assemblyBinding xmlns=""urn:schemas-microsoft-com:asm.v1"">
+      <dependentAssembly>
+        <assemblyIdentity name=""Newtonsoft.Json"" publicKeyToken=""30AD4FE6B2A6AEED"" culture=""neutral""/>
+        <bindingRedirect oldVersion=""0.0.0.0-6.0.0.0"" newVersion=""6.0.0.0""/>
+      </dependentAssembly>
+    </assemblyBinding>
+  </runtime>
+</configuration>";
+
         public JamEditForm(JamTreeNode jamTreeNode)
         {
             JamTreeNode = jamTreeNode;
@@ -113,43 +125,40 @@ namespace Controller.Forms
                 sfd.FileName = "Bootstrap.exe";
                 if (sfd.ShowDialog() == DialogResult.OK)
                 {
-                    using (var writer = new FileStream(sfd.FileName, FileMode.Create))
+                    try
                     {
-                        var bytes = BootstrapCreator.CreateCustomBootstrap(this.c_ClientSlackAPIToken.Text);
-                        writer.Write(bytes, 0, bytes.Length);
-                        writer.Flush();
+                        using (var writer = new FileStream(sfd.FileName, FileMode.Create))
+                        {
+                            var bytes = BootstrapCreator.CreateCustomBootstrap(this.c_ClientSlackAPIToken.Text);
+                            writer.Write(bytes, 0, bytes.Length);
+                            writer.Flush();
+                        }
+
+                        var path = new FileInfo(sfd.FileName).Directory.FullName;
+
+                        foreach (var file in new FileInfo(typeof (Program).Assembly.Location).Directory.GetFiles("*.dll"))
+                        {
+                            file.CopyTo(Path.Combine(path, file.Name), true);
+                        }
+
+                        foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.pdb"))
+                        {
+                            file.CopyTo(Path.Combine(path, file.Name), true);
+                        }
+
+                        foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.dll.config"))
+                        {
+                            file.CopyTo(Path.Combine(path, file.Name), true);
+                        }
+
+                        using (var writer = new StreamWriter(sfd.FileName + ".config", false))
+                        {
+                            writer.Write(NewtonsoftJsonRedirect);
+                        }
                     }
-
-                    var path = new FileInfo(sfd.FileName).Directory.FullName;
-
-                    foreach (var file in new FileInfo(typeof (Program).Assembly.Location).Directory.GetFiles("*.dll"))
+                    catch (Exception)
                     {
-                        file.CopyTo(Path.Combine(path, file.Name), true);
-                    }
-
-                    foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.pdb"))
-                    {
-                        file.CopyTo(Path.Combine(path, file.Name), true);
-                    }
-
-                    foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.dll.config"))
-                    {
-                        file.CopyTo(Path.Combine(path, file.Name), true);
-                    }
-
-                    using (var writer = new StreamWriter(sfd.FileName + ".config", false))
-                    {
-                        writer.Write(@"<?xml version=""1.0"" encoding=""utf-8"" ?>
-<configuration>
-  <runtime>
-    <assemblyBinding xmlns=""urn:schemas-microsoft-com:asm.v1"">
-      <dependentAssembly>
-        <assemblyIdentity name=""Newtonsoft.Json"" publicKeyToken=""30AD4FE6B2A6AEED"" culture=""neutral""/>
-        <bindingRedirect oldVersion=""0.0.0.0-6.0.0.0"" newVersion=""6.0.0.0""/>
-      </dependentAssembly>
-    </assemblyBinding>
-  </runtime>
-</configuration>");
+                        MessageBox.Show("Failed to write one or more files to output directory.");
                     }
                 }
             }
@@ -220,6 +229,8 @@ namespace Controller.Forms
                 var clientDirectory = new DirectoryInfo(clientPath);
                 var projectorDirectory = new DirectoryInfo(projectorPath);
 
+                var redirectBytes = Encoding.ASCII.GetBytes(NewtonsoftJsonRedirect);
+
                 var clientMemory = new MemoryStream();
                 var clientZip = new ZipOutputStream(clientMemory);
                 clientZip.SetLevel(3);
@@ -240,6 +251,12 @@ namespace Controller.Forms
                     }
                     clientZip.CloseEntry();
                 }
+                var entry2 = new ZipEntry("Client.exe.config");
+                entry2.DateTime = DateTime.Now;
+                entry2.Size = NewtonsoftJsonRedirect.Length;
+                clientZip.PutNextEntry(entry2);
+                clientZip.Write(redirectBytes, 0, redirectBytes.Length);
+                clientZip.CloseEntry();
                 clientZip.IsStreamOwner = false;
                 clientZip.Close();
 
@@ -249,10 +266,10 @@ namespace Controller.Forms
                 var projectorZip = new ZipOutputStream(projectorMemory);
                 projectorZip.SetLevel(3);
 
-                files = clientDirectory.GetFiles(@"Projector.exe")
-                    .Concat(clientDirectory.GetFiles(@"*.dll"))
-                    .Concat(clientDirectory.GetFiles(@"*.pdb"))
-                    .Concat(clientDirectory.GetFiles(@"*.dll.config"));
+                files = projectorDirectory.GetFiles(@"Projector.exe")
+                    .Concat(projectorDirectory.GetFiles(@"*.dll"))
+                    .Concat(projectorDirectory.GetFiles(@"*.pdb"))
+                    .Concat(projectorDirectory.GetFiles(@"*.dll.config"));
                 foreach (var file in files)
                 {
                     var entry = new ZipEntry(file.Name);
@@ -265,6 +282,12 @@ namespace Controller.Forms
                     }
                     projectorZip.CloseEntry();
                 }
+                entry2 = new ZipEntry("Projector.exe.config");
+                entry2.DateTime = DateTime.Now;
+                entry2.Size = NewtonsoftJsonRedirect.Length;
+                projectorZip.PutNextEntry(entry2);
+                projectorZip.Write(redirectBytes, 0, redirectBytes.Length);
+                projectorZip.CloseEntry();
                 projectorZip.IsStreamOwner = false;
                 projectorZip.Close();
 

@@ -2,16 +2,15 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Compat.Web;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using Dapr.WebSockets;
-using Newtonsoft.Json;
 using SlackRTM;
-//using SlackAPI;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 
 namespace JamCast
 {
@@ -19,9 +18,7 @@ namespace JamCast
     {
         private readonly Manager m_Manager;
         private Thread m_SlackThread;
-        //private IObservableSocket m_Socket;
         private ConcurrentQueue<string> m_MessagesQueued;
-        //private IDisposable m_Subscription;
         private List<string> m_Messages;
         private Slack p_Slack;
 
@@ -38,67 +35,6 @@ namespace JamCast
 
         private void Run()
         {
-            //var client = new WebClient();
-            //var result = client.DownloadString("https://slack.com/api/rtm.start?token=" + AppSettings.SlackToken);
-            //var data = JsonConvert.DeserializeObject<dynamic>(result);
-
-            //var channelMap = new Dictionary<string, string>();
-            //foreach (var v in data.channels)
-            //{
-            //    channelMap[(string)v.id] = (string)v.name;
-            //}
-
-            //var userMap = new Dictionary<string, string>();
-            //foreach (var v in data.users)
-            //{
-            //    userMap[(string)v.id] = (string)v.name;
-            //}
-
-            //var imsMap = new Dictionary<string, string>();
-            //foreach (var v in data.ims)
-            //{
-            //    imsMap[(string)v.id] = (string)v.user;
-            //}
-
-            //bool running = true;
-            //this.m_Socket = WebSocket.Connect(new Uri((string)data.url), new CancellationToken());
-            //this.m_Subscription = this.m_Socket.Incoming.Subscribe(
-            //    x =>
-            //    {
-            //        var message = JsonConvert.DeserializeObject<dynamic>(x);
-
-            //        switch ((string)message.type)
-            //        {
-            //            case "message":
-            //                // get channel and user name.
-            //                if (channelMap.ContainsKey((string) message.channel))
-            //                {
-            //                    if (AppSettings.SlackChannels.Contains(channelMap[(string) message.channel]))
-            //                    {
-            //                        var user = userMap[(string) message.user];
-            //                        this.m_MessagesQueued.Enqueue(user + ": " + (string) message.text);
-            //                    }
-            //                }
-            //                else if (imsMap.ContainsKey((string) message.channel))
-            //                {
-            //                    var userId = imsMap[(string) message.channel];
-            //                    var user = userMap[userId];
-            //                    this.HandleCommand(userId, user, channelMap.First(kv => kv.Value == AppSettings.SlackChannels.First()).Key, (string) message.channel, (string)message.text);
-            //                }
-
-            //                break;
-            //        }
-            //    },
-            //    ex =>
-            //    {
-            //        this.m_MessagesQueued.Enqueue(ex.ToString());
-            //    },
-            //    () =>
-            //    {
-            //        this.m_MessagesQueued.Enqueue("WEBSOCKET DISCONNECTED!");
-            //        running = false;
-            //    });
-
             p_Slack = new Slack();
             p_Slack.Init(AppSettings.SlackToken);
             p_Slack.OnEvent += (s, e) =>
@@ -125,6 +61,48 @@ namespace JamCast
                     {
                         var userId = message.User;
                         var user = p_Slack.GetUser(userId).Name;
+
+                        if (user == "jamcast-controller")
+                        {
+                            var m =
+                                JsonConvert.DeserializeObject<dynamic>(
+                                    Encoding.ASCII.GetString(Convert.FromBase64String(message.Text)));
+                            var target = (string)m.Target;
+
+                            if (!string.IsNullOrEmpty(target))
+                            {
+                                // We don't understand this...
+                                // TODO We can grab the GUID out of the appdata\JamCast\guid.txt
+                                // if we need to receive target specific messages here.
+                                return;
+                            }
+
+                            switch ((string) m.Type)
+                            {
+                                case "ipaddress-list":
+                                    if (m.IPAddresses != null)
+                                    {
+                                        foreach (var ipaddress in m.IPAddresses)
+                                        {
+                                            try
+                                            {
+                                                var ip = IPAddress.Parse((string)ipaddress.IPAddress);
+                                                var name = ipaddress.Name;
+
+                                                this.m_Manager.AddClientExplicitly(new IPEndPoint(ip, 12001), name);
+                                            }
+                                            catch (Exception)
+                                            {
+                                            }
+                                        }
+                                    }
+                                    break;
+                            }
+
+                            // This message is from the controller, so don't treat it as a user.
+                            return;
+                        }
+
                         this.HandleCommand(userId, user, p_Slack.GetChannel(AppSettings.SlackChannels.First()).Id, message.Channel, message.Text);
                     }
 

@@ -32,6 +32,10 @@
             this.c_ControllerSlackAPIToken = new System.Windows.Forms.TextBox();
             this.c_ControllerSlackAPITokenLabel = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.c_StorageTokenLink = new System.Windows.Forms.LinkLabel();
+            this.label5 = new System.Windows.Forms.Label();
+            this.c_ControllerStorageAPIToken = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.c_ProjectorSlackChannelsLabel = new System.Windows.Forms.Label();
             this.c_ClientSlackAPIToken = new System.Windows.Forms.TextBox();
@@ -44,10 +48,6 @@
             this.c_PackageAndDeploy = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.c_PackageAndDeployExternal = new System.Windows.Forms.Button();
-            this.c_ControllerStorageAPIToken = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
-            this.c_StorageTokenLink = new System.Windows.Forms.LinkLabel();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
@@ -83,6 +83,44 @@
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Controller Settings";
+            // 
+            // c_StorageTokenLink
+            // 
+            this.c_StorageTokenLink.AutoSize = true;
+            this.c_StorageTokenLink.Location = new System.Drawing.Point(17, 118);
+            this.c_StorageTokenLink.Name = "c_StorageTokenLink";
+            this.c_StorageTokenLink.Size = new System.Drawing.Size(133, 13);
+            this.c_StorageTokenLink.TabIndex = 5;
+            this.c_StorageTokenLink.TabStop = true;
+            this.c_StorageTokenLink.Text = "https://api.slack.com/web";
+            this.c_StorageTokenLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.c_StorageTokenLink_LinkClicked);
+            // 
+            // label5
+            // 
+            this.label5.Location = new System.Drawing.Point(17, 73);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(359, 45);
+            this.label5.TabIndex = 4;
+            this.label5.Text = "The slack API token should be the API token for \"jamcast-controller\".  The slack " +
+    "storage token needs to be a real user token (such as your own account).  Get a s" +
+    "torage token from:";
+            // 
+            // c_ControllerStorageAPIToken
+            // 
+            this.c_ControllerStorageAPIToken.Location = new System.Drawing.Point(134, 45);
+            this.c_ControllerStorageAPIToken.Name = "c_ControllerStorageAPIToken";
+            this.c_ControllerStorageAPIToken.Size = new System.Drawing.Size(242, 20);
+            this.c_ControllerStorageAPIToken.TabIndex = 2;
+            this.c_ControllerStorageAPIToken.TextChanged += new System.EventHandler(this.c_ControllerStorageAPIToken_TextChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(17, 48);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(111, 13);
+            this.label4.TabIndex = 3;
+            this.label4.Text = "Slack Storage Token:";
             // 
             // groupBox2
             // 
@@ -198,44 +236,6 @@
             this.c_PackageAndDeployExternal.Text = "Package and Deploy External";
             this.c_PackageAndDeployExternal.UseVisualStyleBackColor = true;
             this.c_PackageAndDeployExternal.Click += new System.EventHandler(this.c_PackageAndDeployExternal_Click);
-            // 
-            // c_ControllerStorageAPIToken
-            // 
-            this.c_ControllerStorageAPIToken.Location = new System.Drawing.Point(134, 45);
-            this.c_ControllerStorageAPIToken.Name = "c_ControllerStorageAPIToken";
-            this.c_ControllerStorageAPIToken.Size = new System.Drawing.Size(242, 20);
-            this.c_ControllerStorageAPIToken.TabIndex = 2;
-            this.c_ControllerStorageAPIToken.TextChanged += new System.EventHandler(this.c_ControllerStorageAPIToken_TextChanged);
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(17, 48);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(111, 13);
-            this.label4.TabIndex = 3;
-            this.label4.Text = "Slack Storage Token:";
-            // 
-            // label5
-            // 
-            this.label5.Location = new System.Drawing.Point(17, 73);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(359, 45);
-            this.label5.TabIndex = 4;
-            this.label5.Text = "The slack API token should be the API token for \"jamcast-controller\".  The slack " +
-    "storage token needs to be a real user token (such as your own account).  Get a s" +
-    "torage token from:";
-            // 
-            // c_StorageTokenLink
-            // 
-            this.c_StorageTokenLink.AutoSize = true;
-            this.c_StorageTokenLink.Location = new System.Drawing.Point(17, 118);
-            this.c_StorageTokenLink.Name = "c_StorageTokenLink";
-            this.c_StorageTokenLink.Size = new System.Drawing.Size(133, 13);
-            this.c_StorageTokenLink.TabIndex = 5;
-            this.c_StorageTokenLink.TabStop = true;
-            this.c_StorageTokenLink.Text = "https://api.slack.com/web";
-            this.c_StorageTokenLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.c_StorageTokenLink_LinkClicked);
             // 
             // JamEditForm
             // 

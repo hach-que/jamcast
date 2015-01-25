@@ -13,6 +13,8 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Bootstrap" />
+    <Reference Include="Projector" />
+    <Reference Include="Client" />
     <Reference Include="slack-rtm" />
   </References>
   <Files>
@@ -29,6 +31,12 @@
     </Compile>
     <Compile Include="Forms\PackageDeployForm.Designer.cs">
       <DependentUpon>PackageDeployForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\ProjectorEditForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ProjectorEditForm.Designer.cs">
+      <DependentUpon>ProjectorEditForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Icons.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -54,6 +62,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\PackageDeployForm.resx">
       <DependentUpon>PackageDeployForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\ProjectorEditForm.resx">
+      <DependentUpon>ProjectorEditForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Icons.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

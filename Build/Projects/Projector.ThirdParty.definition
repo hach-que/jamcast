@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ExternalProject Name="Projector.ThirdParty">
 
-  <Binary Name="Hammock.ClientProfile" Path="Server/Dependencies/Hammock.ClientProfile.dll" />
-  <Binary Name="TweetSharp.Next" Path="Server/Dependencies/TweetSharp.Next.dll" />
+  <Binary Name="Hammock.ClientProfile" Path="Projector/Dependencies/Hammock.ClientProfile.dll" />
+  <Binary Name="TweetSharp.Next" Path="Projector/Dependencies/TweetSharp.Next.dll" />
 
 </ExternalProject>

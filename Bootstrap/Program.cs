@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -8,13 +7,12 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
-using System.Windows.Forms;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
 using SlackRTM;
+using SlackRTM.Events;
 
 namespace Bootstrap
 {
@@ -22,7 +20,33 @@ namespace Bootstrap
     {
         private static string Host;
 
-        private static string Role = "Client";
+        private static string Role
+        {
+            get
+            {
+                if (File.Exists(Path.Combine(BasePath, "role.txt")))
+                {
+                    using (var reader = new StreamReader(Path.Combine(BasePath, "role.txt")))
+                    {
+                        var role = reader.ReadToEnd().Trim();
+                        if (role != "Client" && role != "Projector")
+                        {
+                            return "Client";
+                        }
+                        return role;
+                    }
+                }
+
+                return "Client";
+            }
+            set
+            {
+                using (var writer = new StreamWriter(Path.Combine(BasePath, "role.txt")))
+                {
+                    writer.Write(value);
+                }
+            }
+        }
 
         private static string ClientVersion;
 
@@ -44,11 +68,17 @@ namespace Bootstrap
 
         private static string ProjectorPackagePath;
 
+        private static string BasePath;
+
         private static Process MonitoredProcess;
 
         private static bool ProcessShouldBeRunning;
 
         private static bool HasReceivedVersionInformation;
+
+        private static string ClientSettingsPath;
+
+        private static string ProjectorSettingsPath;
 
         private static string GetLocalIPAddress()
         {
@@ -66,6 +96,18 @@ namespace Bootstrap
             return localIP;
         }
 
+        private static IPAddress[] GetAllKnownIPAddresses()
+        {
+            try
+            {
+                return Dns.GetHostAddresses("");
+            }
+            catch (Exception)
+            {
+                return new IPAddress[0];
+            }
+        }
+
         public static void Main(string[] args)
         {
             string token;
@@ -75,17 +117,47 @@ namespace Bootstrap
                 token = reader.ReadToEnd().Trim();
             }
 
-            var guid = Guid.NewGuid();
+            // Create folder for storing client / projector software.
+            var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "JamCast");
+            Directory.CreateDirectory(path);
+            Directory.CreateDirectory(Path.Combine(path, "Client"));
+            Directory.CreateDirectory(Path.Combine(path, "Projector"));
+            BasePath = path;
+            ClientPath = Path.Combine(path, "Client");
+            ProjectorPath = Path.Combine(path, "Projector");
+            ClientPackagePath = Path.Combine(path, "Client.zip");
+            ProjectorPackagePath = Path.Combine(path, "Projector.zip");
+            ClientSettingsPath = Path.Combine(BasePath, "client-settings.json");
+            ProjectorSettingsPath = Path.Combine(BasePath, "projector-settings.json");
+
+            Guid guid;
+            if (File.Exists(Path.Combine(BasePath, "guid.txt")))
+            {
+                using (var reader = new StreamReader(Path.Combine(BasePath, "guid.txt")))
+                {
+                    guid = Guid.Parse(reader.ReadToEnd().Trim());
+                }
+            }
+            else
+            {
+                guid = Guid.NewGuid();
+                using (var writer = new StreamWriter(Path.Combine(BasePath, "guid.txt")))
+                {
+                    writer.Write(guid.ToString());
+                }
+            }
 
             try
             {
-                Host = System.Net.Dns.GetHostEntry("").HostName;
+                Host = Dns.GetHostEntry("").HostName;
             }
             catch
             {
                 try
                 {
-                    Host = System.Environment.MachineName;
+                    Host = Environment.MachineName;
                 }
                 catch
                 {
@@ -108,7 +180,7 @@ namespace Bootstrap
             {
                 if (e.Data.Type == "message")
                 {
-                    var message = e.Data as SlackRTM.Events.Message;
+                    var message = e.Data as Message;
                     if (message == null)
                     {
                         return;
@@ -157,6 +229,44 @@ namespace Bootstrap
                                         UpdateVersions();
                                     }
                                     break;
+                                case "designate":
+                                    if (jamcastControllerChannel != null)
+                                    {
+                                        Role = m.Role;
+
+                                        UpdateVersions();
+
+                                        SendPing(slack, jamcastControllerChannel, guid);
+                                    }
+                                    break;
+                                case "client-settings":
+                                    if (jamcastControllerChannel != null)
+                                    {
+                                        using (var writer = new StreamWriter(ClientSettingsPath))
+                                        {
+                                            writer.Write((string)m.Settings);
+                                        }
+
+                                        KillProcess();
+                                        StartProcess();
+
+                                        SendPing(slack, jamcastControllerChannel, guid);
+                                    }
+                                    break;
+                                case "projector-settings":
+                                    if (jamcastControllerChannel != null)
+                                    {
+                                        using (var writer = new StreamWriter(ProjectorSettingsPath))
+                                        {
+                                            writer.Write((string)m.Settings);
+                                        }
+
+                                        KillProcess();
+                                        StartProcess();
+
+                                        SendPing(slack, jamcastControllerChannel, guid);
+                                    }
+                                    break;
                             }
                         }
                     }
@@ -165,17 +275,6 @@ namespace Bootstrap
             };
             slack.Connect();
 
-            // Create folder for storing client / projector software.
-            var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "JamCast");
-            Directory.CreateDirectory(path);
-            Directory.CreateDirectory(Path.Combine(path, "Client"));
-            Directory.CreateDirectory(Path.Combine(path, "Projector"));
-            ClientPath = Path.Combine(path, "Client");
-            ProjectorPath = Path.Combine(path, "Projector");
-            ClientPackagePath = Path.Combine(path, "Client.zip");
-            ProjectorPackagePath = Path.Combine(path, "Projector.zip");
             CalculateVersions();
 
             if (!StartProcess())
@@ -322,6 +421,7 @@ namespace Bootstrap
                     if (ClientVersion != null && File.Exists(clientPath))
                     {
                         startInfo.FileName = clientPath;
+                        startInfo.WorkingDirectory = ClientPath;
                     }
                     else
                     {
@@ -333,6 +433,7 @@ namespace Bootstrap
                     if (ProjectorVersion != null && File.Exists(projectorPath))
                     {
                         startInfo.FileName = projectorPath;
+                        startInfo.WorkingDirectory = ProjectorPath;
                     }
                     else
                     {
@@ -401,6 +502,8 @@ namespace Bootstrap
 
         private static void SendPing(Slack slack, string channelId, Guid guid)
         {
+            var ipaddresses = GetAllKnownIPAddresses().Select(x => x.ToString()).ToArray();
+
             slack.SendMessage(channelId,
                 Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
                 {
@@ -415,7 +518,8 @@ namespace Bootstrap
 #error Platform not supported
 #endif
                     Role = Role,
-                    HasReceivedVersionInformation = HasReceivedVersionInformation
+                    HasReceivedVersionInformation = HasReceivedVersionInformation,
+                    IPAddresses = ipaddresses,
                 }))));
         }
     }

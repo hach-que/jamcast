@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 
 namespace Controller
 {
@@ -10,5 +11,6 @@ namespace Controller
         public Guid Guid;
         public bool HasReceivedVersionInformation;
         public bool WaitingForPing;
+        public IPAddress[] IPAddresses;
     }
 }
