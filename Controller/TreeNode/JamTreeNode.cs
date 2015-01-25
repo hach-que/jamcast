@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 using Controller.Forms;
 
@@ -22,8 +23,10 @@ namespace Controller.TreeNode
             {
                 this.BeginEdit();
             });
-            this.ContextMenuStrip.Items.Add("Scan for Computers", null, (sender, args) =>
+            this.ContextMenuStrip.Items.Add("Sync Computers", null, (sender, args) =>
             {
+                this.MarkComputersAsWaitingForPing();
+
                 var mainForm = this.TreeView.FindForm() as MainForm;
                 mainForm.SlackController.ScanComputers(this.Jam.Guid);
             });
@@ -31,6 +34,15 @@ namespace Controller.TreeNode
             this.ImageKey = @"bullet_red.png";
             this.SelectedImageKey = this.ImageKey;
             this.StateImageKey = this.ImageKey;
+        }
+
+        public void MarkComputersAsWaitingForPing()
+        {
+            foreach (var node in this.Nodes.OfType<ComputerTreeNode>())
+            {
+                node.Computer.WaitingForPing = true;
+                node.Update();
+            }
         }
 
         public Jam Jam { get; private set; }
@@ -69,8 +81,16 @@ namespace Controller.TreeNode
 
         public bool LabelUpdated(string label)
         {
+            if (string.IsNullOrWhiteSpace(label))
+            {
+                this.Update();
+                return false;
+            }
+
             this.Jam.Name = label;
             this.Jam.Save();
+
+            this.Update();
 
             var form = this.TreeView.FindForm();
             if (form != null)

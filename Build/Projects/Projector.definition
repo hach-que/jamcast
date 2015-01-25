@@ -14,7 +14,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="Projector.ThirdParty" />
     <Reference Include="NetCast" />
-	<Reference Include="slack-rtm" />
+    <Reference Include="slack-rtm" />
   </References>
   <Files>
     <Compile Include="AppSettings.cs" />

@@ -8,5 +8,7 @@ namespace Controller
         public Platform Platform;
         public Role Role;
         public Guid Guid;
+        public bool HasReceivedVersionInformation;
+        public bool WaitingForPing;
     }
 }

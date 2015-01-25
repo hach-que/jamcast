@@ -40,15 +40,23 @@
             this.c_CreateBootstrap = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.m_SlackConnectionStatus = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.c_PackageAndDeploy = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
+            this.c_PackageAndDeployExternal = new System.Windows.Forms.Button();
+            this.c_ControllerStorageAPIToken = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.c_StorageTokenLink = new System.Windows.Forms.LinkLabel();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
             // c_ControllerSlackAPIToken
             // 
-            this.c_ControllerSlackAPIToken.Location = new System.Drawing.Point(124, 19);
+            this.c_ControllerSlackAPIToken.Location = new System.Drawing.Point(134, 19);
             this.c_ControllerSlackAPIToken.Name = "c_ControllerSlackAPIToken";
-            this.c_ControllerSlackAPIToken.Size = new System.Drawing.Size(252, 20);
+            this.c_ControllerSlackAPIToken.Size = new System.Drawing.Size(242, 20);
             this.c_ControllerSlackAPIToken.TabIndex = 0;
             this.c_ControllerSlackAPIToken.TextChanged += new System.EventHandler(this.c_SlackAPIToken_TextChanged);
             // 
@@ -63,11 +71,15 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.c_StorageTokenLink);
+            this.groupBox1.Controls.Add(this.label5);
+            this.groupBox1.Controls.Add(this.c_ControllerStorageAPIToken);
+            this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.c_ControllerSlackAPIToken);
             this.groupBox1.Controls.Add(this.c_ControllerSlackAPITokenLabel);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(382, 50);
+            this.groupBox1.Size = new System.Drawing.Size(382, 141);
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Controller Settings";
@@ -78,7 +90,7 @@
             this.groupBox2.Controls.Add(this.c_ClientSlackAPIToken);
             this.groupBox2.Controls.Add(this.c_ProjectorSlackChannels);
             this.groupBox2.Controls.Add(this.c_ClientSlackAPITokenLabel);
-            this.groupBox2.Location = new System.Drawing.Point(12, 68);
+            this.groupBox2.Location = new System.Drawing.Point(12, 159);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(382, 76);
             this.groupBox2.TabIndex = 6;
@@ -96,9 +108,9 @@
             // 
             // c_ClientSlackAPIToken
             // 
-            this.c_ClientSlackAPIToken.Location = new System.Drawing.Point(124, 19);
+            this.c_ClientSlackAPIToken.Location = new System.Drawing.Point(134, 19);
             this.c_ClientSlackAPIToken.Name = "c_ClientSlackAPIToken";
-            this.c_ClientSlackAPIToken.Size = new System.Drawing.Size(252, 20);
+            this.c_ClientSlackAPIToken.Size = new System.Drawing.Size(242, 20);
             this.c_ClientSlackAPIToken.TabIndex = 0;
             this.c_ClientSlackAPIToken.TextChanged += new System.EventHandler(this.c_ClientSlackAPIToken_TextChanged);
             // 
@@ -121,7 +133,7 @@
             // 
             // c_CreateBootstrap
             // 
-            this.c_CreateBootstrap.Location = new System.Drawing.Point(264, 150);
+            this.c_CreateBootstrap.Location = new System.Drawing.Point(264, 241);
             this.c_CreateBootstrap.Name = "c_CreateBootstrap";
             this.c_CreateBootstrap.Size = new System.Drawing.Size(124, 70);
             this.c_CreateBootstrap.TabIndex = 7;
@@ -131,7 +143,7 @@
             // 
             // label1
             // 
-            this.label1.Location = new System.Drawing.Point(14, 152);
+            this.label1.Location = new System.Drawing.Point(14, 243);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(240, 68);
             this.label1.TabIndex = 8;
@@ -139,20 +151,101 @@
             // 
             // m_SlackConnectionStatus
             // 
+            this.m_SlackConnectionStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.m_SlackConnectionStatus.BackColor = System.Drawing.Color.LightCoral;
             this.m_SlackConnectionStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.m_SlackConnectionStatus.Location = new System.Drawing.Point(-2, 231);
+            this.m_SlackConnectionStatus.Location = new System.Drawing.Point(-2, 427);
             this.m_SlackConnectionStatus.Name = "m_SlackConnectionStatus";
             this.m_SlackConnectionStatus.Size = new System.Drawing.Size(410, 35);
             this.m_SlackConnectionStatus.TabIndex = 9;
             this.m_SlackConnectionStatus.Text = "Not connected to Slack!";
             this.m_SlackConnectionStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // label2
+            // 
+            this.label2.Location = new System.Drawing.Point(14, 321);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(240, 41);
+            this.label2.TabIndex = 11;
+            this.label2.Text = "Package and deploy the client and projector software associated with the controll" +
+    "er out to all computers.  ";
+            // 
+            // c_PackageAndDeploy
+            // 
+            this.c_PackageAndDeploy.Location = new System.Drawing.Point(264, 319);
+            this.c_PackageAndDeploy.Name = "c_PackageAndDeploy";
+            this.c_PackageAndDeploy.Size = new System.Drawing.Size(124, 43);
+            this.c_PackageAndDeploy.TabIndex = 10;
+            this.c_PackageAndDeploy.Text = "Package and Deploy";
+            this.c_PackageAndDeploy.UseVisualStyleBackColor = true;
+            this.c_PackageAndDeploy.Click += new System.EventHandler(this.c_PackageAndDeploy_Click);
+            // 
+            // label3
+            // 
+            this.label3.Location = new System.Drawing.Point(14, 373);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(240, 41);
+            this.label3.TabIndex = 13;
+            this.label3.Text = "Package and deploy the client and projector software from another folder on this " +
+    "computer.  Useful during development of JamCast.";
+            // 
+            // c_PackageAndDeployExternal
+            // 
+            this.c_PackageAndDeployExternal.Location = new System.Drawing.Point(264, 371);
+            this.c_PackageAndDeployExternal.Name = "c_PackageAndDeployExternal";
+            this.c_PackageAndDeployExternal.Size = new System.Drawing.Size(124, 43);
+            this.c_PackageAndDeployExternal.TabIndex = 12;
+            this.c_PackageAndDeployExternal.Text = "Package and Deploy External";
+            this.c_PackageAndDeployExternal.UseVisualStyleBackColor = true;
+            this.c_PackageAndDeployExternal.Click += new System.EventHandler(this.c_PackageAndDeployExternal_Click);
+            // 
+            // c_ControllerStorageAPIToken
+            // 
+            this.c_ControllerStorageAPIToken.Location = new System.Drawing.Point(134, 45);
+            this.c_ControllerStorageAPIToken.Name = "c_ControllerStorageAPIToken";
+            this.c_ControllerStorageAPIToken.Size = new System.Drawing.Size(242, 20);
+            this.c_ControllerStorageAPIToken.TabIndex = 2;
+            this.c_ControllerStorageAPIToken.TextChanged += new System.EventHandler(this.c_ControllerStorageAPIToken_TextChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(17, 48);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(111, 13);
+            this.label4.TabIndex = 3;
+            this.label4.Text = "Slack Storage Token:";
+            // 
+            // label5
+            // 
+            this.label5.Location = new System.Drawing.Point(17, 73);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(359, 45);
+            this.label5.TabIndex = 4;
+            this.label5.Text = "The slack API token should be the API token for \"jamcast-controller\".  The slack " +
+    "storage token needs to be a real user token (such as your own account).  Get a s" +
+    "torage token from:";
+            // 
+            // c_StorageTokenLink
+            // 
+            this.c_StorageTokenLink.AutoSize = true;
+            this.c_StorageTokenLink.Location = new System.Drawing.Point(17, 118);
+            this.c_StorageTokenLink.Name = "c_StorageTokenLink";
+            this.c_StorageTokenLink.Size = new System.Drawing.Size(133, 13);
+            this.c_StorageTokenLink.TabIndex = 5;
+            this.c_StorageTokenLink.TabStop = true;
+            this.c_StorageTokenLink.Text = "https://api.slack.com/web";
+            this.c_StorageTokenLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.c_StorageTokenLink_LinkClicked);
+            // 
             // JamEditForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(406, 266);
+            this.ClientSize = new System.Drawing.Size(406, 462);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.c_PackageAndDeployExternal);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.c_PackageAndDeploy);
             this.Controls.Add(this.m_SlackConnectionStatus);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.c_CreateBootstrap);
@@ -183,6 +276,14 @@
         private System.Windows.Forms.Button c_CreateBootstrap;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label m_SlackConnectionStatus;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Button c_PackageAndDeploy;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button c_PackageAndDeployExternal;
+        private System.Windows.Forms.LinkLabel c_StorageTokenLink;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox c_ControllerStorageAPIToken;
+        private System.Windows.Forms.Label label4;
 
     }
 }

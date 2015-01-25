@@ -78,6 +78,7 @@
             this.imageList1.Images.SetKeyName(5, "transmit.png");
             this.imageList1.Images.SetKeyName(6, "transmit_delete.png");
             this.imageList1.Images.SetKeyName(7, "transmit_go.png");
+            this.imageList1.Images.SetKeyName(8, "error.png");
             // 
             // MainForm
             // 

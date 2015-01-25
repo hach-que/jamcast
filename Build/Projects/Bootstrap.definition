@@ -4,11 +4,14 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
-	<Reference Include="slack-rtm" />
+    <Reference Include="slack-rtm" />
   </References>
   <Files>
     <Compile Include="Program.cs" />
-    <Content Include="token.txt" />
+    <EmbeddedResource Include="token.txt" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </Files>
 </Project>

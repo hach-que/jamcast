@@ -44,14 +44,25 @@ namespace Controller.TreeNode
 
         private void UpdateImage()
         {
-            switch (Computer.Role)
+            if (Computer.WaitingForPing)
             {
-                case Role.Client:
-                    this.ImageKey = @"monitor.png";
-                    break;
-                case Role.Projector:
-                    this.ImageKey = @"photo.png";
-                    break;
+                this.ImageKey = @"bullet_red.png";
+            }
+            else if (!Computer.HasReceivedVersionInformation)
+            {
+                this.ImageKey = @"error.png";
+            }
+            else
+            {
+                switch (Computer.Role)
+                {
+                    case Role.Client:
+                        this.ImageKey = @"monitor.png";
+                        break;
+                    case Role.Projector:
+                        this.ImageKey = @"photo.png";
+                        break;
+                }
             }
 
             this.SelectedImageKey = this.ImageKey;

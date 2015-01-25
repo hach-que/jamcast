@@ -24,6 +24,8 @@ namespace Controller
 
         public string ControllerSlackToken;
 
+        public string ControllerSlackStorageToken;
+
         public string ProjectorSlackChannels;
 
         public string ClientSlackToken;
@@ -33,7 +35,15 @@ namespace Controller
         public string Name;
 
         [NonSerialized]
-        public List<Computer> Computers = new List<Computer>(); 
+        public List<Computer> Computers = new List<Computer>();
+
+        public string AvailableClientVersion;
+
+        public string AvailableProjectorVersion;
+
+        public string AvailableClientFile;
+
+        public string AvailableProjectorFile;
 
         public void SetTreeNode(JamTreeNode node)
         {
@@ -70,9 +80,23 @@ namespace Controller
                             Hostname = (string) data.Hostname,
                             Platform = (Platform)Enum.Parse(typeof(Platform), (string)data.Platform),
                             Role = (Role)Enum.Parse(typeof(Role), (string)data.Role),
+                            HasReceivedVersionInformation = (bool)(data.HasReceivedVersionInformation ?? false),
+                            WaitingForPing = false,
                         };
                         Computers.Add(computer);
                         _node.NewComputerRegistered(computer);
+                    }
+                    else
+                    {
+                        var computer = Computers.First(x => x.Guid == guid);
+                        computer.Hostname = (string) data.Hostname;
+                        computer.Role = (Role)Enum.Parse(typeof(Role), (string)data.Role);
+                        computer.HasReceivedVersionInformation = (bool) (data.HasReceivedVersionInformation ?? false);
+                        computer.WaitingForPing = false;
+                        foreach (var node in _node.Nodes.OfType<ComputerTreeNode>())
+                        {
+                            node.Update();
+                        }
                     }
 
                     break;

@@ -123,7 +123,7 @@ namespace Controller
                                     _form.RefreshConnectionStatus(jam);
                                 }));
 
-                                this.SendPong(slack, currentToken);
+                                this.SendPong(slack, currentToken, jam);
                             }
 
                             while (currentToken == jam.ControllerSlackToken)
@@ -136,7 +136,7 @@ namespace Controller
                                         switch (value)
                                         {
                                             case "pong":
-                                                this.SendPong(slack, jam.ControllerSlackToken);
+                                                this.SendPong(slack, jam.ControllerSlackToken, jam);
                                                 break;
                                         }
                                     }
@@ -163,7 +163,7 @@ namespace Controller
                                         _form.RefreshConnectionStatus(jam);
                                     }));
 
-                                    this.SendPong(slack, currentToken);
+                                    this.SendPong(slack, currentToken, jam);
                                 }
                             }
                         }
@@ -189,7 +189,7 @@ namespace Controller
             }
         }
 
-        private void SendPong(Slack slack, string token)
+        private void SendPong(Slack slack, string token, Jam jam)
         {
             var jamcastChannel =
                 slack.Ims.Where(x => x.User == slack.GetUser("jamcast").Id).Select(x => x.Id).FirstOrDefault();
@@ -207,6 +207,10 @@ namespace Controller
             {
                 Source = "",
                 Type = "pong",
+                AvailableClientVersion = jam.AvailableClientVersion,
+                AvailableProjectorVersion = jam.AvailableProjectorVersion,
+                AvailableClientFile = jam.AvailableClientFile,
+                AvailableProjectorFile = jam.AvailableProjectorFile,
             }))));
         }
 

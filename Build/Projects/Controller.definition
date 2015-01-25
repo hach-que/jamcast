@@ -13,15 +13,27 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Bootstrap" />
-	<Reference Include="slack-rtm" />
+    <Reference Include="slack-rtm" />
   </References>
   <Files>
+    <Compile Include="BootstrapCreator.cs" />
     <Compile Include="Computer.cs" />
     <Compile Include="Forms\JamEditForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\JamEditForm.Designer.cs">
       <DependentUpon>JamEditForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\PackageDeployForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\PackageDeployForm.Designer.cs">
+      <DependentUpon>PackageDeployForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Icons.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Icons.resx</DependentUpon>
     </Compile>
     <Compile Include="Jam.cs" />
     <Compile Include="MainForm.cs">
@@ -34,13 +46,31 @@
     <Compile Include="Program.cs" />
     <Compile Include="Role.cs" />
     <Compile Include="SlackController.cs" />
+    <Compile Include="TreeNode\ComputerTreeNode.cs" />
     <Compile Include="TreeNode\JamTreeNode.cs" />
+    <Content Include="Resources\error.png" />
     <EmbeddedResource Include="Forms\JamEditForm.resx">
       <DependentUpon>JamEditForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\PackageDeployForm.resx">
+      <DependentUpon>PackageDeployForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Icons.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Icons.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="Resources\bullet_green.png" />
+    <None Include="Resources\bullet_orange.png" />
+    <None Include="Resources\bullet_red.png" />
+    <None Include="Resources\monitor.png" />
+    <None Include="Resources\photo.png" />
+    <None Include="Resources\transmit.png" />
+    <None Include="Resources\transmit_delete.png" />
+    <None Include="Resources\transmit_go.png" />
   </Files>
 </Project>
