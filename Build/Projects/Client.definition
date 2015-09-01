@@ -12,9 +12,15 @@
     <Reference Include="NetCast" />
   </References>
   <Files>
-    <BundleResource Include="MacOS\TrayCountdown.icns" />
-    <BundleResource Include="MacOS\TrayOff.icns" />
-    <BundleResource Include="MacOS\TrayOn.icns" />
+    <BundleResource Include="MacOS\TrayCountdown.icns">
+      <Platforms>MacOS</Platforms>
+    </BundleResource>
+    <BundleResource Include="MacOS\TrayOff.icns">
+      <Platforms>MacOS</Platforms>
+    </BundleResource>
+    <BundleResource Include="MacOS\TrayOn.icns">
+       <Platforms>MacOS</Platforms>
+    </BundleResource>
     <Compile Include="Gdi.cs" />
     <Compile Include="MacOS\Manager.MacOS.cs">
       <Platforms>MacOS</Platforms>
@@ -25,11 +31,16 @@
     <Compile Include="MacOS\StartupDelegate.cs">
       <Platforms>MacOS</Platforms>
     </Compile>
-    <Compile Include="MacOS\WhoAreYou.cs" />
+    <Compile Include="MacOS\WhoAreYou.cs">
+      <Platforms>MacOS</Platforms>
+    </Compile>
     <Compile Include="MacOS\WhoAreYou.designer.cs">
+      <Platforms>MacOS</Platforms>
       <DependentUpon>WhoAreYou.cs</DependentUpon>
     </Compile>
-    <Compile Include="MacOS\WhoAreYouController.cs" />
+    <Compile Include="MacOS\WhoAreYouController.cs">
+      <Platforms>MacOS</Platforms>
+    </Compile>
     <Compile Include="Manager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -79,7 +90,9 @@
       <DependentUpon>WhoAreYou.Windows.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <InterfaceDefinition Include="MacOS\WhoAreYou.xib" />
+    <InterfaceDefinition Include="MacOS\WhoAreYou.xib">
+      <Platforms>MacOS</Platforms>
+    </InterfaceDefinition>
     <None Include="app.config" />
     <None Include="Info.plist">
       <Platforms>MacOS</Platforms>
