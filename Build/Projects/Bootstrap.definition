@@ -5,6 +5,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="SlackRTM" />
+    <Reference Include="SharpZipLib" />
   </References>
   <Files>
     <Compile Include="Program.cs" />

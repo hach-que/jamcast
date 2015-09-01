@@ -16,6 +16,8 @@
     <Reference Include="Projector" />
     <Reference Include="Client" />
     <Reference Include="SlackRTM" />
+    <Reference Include="SharpZipLib" />
+    <Reference Include="Mono.Cecil" />
   </References>
   <Files>
     <Compile Include="BootstrapCreator.cs" />
