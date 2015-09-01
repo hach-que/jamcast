@@ -15,7 +15,7 @@
     <Reference Include="Bootstrap" />
     <Reference Include="Projector" />
     <Reference Include="Client" />
-    <Reference Include="slack-rtm" />
+    <Reference Include="SlackRTM" />
   </References>
   <Files>
     <Compile Include="BootstrapCreator.cs" />
@@ -74,7 +74,6 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config" />
-    <None Include="packages.config" />
     <None Include="Resources\bullet_green.png" />
     <None Include="Resources\bullet_orange.png" />
     <None Include="Resources\bullet_red.png" />

@@ -4,7 +4,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="slack-rtm" />
+    <Reference Include="SlackRTM" />
   </References>
   <Files>
     <Compile Include="Program.cs" />
@@ -12,6 +12,5 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="packages.config" />
   </Files>
 </Project>
