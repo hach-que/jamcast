@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict/>
+<dict>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.developer-tools</string>
+	<key>CFBundleDisplayName</key>
+	<string>JamCast</string>
+	<key>CFBundleIdentifier</key>
+	<string>au.com.redpointsoftware.jamcast</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1</string>
+	<key>LSUIElement</key>
+	<true/>
+</dict>
 </plist>

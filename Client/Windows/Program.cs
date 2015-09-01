@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if PLATFORM_WINDOWS
+
+using System;
 using System.Windows.Forms;
 
 namespace Client
@@ -15,7 +17,12 @@ namespace Client
             Application.SetCompatibleTextRenderingDefault(false);
 
             Manager m = new Manager();
-            m.Run();
+			m.Run();
+
+			// Start the main application loop.
+			Application.Run();
         }
     }
 }
+
+#endif

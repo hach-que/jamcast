@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if PLATFORM_WINDOWS
+
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Net;
@@ -54,3 +56,5 @@ namespace Client
         }
     }
 }
+
+#endif

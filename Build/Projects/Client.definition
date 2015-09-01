@@ -12,15 +12,25 @@
     <Reference Include="NetCast" />
   </References>
   <Files>
+    <BundleResource Include="MacOS\TrayCountdown.icns" />
+    <BundleResource Include="MacOS\TrayOff.icns" />
+    <BundleResource Include="MacOS\TrayOn.icns" />
     <Compile Include="Gdi.cs" />
+    <Compile Include="MacOS\Manager.MacOS.cs">
+      <Platforms>MacOS</Platforms>
+    </Compile>
+    <Compile Include="MacOS\Program.cs">
+      <Platforms>MacOS</Platforms>
+    </Compile>
+    <Compile Include="MacOS\StartupDelegate.cs">
+      <Platforms>MacOS</Platforms>
+    </Compile>
+    <Compile Include="MacOS\WhoAreYou.cs" />
+    <Compile Include="MacOS\WhoAreYou.designer.cs">
+      <DependentUpon>WhoAreYou.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MacOS\WhoAreYouController.cs" />
     <Compile Include="Manager.cs" />
-    <Compile Include="Notification.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Notification.Designer.cs">
-      <DependentUpon>Notification.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -32,26 +42,48 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="TrayIcon.cs" />
-    <Compile Include="WhoAreYou.cs">
+    <Compile Include="Windows\Manager.Windows.cs">
+      <Platforms>Windows</Platforms>
+    </Compile>
+    <Compile Include="Windows\Program.cs">
+      <Platforms>Windows</Platforms>
+    </Compile>
+    <Compile Include="Windows\TrayIcon.cs">
+      <Platforms>Windows</Platforms>
+    </Compile>
+    <Compile Include="Windows\WhoAreYou.Windows.cs">
+      <Platforms>Windows</Platforms>
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="WhoAreYou.Designer.cs">
-      <DependentUpon>WhoAreYou.cs</DependentUpon>
+    <Compile Include="Windows\WhoAreYou.Windows.Designer.cs">
+      <Platforms>Windows</Platforms>
+      <DependentUpon>WhoAreYou.Windows.cs</DependentUpon>
     </Compile>
-    <Content Include="TrayCountdown.ico" />
-    <Content Include="TrayOff.ico" />
-    <Content Include="TrayOn.ico" />
+    <Content Include="Windows\TrayCountdown.ico">
+      <Platforms>Windows</Platforms>
+    </Content>
+    <Content Include="Windows\TrayOff.ico">
+      <Platforms>Windows</Platforms>
+    </Content>
+    <Content Include="Windows\TrayOn.ico">
+      <Platforms>Windows</Platforms>
+    </Content>
     <EmbeddedResource Include="Properties\Resources.resx">
+      <Platforms>Windows</Platforms>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="WhoAreYou.resx">
-      <DependentUpon>WhoAreYou.cs</DependentUpon>
+    <EmbeddedResource Include="Windows\WhoAreYou.Windows.resx">
+      <Platforms>Windows</Platforms>
+      <DependentUpon>WhoAreYou.Windows.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <InterfaceDefinition Include="MacOS\WhoAreYou.xib" />
     <None Include="app.config" />
+    <None Include="Info.plist">
+      <Platforms>MacOS</Platforms>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

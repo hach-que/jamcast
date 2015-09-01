@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if PLATFORM_WINDOWS
+
+using System;
 using System.Runtime.InteropServices;
 
 namespace Client
@@ -32,3 +34,5 @@ namespace Client
         }
     }
 }
+
+#endif
