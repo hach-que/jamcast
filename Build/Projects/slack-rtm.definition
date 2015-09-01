@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ExternalProject Name="slack-rtm">
-
-  <Project
-    Name="SlackRTM"
-    Guid="9F45D288-9CFA-4A61-8970-E34874C41F1B"
-    Path="slack-rtm/SlackRTM/SlackRTM.csproj" />
-
-</ExternalProject>

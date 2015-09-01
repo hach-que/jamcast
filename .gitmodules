@@ -1,3 +1,0 @@
-[submodule "slack-rtm"]
-	path = slack-rtm
-	url = https://github.com/hach-que/slack-rtm.git

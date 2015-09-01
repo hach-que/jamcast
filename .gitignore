@@ -7,3 +7,4 @@ packages/*
 *.userprefs
 *.speccache
 .DS_Store
+slack-rtm/
