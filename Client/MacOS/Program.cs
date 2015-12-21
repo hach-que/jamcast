@@ -1,5 +1,9 @@
 ﻿#if PLATFORM_MACOS
+#if PLATFORM_MACOS_LEGACY
 using MonoMac.AppKit;
+#else
+using AppKit;
+#endif
 
 namespace Client
 {

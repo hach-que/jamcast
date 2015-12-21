@@ -2,11 +2,17 @@
 
 using System;
 using System.Drawing;
+#if PLATFORM_MACOS_LEGACY
 using MonoMac.AppKit;
-using System.Diagnostics;
 using MonoMac.Foundation;
-using System.IO;
 using MonoMac.CoreGraphics;
+#else
+using AppKit;
+using Foundation;
+using CoreGraphics;
+#endif
+using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace Client

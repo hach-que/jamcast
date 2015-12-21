@@ -4,7 +4,13 @@
 // actions made in the UI designer. If it is removed, they will be lost.
 // Manual changes to this file may not be handled correctly.
 //
+#if PLATFORM_MACOS_LEGACY
 using MonoMac.Foundation;
+using MonoMac.AppKit;
+#else
+using Foundation;
+using AppKit;
+#endif
 using System.CodeDom.Compiler;
 
 namespace Client
@@ -13,16 +19,16 @@ namespace Client
 	partial class WhoAreYouController
 	{
 		[Outlet]
-		MonoMac.AppKit.NSTextField nameField { get; set; }
+		NSTextField nameField { get; set; }
 
 		[Outlet]
-		MonoMac.AppKit.NSTextField promptLabel { get; set; }
+		NSTextField promptLabel { get; set; }
 
 		[Outlet]
 		Client.WhoAreYou whoAreYouWindow { get; set; }
 
 		[Action ("goButtonClicked:")]
-		partial void goButtonClicked (MonoMac.Foundation.NSObject sender);
+		partial void goButtonClicked (NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

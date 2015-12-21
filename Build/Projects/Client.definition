@@ -19,7 +19,7 @@
       <Platforms>MacOS</Platforms>
     </BundleResource>
     <BundleResource Include="MacOS\TrayOn.icns">
-       <Platforms>MacOS</Platforms>
+      <Platforms>MacOS</Platforms>
     </BundleResource>
     <Compile Include="Gdi.cs" />
     <Compile Include="MacOS\Manager.MacOS.cs">

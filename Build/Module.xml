@@ -1,31 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ModuleInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <Path>/Users/9508449/JC</Path>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Module>
   <Name>JamCast</Name>
   <DefaultAction>resync</DefaultAction>
   <GenerateNuGetRepositories>true</GenerateNuGetRepositories>
-  <DisableSynchronisation xsi:nil="true" />
-  <ModuleAssemblies />
   <Packages>
-    <PackageRef>
-      <Uri>http://protobuild.org/hach-que/slack-rtm</Uri>
-      <GitRef>master</GitRef>
-      <Folder>slack-rtm</Folder>
-    </PackageRef>
-    <PackageRef>
-      <Uri>http://protobuild.org/hach-que/Newtonsoft.Json</Uri>
-      <GitRef>master</GitRef>
-      <Folder>Newtonsoft.Json</Folder>
-    </PackageRef>
-    <PackageRef>
-      <Uri>https-nuget://www.nuget.org/api/v2/|Mono.Cecil</Uri>
-      <GitRef>0.9.5.4</GitRef>
-      <Folder>Mono.Cecil</Folder>
-    </PackageRef>
-    <PackageRef>
-      <Uri>https-nuget://www.nuget.org/api/v2/|SharpZipLib</Uri>
-      <GitRef>0.86.0</GitRef>
-      <Folder>SharpZipLib</Folder>
-    </PackageRef>
+    <Package Uri="http://protobuild.org/hach-que/slack-rtm" Folder="slack-rtm" GitRef="master" />
+    <Package Uri="http://protobuild.org/hach-que/Newtonsoft.Json" Folder="Newtonsoft.Json" GitRef="master" />
+    <Package Uri="https-nuget://www.nuget.org/api/v2/|Mono.Cecil" Folder="Mono.Cecil" GitRef="0.9.5.4" />
+    <Package Uri="https-nuget://www.nuget.org/api/v2/|SharpZipLib" Folder="SharpZipLib" GitRef="0.86.0" />
   </Packages>
-</ModuleInfo>
+</Module>
