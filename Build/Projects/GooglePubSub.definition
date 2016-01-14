@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Name="GooglePubSub" Path="GooglePubSub" Type="Library">
+  <References>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Newtonsoft.Json" />
+  </References>
+  <Files>
+    <Compile Include="Message.cs" />
+    <Compile Include="PubSub.cs" />
+    <Compile Include="ServiceAccount.cs" />
+  </Files>
+</Project>

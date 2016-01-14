@@ -1,18 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Configuration;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using GooglePubSub;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
 using SlackRTM;
-using SlackRTM.Events;
+using Message = SlackRTM.Events.Message;
 
 namespace Bootstrap
 {
@@ -177,106 +180,102 @@ namespace Bootstrap
 
             string jamcastControllerChannel = null;
 
-            var slack = new Slack(token);
-            slack.Init();
-            slack.OnEvent += (s, e) =>
+            var pubsub = new PubSub("melbourne-global-game-jam-16", token);
+            pubsub.CreateTopic("bootstrap-" + guid);
+            pubsub.Subscribe("bootstrap-" + guid, "bootstrap-" + guid);
+
+            var pingTopic = "jamcast-ping";
+
+            var thread = new Thread(() =>
             {
-                if (e.Data.Type == "message")
+                var message = pubsub.LongPoll("bootstrap-" + guid, 1).FirstOrDefault();
+                if (message != null)
                 {
-                    var message = e.Data as Message;
-                    if (message == null)
-                    {
-                        return;
-                    }
+                    message.Acknowledge();
 
-                    if (message.Hidden)
-                    {
-                        return;
-                    }
+                    var m =
+                        JsonConvert.DeserializeObject<dynamic>(
+                            Encoding.ASCII.GetString(Convert.FromBase64String(message.Data)));
+                    var target = (string)m.Target;
 
-                    if (message.Channel[0] == 'D') // DMs.
+                    if (!string.IsNullOrEmpty(target))
                     {
-                        var userId = message.User;
-                        var user = slack.GetUser(userId).Name;
-
-                        if (user == "jamcast-controller")
+                        if (target != guid.ToString())
                         {
-                            var m =
-                                JsonConvert.DeserializeObject<dynamic>(
-                                    Encoding.ASCII.GetString(Convert.FromBase64String(message.Text)));
-                            var target = (string)m.Target;
-
-                            if (!string.IsNullOrEmpty(target))
-                            {
-                                if (target != guid.ToString())
-                                {
-                                    // not for this client.
-                                    return;
-                                }
-                            }
-
-                            switch ((string) m.Type)
-                            {
-                                case "pong":
-                                    if (jamcastControllerChannel != null)
-                                    {
-                                        HasReceivedVersionInformation = true;
-
-                                        SendPing(slack, jamcastControllerChannel, guid);
-
-                                        AvailableClientVersion = m.AvailableClientVersion;
-                                        AvailableProjectorVersion = m.AvailableProjectorVersion;
-                                        AvailableClientFile = m.AvailableClientFile;
-                                        AvailableProjectorFile = m.AvailableProjectorFile;
-
-                                        UpdateVersions();
-                                    }
-                                    break;
-                                case "designate":
-                                    if (jamcastControllerChannel != null)
-                                    {
-                                        Role = m.Role;
-
-                                        UpdateVersions();
-
-                                        SendPing(slack, jamcastControllerChannel, guid);
-                                    }
-                                    break;
-                                case "client-settings":
-                                    if (jamcastControllerChannel != null)
-                                    {
-                                        using (var writer = new StreamWriter(ClientSettingsPath))
-                                        {
-                                            writer.Write((string)m.Settings);
-                                        }
-
-                                        KillProcess();
-                                        StartProcess();
-
-                                        SendPing(slack, jamcastControllerChannel, guid);
-                                    }
-                                    break;
-                                case "projector-settings":
-                                    if (jamcastControllerChannel != null)
-                                    {
-                                        using (var writer = new StreamWriter(ProjectorSettingsPath))
-                                        {
-                                            writer.Write((string)m.Settings);
-                                        }
-
-                                        KillProcess();
-                                        StartProcess();
-
-                                        SendPing(slack, jamcastControllerChannel, guid);
-                                    }
-                                    break;
-                            }
+                            // not for this client.
+                            return;
                         }
                     }
 
+                    switch ((string)m.Type)
+                    {
+                        case "pong":
+                            if (jamcastControllerChannel != null)
+                            {
+                                HasReceivedVersionInformation = true;
+
+                                SendPing(pubsub, pingTopic, guid);
+
+                                AvailableClientVersion = m.AvailableClientVersion;
+                                AvailableProjectorVersion = m.AvailableProjectorVersion;
+                                AvailableClientFile = m.AvailableClientFile;
+                                AvailableProjectorFile = m.AvailableProjectorFile;
+
+                                UpdateVersions();
+                            }
+                            break;
+                        case "designate":
+                            if (jamcastControllerChannel != null)
+                            {
+                                Role = m.Role;
+
+                                UpdateVersions();
+
+                                SendPing(pubsub, pingTopic, guid);
+                            }
+                            break;
+                        case "client-settings":
+                            if (jamcastControllerChannel != null)
+                            {
+                                using (var writer = new StreamWriter(ClientSettingsPath))
+                                {
+                                    writer.Write((string)m.Settings);
+                                }
+
+                                KillProcess();
+                                StartProcess();
+
+                                SendPing(pubsub, pingTopic, guid);
+                            }
+                            break;
+                        case "projector-settings":
+                            if (jamcastControllerChannel != null)
+                            {
+                                using (var writer = new StreamWriter(ProjectorSettingsPath))
+                                {
+                                    writer.Write((string)m.Settings);
+                                }
+
+                                KillProcess();
+                                StartProcess();
+
+                                SendPing(pubsub, pingTopic, guid);
+                            }
+                            break;
+                    }
                 }
-            };
-            slack.Connect();
+            });
+
+            try
+            {
+                thread.IsBackground = true;
+                thread.Start();
+            }
+            finally
+            {
+                pubsub.DeleteTopic("bootstrap-" + guid);
+                pubsub.UnsubscribeFromAllTopics("bootstrap-" + guid);
+            }
 
             CalculateVersions();
 
@@ -301,33 +300,20 @@ namespace Bootstrap
                 StartProcess();
             }
 
-            jamcastControllerChannel =
-                slack.Ims.Where(x => x.User == slack.GetUser("jamcast-controller").Id).Select(x => x.Id).FirstOrDefault();
-            if (jamcastControllerChannel == null)
-            {
-                jamcastControllerChannel = slack.GetUser("jamcast-controller").OpenIm().Id;
-            }
-
-            SendPing(slack, jamcastControllerChannel, guid);
+            SendPing(pubsub, pingTopic, guid);
 
             var timer = 0;
 
             while (true)
             {
-                while (slack.Connected)
+                Thread.Sleep(100);
+                timer += 100;
+
+                if (timer > 600000)
                 {
-                    Thread.Sleep(100);
-                    timer += 100;
-
-                    if (timer > 600000)
-                    {
-                        SendPing(slack, jamcastControllerChannel, guid);
-                        timer = 0;
-                    }
+                    SendPing(pubsub, pingTopic, guid);
+                    timer = 0;
                 }
-
-                slack.Init();
-                slack.Connect();
             }
         }
 
@@ -497,28 +483,27 @@ namespace Bootstrap
 
             return BitConverter.ToString(md5.Hash).Replace("-", "").ToLower();
         }
-
-        private static void SendPing(Slack slack, string channelId, Guid guid)
+        
+        private static void SendPing(PubSub pubsub, string pingTopic, Guid guid)
         {
             var ipaddresses = GetAllKnownIPAddresses().Select(x => x.ToString()).ToArray();
 
-            slack.SendMessage(channelId,
-                Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
-                {
-                    Source = guid.ToString(),
-                    Type = "ping",
-                    Hostname = Host,
+            pubsub.Publish(pingTopic, Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
+            {
+                Source = guid.ToString(),
+                Type = "ping",
+                Hostname = Host,
 #if PLATFORM_WINDOWS
-                    Platform = "Windows",
+                Platform = "Windows",
 #elif PLATFORM_MACOS
                     Platform = "MacOS",
 #else
 #error Platform not supported
 #endif
-                    Role = Role,
-                    HasReceivedVersionInformation = HasReceivedVersionInformation,
-                    IPAddresses = ipaddresses,
-                }))));
+                Role = Role,
+                HasReceivedVersionInformation = HasReceivedVersionInformation,
+                IPAddresses = ipaddresses,
+            }))), null);
         }
     }
 }
