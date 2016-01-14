@@ -111,7 +111,7 @@ namespace Bootstrap
             }
         }
 
-        internal static void Main(string[] args)
+        internal static void RealMain(string[] args)
         {
             string token;
             var tokenStream = typeof(Program).Assembly.GetManifestResourceStream("Bootstrap.token.txt");

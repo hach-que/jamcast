@@ -134,22 +134,22 @@ namespace Controller.Forms
                             writer.Flush();
                         }
 
-                        var path = new FileInfo(sfd.FileName).Directory.FullName;
+                        //var path = new FileInfo(sfd.FileName).Directory.FullName;
 
-                        foreach (var file in new FileInfo(typeof (Program).Assembly.Location).Directory.GetFiles("*.dll"))
-                        {
-                            file.CopyTo(Path.Combine(path, file.Name), true);
-                        }
+                        //foreach (var file in new FileInfo(typeof (Program).Assembly.Location).Directory.GetFiles("*.dll"))
+                        //{
+                        //    file.CopyTo(Path.Combine(path, file.Name), true);
+                        //}
 
-                        foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.pdb"))
-                        {
-                            file.CopyTo(Path.Combine(path, file.Name), true);
-                        }
+                        //foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.pdb"))
+                        //{
+                        //    file.CopyTo(Path.Combine(path, file.Name), true);
+                        //}
 
-                        foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.dll.config"))
-                        {
-                            file.CopyTo(Path.Combine(path, file.Name), true);
-                        }
+                        //foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.dll.config"))
+                        //{
+                        //    file.CopyTo(Path.Combine(path, file.Name), true);
+                        //}
 
                         using (var writer = new StreamWriter(sfd.FileName + ".config", false))
                         {

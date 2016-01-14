@@ -8,3 +8,4 @@ packages/*
 *.speccache
 .DS_Store
 slack-rtm/
+Bootstrap/Bootstrap.Windows.csproj.user

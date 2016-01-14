@@ -8,6 +8,7 @@
     <Reference Include="SharpZipLib" />
   </References>
   <Files>
+    <Compile Include="Prerun.cs" />
     <Compile Include="Program.cs" />
     <EmbeddedResource Include="token.txt" />
     <None Include="App.config">

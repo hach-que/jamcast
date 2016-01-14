@@ -14,6 +14,25 @@ namespace Controller
             definition.MainModule.Resources.RemoveAt(0);
             definition.MainModule.Resources.Add(temp);
 
+
+            foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.dll"))
+            {
+                temp = new EmbeddedResource(file.Name, ManifestResourceAttributes.Public, File.ReadAllBytes(file.Name));
+                definition.MainModule.Resources.Add(temp);
+            }
+
+            foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.pdb"))
+            {
+                temp = new EmbeddedResource(file.Name, ManifestResourceAttributes.Public, File.ReadAllBytes(file.Name));
+                definition.MainModule.Resources.Add(temp);
+            }
+
+            foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.dll.config"))
+            {
+                temp = new EmbeddedResource(file.Name, ManifestResourceAttributes.Public, File.ReadAllBytes(file.Name));
+                definition.MainModule.Resources.Add(temp);
+            }
+
             using (var memory = new MemoryStream())
             {
                 definition.Write(memory);
