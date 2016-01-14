@@ -28,7 +28,7 @@ namespace Client
 				WhoAreYou way = new WhoAreYou();
 				if (way.ShowDialog() != DialogResult.OK)
 				{
-					Application.Exit();
+					Environment.Exit(1);
 					return;
 				}
 				this.m_Name = way.Name;

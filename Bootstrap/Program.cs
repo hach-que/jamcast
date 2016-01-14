@@ -16,6 +16,9 @@ using SlackRTM.Events;
 
 namespace Bootstrap
 {
+    /// <summary>
+    /// Main class for the Bootstrapper
+    /// </summary>
     public static class Program
     {
         private static string Host;
@@ -108,7 +111,7 @@ namespace Bootstrap
             }
         }
 
-        public static void Main(string[] args)
+        internal static void Main(string[] args)
         {
             string token;
             var tokenStream = typeof(Program).Assembly.GetManifestResourceStream("Bootstrap.token.txt");
@@ -174,8 +177,8 @@ namespace Bootstrap
 
             string jamcastControllerChannel = null;
 
-            var slack = new Slack();
-            slack.Init(token);
+            var slack = new Slack(token);
+            slack.Init();
             slack.OnEvent += (s, e) =>
             {
                 if (e.Data.Type == "message")
@@ -302,12 +305,7 @@ namespace Bootstrap
                 slack.Ims.Where(x => x.User == slack.GetUser("jamcast-controller").Id).Select(x => x.Id).FirstOrDefault();
             if (jamcastControllerChannel == null)
             {
-                var client = new WebClient();
-                var result = client.DownloadString("https://slack.com/api/im.open?token=" + token + "&user=" +
-                                                   slack.GetUser("jamcast-controller").Id);
-                var response = JsonConvert.DeserializeObject<dynamic>(result);
-
-                jamcastControllerChannel = (string)response.channel.id;
+                jamcastControllerChannel = slack.GetUser("jamcast-controller").OpenIm().Id;
             }
 
             SendPing(slack, jamcastControllerChannel, guid);
@@ -328,7 +326,7 @@ namespace Bootstrap
                     }
                 }
 
-                slack.Init(token);
+                slack.Init();
                 slack.Connect();
             }
         }
