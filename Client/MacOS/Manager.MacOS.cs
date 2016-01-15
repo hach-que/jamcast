@@ -27,6 +27,8 @@ namespace Client
 
 		private static Action onExit;
 
+        private Dictionary<IPAddress, Process> _streamingProcesses = new Dictionary<IPAddress, Process>();
+
 		public static void PerformExit()
 		{
 			if (onExit != null) {
@@ -96,21 +98,24 @@ namespace Client
 		{
 		}
 
-		[DllImport("/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/CoreGraphics.framework/CoreGraphics")]
-		private static extern IntPtr CGWindowListCreateImage(RectangleF screenBounds, CGWindowListOption windowOption, uint windowID, CGWindowImageOption imageOption);
+	    private void StartStreaming(IPAddress address, out string sdp, Action onProcessExit)
+	    {
+	        //var controller = new FfmpegStreamController();
+	        //var process = controller.StreamToTarget(address.ToString(), out sdp);
+	        //process.Exited += (sender, args) =>
+	        //{
+	        //    onProcessExit();
+	        //};
+	        //_streamingProcesses[address] = process;
+	    }
 
-		public Bitmap GetScreen()
-		{
-			var ptr = CGWindowListCreateImage(new RectangleF(0, 0, 1920, 1080), CGWindowListOption.All, 0, CGWindowImageOption.Default);
-			var screenImage = new CGImage(ptr);
-
-			using (var imageRep = new NSBitmapImageRep (screenImage)) {
-				var props = NSDictionary.FromObjectAndKey (new NSNumber (1.0), new NSString ("NSImageCompressionFactory"));
-				using (var bmpData = imageRep.RepresentationUsingTypeProperties (NSBitmapImageFileType.Png, props)) {
-					return (Bitmap)Image.FromStream (bmpData.AsStream());
-				}
-			}
-		}
+	    private void StopStreaming(IPAddress address)
+	    {
+	        //if (_streamingProcesses[address] != null && !_streamingProcesses[address].HasExited)
+	        //{
+	        //    _streamingProcesses[address].Kill();
+	        //}
+	    }
 	}
 }
 
