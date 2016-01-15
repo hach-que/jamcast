@@ -14,6 +14,8 @@ using CoreGraphics;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Net;
+using System.Collections.Generic;
 
 namespace Client
 {
