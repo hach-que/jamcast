@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Windows.Forms;
-using JamCast.Clients;
 using NetCast;
 using NetCast.Messages;
 using TweetSharp;
@@ -49,6 +48,8 @@ namespace JamCast
             // Start the NetCast listener.
             this.p_NetCast = new Queue(13000, 13001);
             this.p_NetCast.OnReceived += new EventHandler<MessageEventArgs>(p_NetCast_OnReceived);
+
+            AddClientExplicitly(new IPEndPoint(IPAddress.Parse("10.1.1.28"), 12001), "test client");
 
             // Start the application message loop.
             Application.Run();
@@ -113,25 +114,27 @@ namespace JamCast
             else if (e.Message is ClientServiceStoppingMessage)
             {
                 this.m_Clients.RemoveAll((nc) =>
-                    {
-                        if (nc is NetworkClient)
-                            return ((nc as NetworkClient).Source == e.Message.Source);
-                        else
-                            return false;
-                    });
+                {
+                    return (nc.Source == e.Message.Source);
+                });
             }
         }
 
         public void AddClientExplicitly(IPEndPoint source, string name)
         {
-            NetworkClient nc = new NetworkClient(this.p_NetCast, source, name);
-            foreach (NetworkClient snc in this.m_Clients)
+            var nc = new Client(this.p_NetCast, m_Broadcast, source, name);
+            foreach (var snc in this.m_Clients)
             {
                 if (snc.Source.Address.Equals(nc.Source.Address))
                     return;
             }
             nc.OnDisconnected += new EventHandler(nc_OnDisconnected);
             this.m_Clients.Add(nc);
+
+            if (this.m_Clients.Count == 1)
+            {
+                nc.Start();
+            }
         }
 
         /// <summary>
@@ -143,47 +146,7 @@ namespace JamCast
         {
             this.m_Clients.Remove(sender as Client);
         }
-
-        /// <summary>
-        /// The current bitmap data to be broadcasted.
-        /// </summary>
-        public Bitmap Screen
-        {
-            get
-            {
-                // For the moment, grab the first client and show it's screen.
-                // Also implement some caching here since GetScreen() should be asynchronous.
-                if (this.m_Clients.Count > 0)
-                {
-                    // Clamp values.
-                    if (this.p_CurrentClient >= this.m_Clients.Count)
-                        this.p_CurrentClient = this.m_Clients.Count - 1;
-                    else if (this.p_CurrentClient < 0)
-                        this.p_CurrentClient = 0;
-
-                    // Get screen.
-                    Bitmap b = this.m_Clients[this.p_CurrentClient].Screen;
-                    this.p_CurrentClientName = this.m_Clients[this.p_CurrentClient].Name;
-                    Thread t = new Thread(() =>
-                        {
-                            try
-                            {
-                                this.m_Clients[this.p_CurrentClient].Refresh();
-                            }
-                            catch (ArgumentOutOfRangeException)
-                            {
-                                this.p_CurrentClient = 0;
-                            }
-                        });
-                    t.IsBackground = true;
-                    t.Start();
-                    return b;
-                }                    
-                else
-                    return null;
-            }
-        }
-
+        
         /// <summary>
         /// Initalizes and shows the broadcast form.
         /// </summary>
@@ -246,10 +209,25 @@ namespace JamCast
         public void NextClient()
         {
             BitmapTracker.Purge();
+
+            var oldClient = this.p_CurrentClient;
+
             this.p_CurrentClient += 1;
 
             if (this.p_CurrentClient >= this.m_Clients.Count)
                 this.p_CurrentClient = 0;
+
+            if (this.p_CurrentClient != oldClient)
+            {
+                if (oldClient < this.m_Clients.Count)
+                {
+                    this.m_Clients[oldClient].Stop();
+                }
+                if (this.p_CurrentClient < this.m_Clients.Count)
+                {
+                    this.m_Clients[this.p_CurrentClient].Start();
+                }
+            }
         }
 
         /// <summary>
@@ -294,6 +272,11 @@ namespace JamCast
         public bool IsLocked { get; set; }
         public string LockedClientName { get; set; }
         public string LockingUserName { get; set; }
+
+        public Client CurrentClientObject
+        {
+            get { return this.p_CurrentClient < this.m_Clients.Count ? this.m_Clients[this.p_CurrentClient] : null; }
+        }
 
         public void Lock(string target, string lockingUser)
         {

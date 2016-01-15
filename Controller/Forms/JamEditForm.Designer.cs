@@ -29,17 +29,16 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(JamEditForm));
-            this.c_ControllerSlackAPIToken = new System.Windows.Forms.TextBox();
+            this._googleCloudProjectID = new System.Windows.Forms.TextBox();
             this.c_ControllerSlackAPITokenLabel = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.c_StorageTokenLink = new System.Windows.Forms.LinkLabel();
             this.label5 = new System.Windows.Forms.Label();
-            this.c_ControllerStorageAPIToken = new System.Windows.Forms.TextBox();
+            this._googleCloudOAuthEndpointURL = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.c_ProjectorSlackChannelsLabel = new System.Windows.Forms.Label();
-            this.c_ClientSlackAPIToken = new System.Windows.Forms.TextBox();
-            this.c_ProjectorSlackChannels = new System.Windows.Forms.TextBox();
+            this._projectorSlackAPIToken = new System.Windows.Forms.TextBox();
+            this._projectorSlackChannels = new System.Windows.Forms.TextBox();
             this.c_ClientSlackAPITokenLabel = new System.Windows.Forms.Label();
             this.c_CreateBootstrap = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
@@ -52,48 +51,36 @@
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
-            // c_ControllerSlackAPIToken
+            // _googleCloudProjectID
             // 
-            this.c_ControllerSlackAPIToken.Location = new System.Drawing.Point(134, 19);
-            this.c_ControllerSlackAPIToken.Name = "c_ControllerSlackAPIToken";
-            this.c_ControllerSlackAPIToken.Size = new System.Drawing.Size(242, 20);
-            this.c_ControllerSlackAPIToken.TabIndex = 0;
-            this.c_ControllerSlackAPIToken.TextChanged += new System.EventHandler(this.c_SlackAPIToken_TextChanged);
+            this._googleCloudProjectID.Location = new System.Drawing.Point(184, 19);
+            this._googleCloudProjectID.Name = "_googleCloudProjectID";
+            this._googleCloudProjectID.Size = new System.Drawing.Size(192, 20);
+            this._googleCloudProjectID.TabIndex = 0;
+            this._googleCloudProjectID.TextChanged += new System.EventHandler(this._googleCloudProjectID_TextChanged);
             // 
             // c_ControllerSlackAPITokenLabel
             // 
             this.c_ControllerSlackAPITokenLabel.AutoSize = true;
             this.c_ControllerSlackAPITokenLabel.Location = new System.Drawing.Point(17, 22);
             this.c_ControllerSlackAPITokenLabel.Name = "c_ControllerSlackAPITokenLabel";
-            this.c_ControllerSlackAPITokenLabel.Size = new System.Drawing.Size(91, 13);
+            this.c_ControllerSlackAPITokenLabel.Size = new System.Drawing.Size(124, 13);
             this.c_ControllerSlackAPITokenLabel.TabIndex = 1;
-            this.c_ControllerSlackAPITokenLabel.Text = "Slack API Token:";
+            this.c_ControllerSlackAPITokenLabel.Text = "Google Cloud Project ID:";
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.c_StorageTokenLink);
             this.groupBox1.Controls.Add(this.label5);
-            this.groupBox1.Controls.Add(this.c_ControllerStorageAPIToken);
+            this.groupBox1.Controls.Add(this._googleCloudOAuthEndpointURL);
             this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Controls.Add(this.c_ControllerSlackAPIToken);
+            this.groupBox1.Controls.Add(this._googleCloudProjectID);
             this.groupBox1.Controls.Add(this.c_ControllerSlackAPITokenLabel);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(382, 141);
+            this.groupBox1.Size = new System.Drawing.Size(382, 121);
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Controller Settings";
-            // 
-            // c_StorageTokenLink
-            // 
-            this.c_StorageTokenLink.AutoSize = true;
-            this.c_StorageTokenLink.Location = new System.Drawing.Point(17, 118);
-            this.c_StorageTokenLink.Name = "c_StorageTokenLink";
-            this.c_StorageTokenLink.Size = new System.Drawing.Size(133, 13);
-            this.c_StorageTokenLink.TabIndex = 5;
-            this.c_StorageTokenLink.TabStop = true;
-            this.c_StorageTokenLink.Text = "https://api.slack.com/web";
-            this.c_StorageTokenLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.c_StorageTokenLink_LinkClicked);
             // 
             // label5
             // 
@@ -101,34 +88,33 @@
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(359, 45);
             this.label5.TabIndex = 4;
-            this.label5.Text = "The slack API token should be the API token for \"jamcast-controller\".  The slack " +
-    "storage token needs to be a real user token (such as your own account).  Get a s" +
-    "torage token from:";
+            this.label5.Text = "The token provider endpoint should emit JSON with an OAuth token suitable for acc" +
+    "essing Google Cloud Pub/Sub and Google Cloud Storage for the given project ID.";
             // 
-            // c_ControllerStorageAPIToken
+            // _googleCloudOAuthEndpointURL
             // 
-            this.c_ControllerStorageAPIToken.Location = new System.Drawing.Point(134, 45);
-            this.c_ControllerStorageAPIToken.Name = "c_ControllerStorageAPIToken";
-            this.c_ControllerStorageAPIToken.Size = new System.Drawing.Size(242, 20);
-            this.c_ControllerStorageAPIToken.TabIndex = 2;
-            this.c_ControllerStorageAPIToken.TextChanged += new System.EventHandler(this.c_ControllerStorageAPIToken_TextChanged);
+            this._googleCloudOAuthEndpointURL.Location = new System.Drawing.Point(184, 45);
+            this._googleCloudOAuthEndpointURL.Name = "_googleCloudOAuthEndpointURL";
+            this._googleCloudOAuthEndpointURL.Size = new System.Drawing.Size(192, 20);
+            this._googleCloudOAuthEndpointURL.TabIndex = 2;
+            this._googleCloudOAuthEndpointURL.TextChanged += new System.EventHandler(this._googleCloudOAuthEndpointURL_TextChanged);
             // 
             // label4
             // 
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(17, 48);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(111, 13);
+            this.label4.Size = new System.Drawing.Size(161, 13);
             this.label4.TabIndex = 3;
-            this.label4.Text = "Slack Storage Token:";
+            this.label4.Text = "OAuth Token Provider Endpoint:";
             // 
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.c_ProjectorSlackChannelsLabel);
-            this.groupBox2.Controls.Add(this.c_ClientSlackAPIToken);
-            this.groupBox2.Controls.Add(this.c_ProjectorSlackChannels);
+            this.groupBox2.Controls.Add(this._projectorSlackAPIToken);
+            this.groupBox2.Controls.Add(this._projectorSlackChannels);
             this.groupBox2.Controls.Add(this.c_ClientSlackAPITokenLabel);
-            this.groupBox2.Location = new System.Drawing.Point(12, 159);
+            this.groupBox2.Location = new System.Drawing.Point(12, 139);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(382, 76);
             this.groupBox2.TabIndex = 6;
@@ -144,21 +130,21 @@
             this.c_ProjectorSlackChannelsLabel.TabIndex = 3;
             this.c_ProjectorSlackChannelsLabel.Text = "Slack Channels (comma-seperated):";
             // 
-            // c_ClientSlackAPIToken
+            // _projectorSlackAPIToken
             // 
-            this.c_ClientSlackAPIToken.Location = new System.Drawing.Point(134, 19);
-            this.c_ClientSlackAPIToken.Name = "c_ClientSlackAPIToken";
-            this.c_ClientSlackAPIToken.Size = new System.Drawing.Size(242, 20);
-            this.c_ClientSlackAPIToken.TabIndex = 0;
-            this.c_ClientSlackAPIToken.TextChanged += new System.EventHandler(this.c_ClientSlackAPIToken_TextChanged);
+            this._projectorSlackAPIToken.Location = new System.Drawing.Point(134, 19);
+            this._projectorSlackAPIToken.Name = "_projectorSlackAPIToken";
+            this._projectorSlackAPIToken.Size = new System.Drawing.Size(242, 20);
+            this._projectorSlackAPIToken.TabIndex = 0;
+            this._projectorSlackAPIToken.TextChanged += new System.EventHandler(this._projectorSlackAPIToken_TextChanged);
             // 
-            // c_ProjectorSlackChannels
+            // _projectorSlackChannels
             // 
-            this.c_ProjectorSlackChannels.Location = new System.Drawing.Point(203, 45);
-            this.c_ProjectorSlackChannels.Name = "c_ProjectorSlackChannels";
-            this.c_ProjectorSlackChannels.Size = new System.Drawing.Size(173, 20);
-            this.c_ProjectorSlackChannels.TabIndex = 2;
-            this.c_ProjectorSlackChannels.TextChanged += new System.EventHandler(this.c_ProjectorSlackChannels_TextChanged);
+            this._projectorSlackChannels.Location = new System.Drawing.Point(203, 45);
+            this._projectorSlackChannels.Name = "_projectorSlackChannels";
+            this._projectorSlackChannels.Size = new System.Drawing.Size(173, 20);
+            this._projectorSlackChannels.TabIndex = 2;
+            this._projectorSlackChannels.TextChanged += new System.EventHandler(this._projectorSlackChannels_TextChanged);
             // 
             // c_ClientSlackAPITokenLabel
             // 
@@ -171,7 +157,7 @@
             // 
             // c_CreateBootstrap
             // 
-            this.c_CreateBootstrap.Location = new System.Drawing.Point(264, 241);
+            this.c_CreateBootstrap.Location = new System.Drawing.Point(262, 221);
             this.c_CreateBootstrap.Name = "c_CreateBootstrap";
             this.c_CreateBootstrap.Size = new System.Drawing.Size(124, 70);
             this.c_CreateBootstrap.TabIndex = 7;
@@ -181,7 +167,7 @@
             // 
             // label1
             // 
-            this.label1.Location = new System.Drawing.Point(14, 243);
+            this.label1.Location = new System.Drawing.Point(12, 223);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(240, 68);
             this.label1.TabIndex = 8;
@@ -192,16 +178,16 @@
             this.m_SlackConnectionStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.m_SlackConnectionStatus.BackColor = System.Drawing.Color.LightCoral;
             this.m_SlackConnectionStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.m_SlackConnectionStatus.Location = new System.Drawing.Point(-2, 427);
+            this.m_SlackConnectionStatus.Location = new System.Drawing.Point(-2, 404);
             this.m_SlackConnectionStatus.Name = "m_SlackConnectionStatus";
             this.m_SlackConnectionStatus.Size = new System.Drawing.Size(410, 35);
             this.m_SlackConnectionStatus.TabIndex = 9;
-            this.m_SlackConnectionStatus.Text = "Not connected to Slack!";
+            this.m_SlackConnectionStatus.Text = "Not connected to Google Cloud Pub/Sub!";
             this.m_SlackConnectionStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label2
             // 
-            this.label2.Location = new System.Drawing.Point(14, 321);
+            this.label2.Location = new System.Drawing.Point(12, 301);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(240, 41);
             this.label2.TabIndex = 11;
@@ -210,7 +196,7 @@
             // 
             // c_PackageAndDeploy
             // 
-            this.c_PackageAndDeploy.Location = new System.Drawing.Point(264, 319);
+            this.c_PackageAndDeploy.Location = new System.Drawing.Point(262, 299);
             this.c_PackageAndDeploy.Name = "c_PackageAndDeploy";
             this.c_PackageAndDeploy.Size = new System.Drawing.Size(124, 43);
             this.c_PackageAndDeploy.TabIndex = 10;
@@ -220,7 +206,7 @@
             // 
             // label3
             // 
-            this.label3.Location = new System.Drawing.Point(14, 373);
+            this.label3.Location = new System.Drawing.Point(12, 353);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(240, 41);
             this.label3.TabIndex = 13;
@@ -229,7 +215,7 @@
             // 
             // c_PackageAndDeployExternal
             // 
-            this.c_PackageAndDeployExternal.Location = new System.Drawing.Point(264, 371);
+            this.c_PackageAndDeployExternal.Location = new System.Drawing.Point(262, 351);
             this.c_PackageAndDeployExternal.Name = "c_PackageAndDeployExternal";
             this.c_PackageAndDeployExternal.Size = new System.Drawing.Size(124, 43);
             this.c_PackageAndDeployExternal.TabIndex = 12;
@@ -241,7 +227,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(406, 462);
+            this.ClientSize = new System.Drawing.Size(406, 439);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.c_PackageAndDeployExternal);
             this.Controls.Add(this.label2);
@@ -265,13 +251,13 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox c_ControllerSlackAPIToken;
+        private System.Windows.Forms.TextBox _googleCloudProjectID;
         private System.Windows.Forms.Label c_ControllerSlackAPITokenLabel;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Label c_ProjectorSlackChannelsLabel;
-        private System.Windows.Forms.TextBox c_ClientSlackAPIToken;
-        private System.Windows.Forms.TextBox c_ProjectorSlackChannels;
+        private System.Windows.Forms.TextBox _projectorSlackAPIToken;
+        private System.Windows.Forms.TextBox _projectorSlackChannels;
         private System.Windows.Forms.Label c_ClientSlackAPITokenLabel;
         private System.Windows.Forms.Button c_CreateBootstrap;
         private System.Windows.Forms.Label label1;
@@ -280,9 +266,8 @@
         private System.Windows.Forms.Button c_PackageAndDeploy;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button c_PackageAndDeployExternal;
-        private System.Windows.Forms.LinkLabel c_StorageTokenLink;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.TextBox c_ControllerStorageAPIToken;
+        private System.Windows.Forms.TextBox _googleCloudOAuthEndpointURL;
         private System.Windows.Forms.Label label4;
 
     }

@@ -50,7 +50,7 @@ namespace Controller.Forms
                 TwitterOAuthSecret = c_TwitterOAuthSecret.Text,
                 TwitterSearchQuery = c_TwitterSearchQuery.Text,
                 ProjectorName = c_ProjectorName.Text,
-                SlackToken = Jam.ClientSlackToken,
+                SlackToken = Jam.ProjectorSlackAPIToken,
                 SlackChannels = Jam.ProjectorSlackChannels,
                 IsPrimary = c_IsPrimaryProjector.Checked
             };
@@ -60,7 +60,7 @@ namespace Controller.Forms
             Jam.CachedProjectorSettings[ComputerTreeNode.Computer.Guid.ToString()] = settingsJson;
 
             var mainForm = this.MdiParent as MainForm;
-            mainForm.SlackController.UpdateComputerSettings(Jam.Guid, ComputerTreeNode.Computer.Guid, "projector-settings", settingsJson);
+            mainForm.PubSubController.UpdateComputerSettings(Jam.Guid, ComputerTreeNode.Computer.Guid, "projector-settings", settingsJson);
         }
     }
 }

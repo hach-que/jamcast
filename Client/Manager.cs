@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Threading;
+using Client.Windows;
 using NetCast;
 using NetCast.Messages;
 
@@ -27,12 +28,12 @@ namespace Client
 			ConfigureSystemTrayIcon();
 
             // Advertise client service to the server.
-            Thread t = new Thread(() =>
+            var t = new Thread(() =>
                 {
                     while (true)
                     {
-                        ClientServiceStartingMessage cssm = new ClientServiceStartingMessage(this.p_NetCast.TcpSelf, this.m_Name);
-                        cssm.SendUDP(new IPEndPoint(IPAddress.Broadcast, 13000));
+                        var message = new ClientServiceStartingMessage(this.p_NetCast.TcpSelf, this.m_Name);
+                        message.SendUDP(new IPEndPoint(IPAddress.Broadcast, 13000));
                         Thread.Sleep(1000);
                     }
                 });
@@ -42,8 +43,8 @@ namespace Client
 
 		private void OnStop()
         {
-            ClientServiceStoppingMessage cssm = new ClientServiceStoppingMessage(this.p_NetCast.TcpSelf);
-            cssm.SendUDP(new IPEndPoint(IPAddress.Broadcast, 13000));
+            var message = new ClientServiceStoppingMessage(this.p_NetCast.TcpSelf);
+            message.SendUDP(new IPEndPoint(IPAddress.Broadcast, 13000));
             Thread.Sleep(1000);
             this.p_NetCast.Stop();
         }
@@ -59,15 +60,32 @@ namespace Client
             {
 				SetTrayIconToCountdown();
             }
-            else if (e.Message is ScreenRequestMessage)
+            else if (e.Message is BeginStreamingMessage)
             {
 				SetTrayIconToOn();
 
-                // Send the screen result.
-                ScreenResultMessage srm = new ScreenResultMessage(this.p_NetCast.TcpSelf, this.GetScreen());
-                srm.SendTCP(e.Message.Source);
+                string sdp;
+                StartStreaming(e.Message.Source.Address, out sdp, () =>
+                {
+                    SetTrayIconToOff();
 
-				ScheduleTrayIconToOff();
+                    StopStreaming(e.Message.Source.Address);
+
+                    var stoppedMessage = new StreamingStoppedMessage(this.p_NetCast.TcpSelf);
+                    stoppedMessage.SendTCP(e.Message.Source);
+                });
+
+                var startedMessage = new StreamingStartedMessage(this.p_NetCast.TcpSelf, sdp);
+                startedMessage.SendTCP(e.Message.Source);
+            }
+            else if (e.Message is EndStreamingMessage)
+            {
+                SetTrayIconToOff();
+
+                StopStreaming(e.Message.Source.Address);
+
+                var stoppedMessage = new StreamingStoppedMessage(this.p_NetCast.TcpSelf);
+                stoppedMessage.SendTCP(e.Message.Source);
             }
         }
 

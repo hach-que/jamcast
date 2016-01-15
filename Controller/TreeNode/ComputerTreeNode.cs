@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Controller.Forms;
 
@@ -26,7 +27,7 @@ namespace Controller.TreeNode
                 this.UpdateImage();
 
                 var mainForm = this.TreeView.FindForm() as MainForm;
-                mainForm.SlackController.DesignateComputer(Jam.Guid, Computer.Guid, Computer.Role);
+                mainForm.PubSubController.DesignateComputer(Jam.Guid, Computer.Guid, Computer.Role);
             });
             this.ContextMenuStrip.Items.Add("Designate as Projector", null, (sender, args) =>
             {
@@ -35,7 +36,7 @@ namespace Controller.TreeNode
                 this.UpdateImage();
 
                 var mainForm = this.TreeView.FindForm() as MainForm;
-                mainForm.SlackController.DesignateComputer(Jam.Guid, Computer.Guid, Computer.Role);
+                mainForm.PubSubController.DesignateComputer(Jam.Guid, Computer.Guid, Computer.Role);
             });
             this.ContextMenuStrip.Items.Add("Show IP Addresses", null, (sender, args) =>
             {
@@ -68,10 +69,58 @@ namespace Controller.TreeNode
             }
         }
 
-        public void Update()
+        public void Update(bool isThreaded = false)
+        {
+            if (isThreaded)
+            {
+                TreeView?.Invoke(new Action(() =>
+                {
+                    this.UpdateText();
+                    this.UpdateImage();
+
+                    TreeView.Refresh();
+                }));
+            }
+            else
+            {
+                this.UpdateText();
+                this.UpdateImage();
+
+                if (TreeView != null)
+                {
+                    TreeView.Refresh();
+                }
+            }
+
+            if (Computer.WaitingForPing)
+            {
+                if (!Computer.HasWaitingTask)
+                {
+                    Computer.HasWaitingTask = true;
+                    Task.Run(async () =>
+                    {
+                        while (Computer.WaitingForPing)
+                        {
+                            await Task.Delay(1000);
+                            this.Update(true);
+                        }
+                    });
+                }
+            }
+            else if (Computer.HasWaitingTask)
+            {
+                Computer.HasWaitingTask = false;
+            }
+        }
+
+        private void UpdateText()
         {
             Text = Computer.Hostname;
-            this.UpdateImage();
+            if (Computer.WaitingForPing)
+            {
+                var span = DateTime.UtcNow - Computer.LastContact;
+                Text += " (" + (int)Math.Floor(span.TotalMinutes) + ":" + span.Seconds.ToString("D2") + " since last contact)";
+            }
         }
 
         private void UpdateImage()

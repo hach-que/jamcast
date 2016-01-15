@@ -55,7 +55,9 @@ namespace JamCast
         // Refresh the Twitter result.
         private void m_RefreshTimer_Tick(object sender, EventArgs e)
         {
-            Thread t = new Thread(() =>
+            if (AppSettings.TwitterEnabled)
+            {
+                Thread t = new Thread(() =>
                 {
                     try
                     {
@@ -68,10 +70,13 @@ namespace JamCast
                                 this.m_StatusList.Add(tss);
                         }
                     }
-                    catch (Exception) { } 
+                    catch (Exception)
+                    {
+                    }
                 });
-            t.IsBackground = false;
-            t.Start();
+                t.IsBackground = false;
+                t.Start();
+            }
         }
 
         public TwitterSearchStatus Get(int i)

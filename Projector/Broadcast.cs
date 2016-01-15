@@ -6,6 +6,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Linq;
 using System.Windows.Forms;
+using Projector;
 
 namespace JamCast
 {
@@ -43,7 +44,6 @@ namespace JamCast
 
             // Get our bitmap data from the Manager.
             BitmapTracker.Purge();
-            Bitmap b = BitmapTracker.Tag(this.m_Manager.Screen);
 
             // Get a center string style.
             StringFormat left = new StringFormat();
@@ -59,6 +59,30 @@ namespace JamCast
             tleft.Alignment = StringAlignment.Near;
             tleft.LineAlignment = StringAlignment.Near;
 
+            var currentClient = this.m_Manager.CurrentClientObject;
+            if (currentClient != null)
+            {
+                if (currentClient.FfplayProcess != null && !currentClient.FfplayProcess.HasExited)
+                {
+                    FfplayStreamController.AlignToFormBounds(
+                        currentClient.FfplayProcess,
+                        this,
+                        new Rectangle(0, 64, this.ClientSize.Width - (AppSettings.SlackEnabled ? 256 : 0), this.ClientSize.Height - 128));
+                }
+            }
+            else
+            {
+                // ... there's no clients.
+                e.Graphics.DrawString(
+                    "Waiting on clients...",
+                    new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
+                    new SolidBrush(Color.White),
+                    new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height),
+                    center
+                    );
+            }
+
+            /*
             if (b != null)
             {
                 try
@@ -97,17 +121,9 @@ namespace JamCast
             }
             else
             {
-                // ... there's no clients.
-                e.Graphics.DrawString(
-                    "Waiting on clients...",
-                    new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
-                    new SolidBrush(Color.White),
-                    new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height),
-                    center
-                    );
-            }
+            }*/
 
-            if (AppSettings.EnableChat)
+            if (AppSettings.SlackEnabled)
             {
                 // Draw the chat.
                 List<string> chat = this.m_Manager.GetChatStream();
@@ -198,23 +214,28 @@ namespace JamCast
             // Draw the bottom overlay.
             e.Graphics.FillRectangle(new SolidBrush(Color.Black), 0, this.ClientSize.Height - 64, this.ClientSize.Width, 64);
 
-            // Draw the TWEETS! ~.o
-            string st = this.m_Manager.GetTweetStream();
-            SizeF size = e.Graphics.MeasureString(st, new Font(FontFamily.GenericSansSerif, 16, FontStyle.Bold, GraphicsUnit.Pixel));
+            if (AppSettings.TwitterEnabled)
+            {
+                // Draw the TWEETS! ~.o
+                string st = this.m_Manager.GetTweetStream();
+                SizeF size = e.Graphics.MeasureString(st,
+                    new Font(FontFamily.GenericSansSerif, 16, FontStyle.Bold, GraphicsUnit.Pixel));
 
-            if (this.m_StreamX < -size.Width + this.ClientSize.Width - 32)
-                this.m_StreamX = 0;
-            else
-                this.m_StreamX -= 2;
+                if (this.m_StreamX < -size.Width + this.ClientSize.Width - 32)
+                    this.m_StreamX = 0;
+                else
+                    this.m_StreamX -= 2;
 
-            e.Graphics.DrawString(
-                (st + st).Replace("\n", "").Replace("\r", ""),
-                new Font(FontFamily.GenericSansSerif, 16, FontStyle.Bold, GraphicsUnit.Pixel),
-                new SolidBrush(Color.White),
-                //new Point(this.m_StreamX + 32, this.ClientSize.Height - 64),
-                new Rectangle(this.m_StreamX + 32, this.ClientSize.Height - 64, (int)size.Width * 9 + this.ClientSize.Width, 64),
-                left
-                );
+                e.Graphics.DrawString(
+                    (st + st).Replace("\n", "").Replace("\r", ""),
+                    new Font(FontFamily.GenericSansSerif, 16, FontStyle.Bold, GraphicsUnit.Pixel),
+                    new SolidBrush(Color.White),
+                    //new Point(this.m_StreamX + 32, this.ClientSize.Height - 64),
+                    new Rectangle(this.m_StreamX + 32, this.ClientSize.Height - 64,
+                        (int) size.Width*9 + this.ClientSize.Width, 64),
+                    left
+                    );
+            }
         }
 
         /// <summary>

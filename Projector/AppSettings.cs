@@ -7,18 +7,19 @@ namespace JamCast
 {
     public static class AppSettings
     {
+        public static bool IsPrimary;
+        public static string ProjectorName;
+
+        public static bool TwitterEnabled;
         public static string TwitterConsumerKey;
         public static string TwitterConsumerSecret;
         public static string TwitterOAuthToken;
         public static string TwitterOAuthSecret;
         public static string TwitterSearchQuery;
 
+        public static bool SlackEnabled;
         public static string[] SlackChannels;
-        public static string ProjectorName;
         public static string SlackToken;
-
-        public static bool EnableChat = true;
-        public static bool IsPrimary;
         
         public readonly static DateTime EndTime = new DateTime(2015, 01, 25, 15, 0, 0, DateTimeKind.Local);
 
@@ -35,6 +36,7 @@ namespace JamCast
                     "projector-settings.json has not been set.  Configure " +
                     "this projector in the controller software.");
                 Application.Exit();
+                return;
             }
 
             try

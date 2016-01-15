@@ -27,9 +27,7 @@
       <DependentUpon>Broadcast.cs</DependentUpon>
     </Compile>
     <Compile Include="Client.cs" />
-    <Compile Include="Clients\NetworkClient.cs" />
-    <Compile Include="Clients\SelfClient.cs" />
-    <Compile Include="Gdi.cs" />
+    <Compile Include="FfplayStreamController.cs" />
     <Compile Include="Manager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -53,6 +51,11 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <None Include="..\ffmpeg\ffplay.exe">
+      <Link>ffplay.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Platforms>Windows</Platforms>
+    </None>
     <None Include="app.config" />
     <None Include="Info.plist">
       <Platforms>iOS,MacOS</Platforms>

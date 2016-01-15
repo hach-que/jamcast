@@ -9,11 +9,11 @@ namespace Controller
 {
     public partial class MainForm : Form
     {
-        public SlackController SlackController { get; private set; }
+        public PubSubController PubSubController { get; private set; }
 
         public MainForm()
         {
-            this.SlackController = new SlackController(this);
+            this.PubSubController = new PubSubController(this);
 
             InitializeComponent();
 
@@ -23,7 +23,7 @@ namespace Controller
                 var node = new JamTreeNode(jam);
                 jam.SetTreeNode(node);
                 c_JamHierarchy.Nodes.Add(node);
-                this.SlackController.RegisterJam(jam);
+                this.PubSubController.RegisterJam(jam);
             }
         }
 
@@ -34,7 +34,7 @@ namespace Controller
             var node = new JamTreeNode(jam);
             jam.SetTreeNode(node);
             c_JamHierarchy.Nodes.Add(node);
-            this.SlackController.RegisterJam(jam);
+            this.PubSubController.RegisterJam(jam);
         }
 
         private void c_JamHierarchy_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)

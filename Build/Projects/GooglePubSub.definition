@@ -8,7 +8,7 @@
   </References>
   <Files>
     <Compile Include="Message.cs" />
+    <Compile Include="OAuthToken.cs" />
     <Compile Include="PubSub.cs" />
-    <Compile Include="ServiceAccount.cs" />
   </Files>
 </Project>

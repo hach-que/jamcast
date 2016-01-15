@@ -29,7 +29,7 @@ namespace Controller.TreeNode
                 this.MarkComputersAsWaitingForPing();
 
                 var mainForm = this.TreeView.FindForm() as MainForm;
-                mainForm.SlackController.ScanComputers(this.Jam.Guid);
+                mainForm.PubSubController.ScanComputers(this.Jam.Guid);
             });
             this.ContextMenuStrip.Items.Add("Push Client IPs to Projectors", null, (sender, args) =>
             {
@@ -53,7 +53,7 @@ namespace Controller.TreeNode
                 };
 
                 var mainForm = this.TreeView.FindForm() as MainForm;
-                mainForm.SlackController.SendCustomMessage(this.Jam.Guid, data);
+                mainForm.PubSubController.SendCustomMessage(this.Jam.Guid, data);
             });
 
             this.ImageKey = @"bullet_red.png";
@@ -86,16 +86,16 @@ namespace Controller.TreeNode
             }
 
             var mainForm = this.TreeView.FindForm() as MainForm;
-            var status = mainForm.SlackController.GetConnectionStatus(this.Jam.Guid);
+            var status = mainForm.PubSubController.GetConnectionStatus(this.Jam.Guid);
             switch (status)
             {
-                case SlackConnectionStatus.Connected:
+                case PubSubConnectionStatus.Connected:
                     this.ImageKey = @"bullet_green.png";
                     break;
-                case SlackConnectionStatus.Connecting:
+                case PubSubConnectionStatus.Connecting:
                     this.ImageKey = @"bullet_orange.png";
                     break;
-                case SlackConnectionStatus.Disconnected:
+                case PubSubConnectionStatus.Disconnected:
                     this.ImageKey = @"bullet_red.png";
                     break;
             }

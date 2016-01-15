@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -39,10 +38,10 @@ namespace Controller.Forms
             InitializeComponent();
 
             this.Text = JamTreeNode.Jam.Name;
-            this.c_ControllerSlackAPIToken.Text = JamTreeNode.Jam.ControllerSlackToken;
-            this.c_ProjectorSlackChannels.Text = JamTreeNode.Jam.ProjectorSlackChannels;
-            this.c_ClientSlackAPIToken.Text = JamTreeNode.Jam.ClientSlackToken;
-            this.c_ControllerStorageAPIToken.Text = JamTreeNode.Jam.ControllerSlackStorageToken;
+            this._googleCloudProjectID.Text = JamTreeNode.Jam.GoogleCloudProjectID;
+            this._projectorSlackChannels.Text = JamTreeNode.Jam.ProjectorSlackChannels;
+            this._projectorSlackAPIToken.Text = JamTreeNode.Jam.ProjectorSlackAPIToken;
+            this._googleCloudOAuthEndpointURL.Text = JamTreeNode.Jam.GoogleCloudOAuthEndpointURL;
 
             this.RefreshConnectionStatus();
         }
@@ -52,36 +51,36 @@ namespace Controller.Forms
             this.Text = JamTreeNode.Jam.Name;
         }
 
-        private void c_SlackAPIToken_TextChanged(object sender, System.EventArgs e)
+        private void _googleCloudProjectID_TextChanged(object sender, System.EventArgs e)
         {
-            this.JamTreeNode.Jam.ControllerSlackToken = this.c_ControllerSlackAPIToken.Text;
+            this.JamTreeNode.Jam.GoogleCloudProjectID = this._googleCloudProjectID.Text;
             this.JamTreeNode.Jam.Save();
         }
 
-        private void c_ControllerStorageAPIToken_TextChanged(object sender, EventArgs e)
+        private void _googleCloudOAuthEndpointURL_TextChanged(object sender, EventArgs e)
         {
-            this.JamTreeNode.Jam.ControllerSlackStorageToken = this.c_ControllerStorageAPIToken.Text;
+            this.JamTreeNode.Jam.GoogleCloudOAuthEndpointURL = this._googleCloudOAuthEndpointURL.Text;
             this.JamTreeNode.Jam.Save();
         }
 
-        private void c_ProjectorSlackChannels_TextChanged(object sender, System.EventArgs e)
+        private void _projectorSlackChannels_TextChanged(object sender, System.EventArgs e)
         {
-            this.JamTreeNode.Jam.ProjectorSlackChannels = this.c_ProjectorSlackChannels.Text;
+            this.JamTreeNode.Jam.ProjectorSlackChannels = this._projectorSlackChannels.Text;
             this.JamTreeNode.Jam.Save();
         }
 
-        private void c_ClientSlackAPIToken_TextChanged(object sender, System.EventArgs e)
+        private void _projectorSlackAPIToken_TextChanged(object sender, System.EventArgs e)
         {
-            this.JamTreeNode.Jam.ClientSlackToken = this.c_ClientSlackAPIToken.Text;
+            this.JamTreeNode.Jam.ProjectorSlackAPIToken = this._projectorSlackAPIToken.Text;
             this.JamTreeNode.Jam.Save();
         }
 
         private void JamEditForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            this.JamTreeNode.Jam.ControllerSlackStorageToken = this.c_ControllerStorageAPIToken.Text;
-            this.JamTreeNode.Jam.ControllerSlackToken = this.c_ControllerSlackAPIToken.Text;
-            this.JamTreeNode.Jam.ProjectorSlackChannels = this.c_ProjectorSlackChannels.Text;
-            this.JamTreeNode.Jam.ClientSlackToken = this.c_ClientSlackAPIToken.Text;
+            this.JamTreeNode.Jam.GoogleCloudOAuthEndpointURL = this._googleCloudOAuthEndpointURL.Text;
+            this.JamTreeNode.Jam.GoogleCloudProjectID = this._googleCloudProjectID.Text;
+            this.JamTreeNode.Jam.ProjectorSlackChannels = this._projectorSlackChannels.Text;
+            this.JamTreeNode.Jam.ProjectorSlackAPIToken = this._projectorSlackAPIToken.Text;
             this.JamTreeNode.Jam.Save();
         }
 
@@ -95,7 +94,8 @@ namespace Controller.Forms
             }
             else
             {
-                if (!string.IsNullOrEmpty(this.JamTreeNode.Jam.ControllerSlackStorageToken) &&
+                if (!string.IsNullOrEmpty(this.JamTreeNode.Jam.GoogleCloudOAuthEndpointURL) &&
+                    !string.IsNullOrEmpty(this.JamTreeNode.Jam.GoogleCloudProjectID) &&
                     this.m_SlackConnectionStatus.BackColor == Color.DarkSeaGreen)
                 {
                     enabled = true;
@@ -129,7 +129,9 @@ namespace Controller.Forms
                     {
                         using (var writer = new FileStream(sfd.FileName, FileMode.Create))
                         {
-                            var bytes = BootstrapCreator.CreateCustomBootstrap(this.c_ClientSlackAPIToken.Text);
+                            var bytes = BootstrapCreator.CreateCustomBootstrap(
+                                _googleCloudProjectID.Text,
+                                _googleCloudOAuthEndpointURL.Text);
                             writer.Write(bytes, 0, bytes.Length);
                             writer.Flush();
                         }
@@ -167,19 +169,19 @@ namespace Controller.Forms
         public void RefreshConnectionStatus()
         {
             var mainForm = JamTreeNode.TreeView.FindForm() as MainForm;
-            var status = mainForm.SlackController.GetConnectionStatus(JamTreeNode.Jam.Guid);
+            var status = mainForm.PubSubController.GetConnectionStatus(JamTreeNode.Jam.Guid);
             switch (status)
             {
-                case SlackConnectionStatus.Connected:
-                    this.m_SlackConnectionStatus.Text = "Connected to Slack!";
+                case PubSubConnectionStatus.Connected:
+                    this.m_SlackConnectionStatus.Text = "Connected to Google Cloud Pub/Sub!";
                     this.m_SlackConnectionStatus.BackColor = Color.DarkSeaGreen;
                     break;
-                case SlackConnectionStatus.Connecting:
-                    this.m_SlackConnectionStatus.Text = "Connecting to Slack...";
+                case PubSubConnectionStatus.Connecting:
+                    this.m_SlackConnectionStatus.Text = "Connecting to Google Cloud Pub/Sub...";
                     this.m_SlackConnectionStatus.BackColor = Color.LightYellow;
                     break;
-                case SlackConnectionStatus.Disconnected:
-                    this.m_SlackConnectionStatus.Text = "Not connected to Slack!";
+                case PubSubConnectionStatus.Disconnected:
+                    this.m_SlackConnectionStatus.Text = "Not connected to Google Cloud Pub/Sub!";
                     this.m_SlackConnectionStatus.BackColor = Color.LightCoral;
                     break;
             }
@@ -199,7 +201,7 @@ namespace Controller.Forms
 
         private void DeployPackage(string clientPath, string projectorPath)
         {
-            var token = this.c_ControllerStorageAPIToken.Text;
+            var token = this._googleCloudOAuthEndpointURL.Text;
             
             var mainForm = JamTreeNode.TreeView.FindForm() as MainForm;
             var jam = this.JamTreeNode.Jam;
@@ -333,18 +335,13 @@ namespace Controller.Forms
                     form.Close();
 
                     this.JamTreeNode.MarkComputersAsWaitingForPing();
-                    mainForm.SlackController.ScanComputers(jam.Guid);
+                    mainForm.PubSubController.ScanComputers(jam.Guid);
                 }));
             });
             thread.IsBackground = true;
             this.m_Deploying = true;
             this.UpdateDeployButtons();
             thread.Start();
-        }
-
-        private void c_StorageTokenLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Process.Start("https://api.slack.com/web");
         }
 
         private string UploadFile(string url, string token, string filename, byte[] data, Action<double> progress)

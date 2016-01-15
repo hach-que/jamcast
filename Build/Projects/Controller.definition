@@ -15,8 +15,9 @@
     <Reference Include="Bootstrap" />
     <Reference Include="Projector" />
     <Reference Include="Client" />
-    <Reference Include="SlackRTM" />
+    <Reference Include="GooglePubSub" />
     <Reference Include="SharpZipLib" />
+    <Reference Include="Newtonsoft.Json" />
     <Reference Include="Mono.Cecil" />
   </References>
   <Files>
@@ -54,8 +55,8 @@
     </Compile>
     <Compile Include="Platform.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="PubSubController.cs" />
     <Compile Include="Role.cs" />
-    <Compile Include="SlackController.cs" />
     <Compile Include="TreeNode\ComputerTreeNode.cs" />
     <Compile Include="TreeNode\JamTreeNode.cs" />
     <Content Include="Resources\error.png" />

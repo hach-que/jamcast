@@ -47,7 +47,7 @@
             this.c_JamHierarchy.Location = new System.Drawing.Point(0, 0);
             this.c_JamHierarchy.Name = "c_JamHierarchy";
             this.c_JamHierarchy.SelectedImageIndex = 0;
-            this.c_JamHierarchy.Size = new System.Drawing.Size(211, 541);
+            this.c_JamHierarchy.Size = new System.Drawing.Size(323, 541);
             this.c_JamHierarchy.TabIndex = 1;
             this.c_JamHierarchy.AfterLabelEdit += new System.Windows.Forms.NodeLabelEditEventHandler(this.c_JamHierarchy_AfterLabelEdit);
             this.c_JamHierarchy.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.c_JamHierarchy_NodeMouseDoubleClick);

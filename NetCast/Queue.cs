@@ -39,20 +39,63 @@ namespace NetCast
 			catch {
 			}
 
-			this.p_UdpEndPoint = new IPEndPoint(address, udpport);
-            this.p_TcpEndPoint = new IPEndPoint(address, tcpport);
-
             // Start listening for events on UDP.
-            this.m_UdpClient = new UdpClient(this.p_UdpEndPoint.Port);
+            var spawned = false;
+            while (!spawned)
+            {
+                try
+                {
+                    Console.WriteLine("Trying to open UDP port " + udpport);
+                    this.m_UdpClient = new UdpClient(udpport);
+                    spawned = true;
+                    Console.WriteLine("Success!");
+                }
+                catch (SocketException ex)
+                {
+                    if (ex.ErrorCode == 10048)
+                    {
+                        udpport++;
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
             this.m_UdpThread = new Thread(this.HandleUdpClient);
             this.m_UdpThread.IsBackground = true;
             this.m_UdpThread.Start();
 
             // Start listening for events on TCP.
-            this.m_TcpListener = new TcpListener(this.p_TcpEndPoint.Port);
+            spawned = false;
+            while (!spawned)
+            {
+                try
+                {
+                    Console.WriteLine("Trying to listen on TCP port " + tcpport);
+                    this.m_TcpListener = new TcpListener(tcpport);
+                    this.m_TcpListener.Start();
+                    spawned = true;
+                    Console.WriteLine("Success!");
+                }
+                catch (SocketException ex)
+                {
+                    if (ex.ErrorCode == 10048)
+                    {
+                        tcpport++;
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
             this.m_TcpThread = new Thread(this.HandleTcpListener);
             this.m_TcpThread.IsBackground = true;
             this.m_TcpThread.Start();
+
+            this.p_UdpEndPoint = new IPEndPoint(address, udpport);
+            this.p_TcpEndPoint = new IPEndPoint(address, tcpport);
         }
 
         /// <summary>
@@ -90,7 +133,6 @@ namespace NetCast
         {
             try
             {
-                this.m_TcpListener.Start();
                 while (this.p_Running)
                 {
                     TcpClient client = this.m_TcpListener.AcceptTcpClient();

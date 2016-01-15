@@ -21,7 +21,6 @@
     <BundleResource Include="MacOS\TrayOn.icns">
       <Platforms>MacOS</Platforms>
     </BundleResource>
-    <Compile Include="Gdi.cs" />
     <Compile Include="MacOS\Manager.MacOS.cs">
       <Platforms>MacOS</Platforms>
     </Compile>
@@ -53,6 +52,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Windows\FfmpegStreamController.cs" />
     <Compile Include="Windows\Manager.Windows.cs">
       <Platforms>Windows</Platforms>
     </Compile>
@@ -93,6 +93,11 @@
     <InterfaceDefinition Include="MacOS\WhoAreYou.xib">
       <Platforms>MacOS</Platforms>
     </InterfaceDefinition>
+    <None Include="..\ffmpeg\ffmpeg.exe">
+      <Link>ffmpeg.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Platforms>Windows</Platforms>
+    </None>
     <None Include="app.config" />
     <None Include="Info.plist">
       <Platforms>MacOS</Platforms>

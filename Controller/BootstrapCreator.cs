@@ -6,15 +6,18 @@ namespace Controller
 {
     public static class BootstrapCreator
     {
-        public static byte[] CreateCustomBootstrap(string token)
+        public static byte[] CreateCustomBootstrap(string project, string endpoint)
         {
             var definition = AssemblyDefinition.ReadAssembly(typeof (Bootstrap.Program).Assembly.Location);
-            var temp = new EmbeddedResource("Bootstrap.token.txt", ManifestResourceAttributes.Public,
-                Encoding.ASCII.GetBytes(token));
             definition.MainModule.Resources.RemoveAt(0);
+            definition.MainModule.Resources.RemoveAt(0);
+            var temp = new EmbeddedResource("Bootstrap.endpoint.txt", ManifestResourceAttributes.Public,
+                Encoding.ASCII.GetBytes(endpoint));
             definition.MainModule.Resources.Add(temp);
-
-
+            temp = new EmbeddedResource("Bootstrap.project.txt", ManifestResourceAttributes.Public,
+                Encoding.ASCII.GetBytes(project));
+            definition.MainModule.Resources.Add(temp);
+            
             foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.dll"))
             {
                 temp = new EmbeddedResource(file.Name, ManifestResourceAttributes.Public, File.ReadAllBytes(file.Name));

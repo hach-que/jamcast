@@ -13,11 +13,13 @@
   <Files>
     <Compile Include="Message.cs" />
     <Compile Include="MessageEventArgs.cs" />
+    <Compile Include="Messages\BeginStreamingMessage.cs" />
     <Compile Include="Messages\ClientServiceStartingMessage.cs" />
     <Compile Include="Messages\ClientServiceStoppingMessage.cs" />
     <Compile Include="Messages\CountdownBroadcastMessage.cs" />
-    <Compile Include="Messages\ScreenRequestMessage.cs" />
-    <Compile Include="Messages\ScreenResultMessage.cs" />
+    <Compile Include="Messages\EndStreamingMessage.cs" />
+    <Compile Include="Messages\StreamingStartedMessage.cs" />
+    <Compile Include="Messages\StreamingStoppedMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Queue.cs" />
   </Files>

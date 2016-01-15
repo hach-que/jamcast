@@ -4,13 +4,15 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="SlackRTM" />
     <Reference Include="SharpZipLib" />
+    <Reference Include="GooglePubSub" />
+    <Reference Include="Newtonsoft.Json" />
   </References>
   <Files>
     <Compile Include="Prerun.cs" />
     <Compile Include="Program.cs" />
-    <EmbeddedResource Include="token.txt" />
+    <EmbeddedResource Include="endpoint.txt" />
+    <EmbeddedResource Include="project.txt" />
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>

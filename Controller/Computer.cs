@@ -12,5 +12,9 @@ namespace Controller
         public bool HasReceivedVersionInformation;
         public bool WaitingForPing;
         public IPAddress[] IPAddresses;
+        public DateTime LastContact;
+
+        [NonSerialized]
+        public bool HasWaitingTask;
     }
 }

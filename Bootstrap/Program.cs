@@ -14,8 +14,6 @@ using GooglePubSub;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
-using SlackRTM;
-using Message = SlackRTM.Events.Message;
 
 namespace Bootstrap
 {
@@ -85,6 +83,7 @@ namespace Bootstrap
         private static string ClientSettingsPath;
 
         private static string ProjectorSettingsPath;
+        private static string _oAuthEndpoint;
 
         private static string GetLocalIPAddress()
         {
@@ -116,11 +115,21 @@ namespace Bootstrap
 
         internal static void RealMain(string[] args)
         {
-            string token;
-            var tokenStream = typeof(Program).Assembly.GetManifestResourceStream("Bootstrap.token.txt");
-            using (var reader = new StreamReader(tokenStream))
+            string project;
+            var projectStream = typeof(Program).Assembly.GetManifestResourceStream("Bootstrap.project.txt");
+            using (var reader = new StreamReader(projectStream))
             {
-                token = reader.ReadToEnd().Trim();
+                project = reader.ReadToEnd().Trim();
+            }
+            var endpointStream = typeof(Program).Assembly.GetManifestResourceStream("Bootstrap.endpoint.txt");
+            using (var reader = new StreamReader(endpointStream))
+            {
+                _oAuthEndpoint = reader.ReadToEnd().Trim();
+            }
+
+            if (string.IsNullOrWhiteSpace(project) || string.IsNullOrWhiteSpace(_oAuthEndpoint))
+            {
+                throw new InvalidOperationException("This bootstrap is not configured correctly.");
             }
 
             // Create folder for storing client / projector software.
@@ -177,91 +186,100 @@ namespace Bootstrap
                     }
                 }
             }
-
-            string jamcastControllerChannel = null;
-
-            var pubsub = new PubSub("melbourne-global-game-jam-16", token);
+            
+            var pubsub = new PubSub(project, GetOAuthToken);
+            pubsub.CreateTopic("game-jam-bootstrap");
+            pubsub.CreateTopic("game-jam-controller");
             pubsub.CreateTopic("bootstrap-" + guid);
             pubsub.Subscribe("bootstrap-" + guid, "bootstrap-" + guid);
+            pubsub.Subscribe("game-jam-bootstrap", "bootstrap-" + guid);
 
-            var pingTopic = "jamcast-ping";
+            var pingTopic = "game-jam-controller";
 
             var thread = new Thread(() =>
             {
-                var message = pubsub.LongPoll("bootstrap-" + guid, 1).FirstOrDefault();
-                if (message != null)
+                while (true)
                 {
-                    message.Acknowledge();
-
-                    var m =
-                        JsonConvert.DeserializeObject<dynamic>(
-                            Encoding.ASCII.GetString(Convert.FromBase64String(message.Data)));
-                    var target = (string)m.Target;
-
-                    if (!string.IsNullOrEmpty(target))
+                    try
                     {
-                        if (target != guid.ToString())
+                        var message = pubsub.Poll(1, false).FirstOrDefault();
+                        if (message != null)
                         {
-                            // not for this client.
-                            return;
+                            message.Acknowledge();
+
+                            var m =
+                                JsonConvert.DeserializeObject<dynamic>(
+                                    Encoding.ASCII.GetString(Convert.FromBase64String(message.Data)));
+                            var target = (string) m.Target;
+
+                            if (!string.IsNullOrEmpty(target))
+                            {
+                                if (target != guid.ToString())
+                                {
+                                    // not for this client.
+                                    return;
+                                }
+                            }
+
+                            switch ((string) m.Type)
+                            {
+                                case "pong":
+                                {
+                                    HasReceivedVersionInformation = true;
+
+                                    SendPing(pubsub, pingTopic, guid);
+
+                                    AvailableClientVersion = m.AvailableClientVersion;
+                                    AvailableProjectorVersion = m.AvailableProjectorVersion;
+                                    AvailableClientFile = m.AvailableClientFile;
+                                    AvailableProjectorFile = m.AvailableProjectorFile;
+
+                                    UpdateVersions();
+                                }
+                                    break;
+                                case "designate":
+                                {
+                                    Role = m.Role;
+
+                                    UpdateVersions();
+
+                                    SendPing(pubsub, pingTopic, guid);
+                                }
+                                    break;
+                                case "client-settings":
+                                {
+                                    using (var writer = new StreamWriter(ClientSettingsPath))
+                                    {
+                                        writer.Write((string) m.Settings);
+                                    }
+
+                                    KillProcess();
+                                    StartProcess();
+
+                                    SendPing(pubsub, pingTopic, guid);
+                                }
+                                    break;
+                                case "projector-settings":
+                                {
+                                    using (var writer = new StreamWriter(ProjectorSettingsPath))
+                                    {
+                                        writer.Write((string) m.Settings);
+                                    }
+
+                                    KillProcess();
+                                    StartProcess();
+
+                                    SendPing(pubsub, pingTopic, guid);
+                                }
+                                    break;
+                            }
                         }
+
+                        Thread.Sleep(1);
                     }
-
-                    switch ((string)m.Type)
+                    catch (Exception ex)
                     {
-                        case "pong":
-                            if (jamcastControllerChannel != null)
-                            {
-                                HasReceivedVersionInformation = true;
-
-                                SendPing(pubsub, pingTopic, guid);
-
-                                AvailableClientVersion = m.AvailableClientVersion;
-                                AvailableProjectorVersion = m.AvailableProjectorVersion;
-                                AvailableClientFile = m.AvailableClientFile;
-                                AvailableProjectorFile = m.AvailableProjectorFile;
-
-                                UpdateVersions();
-                            }
-                            break;
-                        case "designate":
-                            if (jamcastControllerChannel != null)
-                            {
-                                Role = m.Role;
-
-                                UpdateVersions();
-
-                                SendPing(pubsub, pingTopic, guid);
-                            }
-                            break;
-                        case "client-settings":
-                            if (jamcastControllerChannel != null)
-                            {
-                                using (var writer = new StreamWriter(ClientSettingsPath))
-                                {
-                                    writer.Write((string)m.Settings);
-                                }
-
-                                KillProcess();
-                                StartProcess();
-
-                                SendPing(pubsub, pingTopic, guid);
-                            }
-                            break;
-                        case "projector-settings":
-                            if (jamcastControllerChannel != null)
-                            {
-                                using (var writer = new StreamWriter(ProjectorSettingsPath))
-                                {
-                                    writer.Write((string)m.Settings);
-                                }
-
-                                KillProcess();
-                                StartProcess();
-
-                                SendPing(pubsub, pingTopic, guid);
-                            }
-                            break;
+                        Debug.WriteLine(ex);
                     }
                 }
             });
@@ -270,51 +288,74 @@ namespace Bootstrap
             {
                 thread.IsBackground = true;
                 thread.Start();
+
+                CalculateVersions();
+
+                if (!StartProcess())
+                {
+                    switch (Role)
+                    {
+                        case "Client":
+                            if (File.Exists(ClientPackagePath))
+                            {
+                                ExtractPackage(ClientPackagePath, ClientPath);
+                            }
+                            break;
+                        case "Projector":
+                            if (File.Exists(ProjectorPackagePath))
+                            {
+                                ExtractPackage(ProjectorPackagePath, ProjectorPath);
+                            }
+                            break;
+                    }
+
+                    StartProcess();
+                }
+
+                SendPing(pubsub, pingTopic, guid);
+
+                var timer = 0;
+
+                while (true)
+                {
+                    Thread.Sleep(100);
+                    timer += 100;
+
+                    if (timer > 10000)
+                    {
+                        SendPing(pubsub, pingTopic, guid);
+                        timer = 0;
+                    }
+                }
             }
             finally
             {
+                thread.Abort();
+
                 pubsub.DeleteTopic("bootstrap-" + guid);
-                pubsub.UnsubscribeFromAllTopics("bootstrap-" + guid);
+                pubsub.Unsubscribe("bootstrap-" + guid, "bootstrap-" + guid);
+                pubsub.Unsubscribe("game-jam-bootstrap", "bootstrap-" + guid);
+                // Don't delete the game-jam topic because it's the global one
             }
+        }
 
-            CalculateVersions();
-
-            if (!StartProcess())
+        public static OAuthToken GetOAuthToken()
+        {
+            var client = new WebClient();
+            var jsonResult = client.DownloadString(_oAuthEndpoint);
+            var json = JsonConvert.DeserializeObject<dynamic>(jsonResult);
+            if (!(bool)json.has_error)
             {
-                switch (Role)
+                var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+                dtDateTime = dtDateTime.AddSeconds((double)(json.result.created + json.result.expires_in));
+                return new OAuthToken
                 {
-                    case "Client":
-                        if (File.Exists(ClientPackagePath))
-                        {
-                            ExtractPackage(ClientPackagePath, ClientPath);
-                        }
-                        break;
-                    case "Projector":
-                        if (File.Exists(ProjectorPackagePath))
-                        {
-                            ExtractPackage(ProjectorPackagePath, ProjectorPath);
-                        }
-                        break;
-                }
-
-                StartProcess();
+                    ExpiryUtc = dtDateTime,
+                    AccessToken = json.result.access_token
+                };
             }
 
-            SendPing(pubsub, pingTopic, guid);
-
-            var timer = 0;
-
-            while (true)
-            {
-                Thread.Sleep(100);
-                timer += 100;
-
-                if (timer > 600000)
-                {
-                    SendPing(pubsub, pingTopic, guid);
-                    timer = 0;
-                }
-            }
+            throw new Exception("Error when retrieving access token: " + json.error);
         }
 
         private static void UpdateVersions()

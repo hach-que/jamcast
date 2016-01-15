@@ -5,16 +5,16 @@ using System.Linq;
 using System.Net;
 using System.Runtime.Serialization.Json;
 using Controller.TreeNode;
+using GooglePubSub;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SlackRTM;
 
 namespace Controller
 {
     public class Jam
     {
         [NonSerialized]
-        private Slack _slack;
+        private PubSub _pubSub;
 
         [NonSerialized] private JamTreeNode _node;
 
@@ -24,13 +24,13 @@ namespace Controller
             this.Name = name;
         }
 
-        public string ControllerSlackToken;
+        public string GoogleCloudProjectID;
 
-        public string ControllerSlackStorageToken;
+        public string GoogleCloudOAuthEndpointURL;
+
+        public string ProjectorSlackAPIToken;
 
         public string ProjectorSlackChannels;
-
-        public string ClientSlackToken;
 
         public Guid Guid;
 
@@ -98,6 +98,7 @@ namespace Controller
                             Role = (Role)Enum.Parse(typeof(Role), (string)data.Role),
                             HasReceivedVersionInformation = (bool)(data.HasReceivedVersionInformation ?? false),
                             WaitingForPing = false,
+                            LastContact = DateTime.UtcNow,
                             IPAddresses = ipaddresses.ToArray(),
                         };
                         Computers.Add(computer);
@@ -110,6 +111,7 @@ namespace Controller
                         computer.Role = (Role)Enum.Parse(typeof(Role), (string)data.Role);
                         computer.HasReceivedVersionInformation = (bool) (data.HasReceivedVersionInformation ?? false);
                         computer.WaitingForPing = false;
+                        computer.LastContact = DateTime.UtcNow;
                         computer.IPAddresses = ipaddresses.ToArray();
                         foreach (var node in _node.Nodes.OfType<ComputerTreeNode>())
                         {
