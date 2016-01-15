@@ -221,11 +221,17 @@ namespace JamCast
             {
                 if (oldClient < this.m_Clients.Count)
                 {
-                    this.m_Clients[oldClient].Stop();
+                    if (this.m_Clients[oldClient] != null)
+                    {
+                        this.m_Clients[oldClient].Stop();
+                    }
                 }
                 if (this.p_CurrentClient < this.m_Clients.Count)
                 {
-                    this.m_Clients[this.p_CurrentClient].Start();
+                    if (this.m_Clients[this.p_CurrentClient] != null)
+                    {
+                        this.m_Clients[this.p_CurrentClient].Start();
+                    }
                 }
             }
         }

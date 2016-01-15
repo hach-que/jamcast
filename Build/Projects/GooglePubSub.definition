@@ -10,5 +10,6 @@
     <Compile Include="Message.cs" />
     <Compile Include="OAuthToken.cs" />
     <Compile Include="PubSub.cs" />
+    <Compile Include="Storage.cs" />
   </Files>
 </Project>

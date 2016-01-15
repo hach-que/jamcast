@@ -92,7 +92,8 @@ namespace GooglePubSub
             var request = new
             {
                 name = "projects/" + _projectName + "/subscriptions/t-" + topic + "-s-" + subscription,
-                topic = "projects/" + _projectName + "/topics/" + topic
+                topic = "projects/" + _projectName + "/topics/" + topic,
+                ackDeadlineSeconds = 0,
             };
             var requestSerialized = JsonConvert.SerializeObject(request);
             try
@@ -134,6 +135,7 @@ namespace GooglePubSub
                 throw new InvalidOperationException("You can't poll when you're not subscribed to anything!");
             }
 
+            var webClients = new ConcurrentBag<WebClient>();
             var cancellationTokenSource = new CancellationTokenSource();
             var cancellationToken = cancellationTokenSource.Token;
             var tasks = (from topicSubscription in _subscriptions
@@ -152,7 +154,9 @@ namespace GooglePubSub
                         string responseSerialized;
                         try
                         {
-                            responseSerialized = await MakeClient().UploadStringTaskAsync(
+                            var client = MakeClient();
+                            webClients.Add(client);
+                            responseSerialized = await client.UploadStringTaskAsync(
                                 "https://pubsub.googleapis.com/v1/projects/" + _projectName + "/subscriptions/" +
                                 topicSubscription + ":pull",
                                 "POST",
@@ -172,8 +176,6 @@ namespace GooglePubSub
                         }
 
                         Debug.WriteLine("POLL TASK RESPONSE RECEIVED");
-
-                        cancellationToken.ThrowIfCancellationRequested();
 
                         var response = JsonConvert.DeserializeObject<dynamic>(responseSerialized);
                         if (response.receivedMessages != null)
@@ -203,12 +205,29 @@ namespace GooglePubSub
             else
             {
                 Task.WaitAny(tasks);
+                foreach (var client in webClients)
+                {
+                    client.CancelAsync();
+                }
                 cancellationTokenSource.Cancel();
+                try
+                {
+                    Task.WaitAll(tasks);
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
             }
             
             Debug.WriteLine("POLL FINISHED");
 
-            if (tasks.Any(x => x.Status == TaskStatus.Faulted))
+            if (immediate && tasks.Any(x => x.Status == TaskStatus.Faulted))
+            {
+                throw new AggregateException(tasks.Where(x => x.Exception != null).SelectMany(x => x.Exception.InnerExceptions));
+            }
+
+            if (!immediate && tasks.Count(x => x.Status == TaskStatus.Faulted) == tasks.Length)
             {
                 throw new AggregateException(tasks.Where(x => x.Exception != null).SelectMany(x => x.Exception.InnerExceptions));
             }

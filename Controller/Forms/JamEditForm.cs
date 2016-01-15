@@ -6,8 +6,10 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Controller.TreeNode;
+using GooglePubSub;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
 
@@ -42,6 +44,7 @@ namespace Controller.Forms
             this._projectorSlackChannels.Text = JamTreeNode.Jam.ProjectorSlackChannels;
             this._projectorSlackAPIToken.Text = JamTreeNode.Jam.ProjectorSlackAPIToken;
             this._googleCloudOAuthEndpointURL.Text = JamTreeNode.Jam.GoogleCloudOAuthEndpointURL;
+            this._googleCloudStorageSecret.Text = JamTreeNode.Jam.GoogleCloudStorageSecret;
 
             this.RefreshConnectionStatus();
         }
@@ -63,6 +66,12 @@ namespace Controller.Forms
             this.JamTreeNode.Jam.Save();
         }
 
+        private void _googleCloudStorageSecret_TextChanged(object sender, EventArgs e)
+        {
+            this.JamTreeNode.Jam.GoogleCloudStorageSecret = this._googleCloudStorageSecret.Text;
+            this.JamTreeNode.Jam.Save();
+        }
+
         private void _projectorSlackChannels_TextChanged(object sender, System.EventArgs e)
         {
             this.JamTreeNode.Jam.ProjectorSlackChannels = this._projectorSlackChannels.Text;
@@ -79,6 +88,7 @@ namespace Controller.Forms
         {
             this.JamTreeNode.Jam.GoogleCloudOAuthEndpointURL = this._googleCloudOAuthEndpointURL.Text;
             this.JamTreeNode.Jam.GoogleCloudProjectID = this._googleCloudProjectID.Text;
+            this.JamTreeNode.Jam.GoogleCloudStorageSecret = this._googleCloudStorageSecret.Text;
             this.JamTreeNode.Jam.ProjectorSlackChannels = this._projectorSlackChannels.Text;
             this.JamTreeNode.Jam.ProjectorSlackAPIToken = this._projectorSlackAPIToken.Text;
             this.JamTreeNode.Jam.Save();
@@ -96,6 +106,7 @@ namespace Controller.Forms
             {
                 if (!string.IsNullOrEmpty(this.JamTreeNode.Jam.GoogleCloudOAuthEndpointURL) &&
                     !string.IsNullOrEmpty(this.JamTreeNode.Jam.GoogleCloudProjectID) &&
+                    !string.IsNullOrEmpty(this.JamTreeNode.Jam.GoogleCloudStorageSecret) &&
                     this.m_SlackConnectionStatus.BackColor == Color.DarkSeaGreen)
                 {
                     enabled = true;
@@ -303,11 +314,11 @@ namespace Controller.Forms
                 md5.TransformFinalBlock(clientData, 0, clientData.Length);
                 var clientHash = BitConverter.ToString(md5.Hash).Replace("-", "").ToLower();
 
-                var clientResponse = JsonConvert.DeserializeObject<dynamic>(
-                    UploadFile("https://slack.com/api/files.upload", token, "Client.zip", clientData, p =>
+                var clientUrl = 
+                    UploadFile("Client.zip", clientData, p =>
                     {
                         showProgress(20 + (int)(p * 40));
-                    }));
+                    });
 
                 var projectorData = new byte[projectorMemory.Position];
                 projectorMemory.Seek(0, SeekOrigin.Begin);
@@ -317,17 +328,17 @@ namespace Controller.Forms
                 md5.TransformFinalBlock(projectorData, 0, projectorData.Length);
                 var projectorHash = BitConverter.ToString(md5.Hash).Replace("-", "").ToLower();
 
-                var projectorResponse = JsonConvert.DeserializeObject<dynamic>(
-                    UploadFile("https://slack.com/api/files.upload", token, "Projector.zip", projectorData, p =>
+                var projectorUrl = 
+                    UploadFile("Projector.zip", projectorData, p =>
                     {
                         showProgress(60 + (int)(p * 40));
-                    }));
+                    });
 
                 mainForm.Invoke(new Action(() =>
                 {
-                    jam.AvailableClientFile = clientResponse.file.url_download;
+                    jam.AvailableClientFile = clientUrl;
                     jam.AvailableClientVersion = clientHash;
-                    jam.AvailableProjectorFile = projectorResponse.file.url_download;
+                    jam.AvailableProjectorFile = projectorUrl;
                     jam.AvailableProjectorVersion = projectorHash;
                     jam.Save();
                     this.m_Deploying = false;
@@ -344,72 +355,32 @@ namespace Controller.Forms
             thread.Start();
         }
 
-        private string UploadFile(string url, string token, string filename, byte[] data, Action<double> progress)
+        private static OAuthToken GetOAuthTokenFromEndpoint(string currentEndpoint, string controllerSecret)
         {
-            var boundary = "----------------------------" +
-                           DateTime.Now.Ticks.ToString("x");
-            var httpRequest = (HttpWebRequest) WebRequest.Create(url);
-            httpRequest.ContentType = @"multipart/form-data; boundary=" + boundary;
-            httpRequest.Method = @"POST";
-            httpRequest.KeepAlive = true;
-            httpRequest.AllowWriteStreamBuffering = false;
-
-            httpRequest.Credentials = CredentialCache.DefaultCredentials;
-
-            var memory = new MemoryStream();
-
-            var boundarybytes = System.Text.Encoding.ASCII.GetBytes("--" + boundary + "\r\n");
-            memory.Write(boundarybytes, 0, boundarybytes.Length);
-
-            var headerbytes = System.Text.Encoding.UTF8.GetBytes(string.Format(
-                "Content-Disposition: form-data; name=\"{0}\"\r\n\r\n{1}",
-                "token",
-                token));
-            memory.Write(headerbytes, 0, headerbytes.Length);
-
-            boundarybytes = System.Text.Encoding.ASCII.GetBytes("\r\n--" + boundary + "\r\n");
-            memory.Write(boundarybytes, 0, boundarybytes.Length);
-
-            headerbytes = System.Text.Encoding.UTF8.GetBytes(string.Format(
-                "Content-Disposition: form-data; name=\"{0}\"; filename=\"{1}\"\r\nContent-Type: application/octet-stream\r\n\r\n",
-                "file",
-                filename));
-            memory.Write(headerbytes, 0, headerbytes.Length);
-            memory.Write(data, 0, data.Length);
-
-            boundarybytes = System.Text.Encoding.ASCII.GetBytes("\r\n--" + boundary + "--\r\n");
-            memory.Write(boundarybytes, 0, boundarybytes.Length);
-
-            httpRequest.ContentLength = memory.Length;
-
-            var requestStream = httpRequest.GetRequestStream();
-
-            var copy = new byte[memory.Position];
-            memory.Position = 0;
-            memory.Read(copy, 0, copy.Length);
-            var datacopy = Encoding.ASCII.GetString(copy);
-
-            memory.Position = 0;
-
-            int bytesRead = 0;
-            long bytesSoFar = 0;
-            byte[] buffer = new byte[10240];
-            while ((bytesRead = memory.Read(buffer, 0, buffer.Length)) != 0)
+            var client = new WebClient();
+            var jsonResult = client.DownloadString(currentEndpoint + "?controller_secret=" + controllerSecret);
+            var json = JsonConvert.DeserializeObject<dynamic>(jsonResult);
+            if (!(bool)json.has_error)
             {
-                bytesSoFar += bytesRead;
-                requestStream.Write(buffer, 0, bytesRead);
-                progress(bytesSoFar/(double)memory.Length);
+                var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+                dtDateTime = dtDateTime.AddSeconds((double)(json.result.created + json.result.expires_in));
+                return new OAuthToken
+                {
+                    ExpiryUtc = dtDateTime,
+                    AccessToken = json.result.access_token
+                };
             }
 
-            requestStream.Close();
-            var webResponse2 = httpRequest.GetResponse();
+            throw new Exception("Error when retrieving access token: " + json.error);
+        }
 
-            var responseStream = webResponse2.GetResponseStream();
-            var responseReader = new StreamReader(responseStream);
-            var result = responseReader.ReadToEnd();
-
-            webResponse2.Close();
-            return result;
+        private string UploadFile(string filename, byte[] data, Action<double> progress)
+        {
+            var storage = new Storage(_googleCloudProjectID.Text,
+                () => GetOAuthTokenFromEndpoint(_googleCloudOAuthEndpointURL.Text, _googleCloudStorageSecret.Text));
+            var unixTimestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            var uploadName = Path.GetFileNameWithoutExtension(filename) + "." + unixTimestamp + Path.GetExtension(filename);
+            return storage.Upload(data, uploadName, progress);
         }
     }
 }

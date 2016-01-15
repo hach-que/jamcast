@@ -28,6 +28,8 @@ namespace Controller
 
         public string GoogleCloudOAuthEndpointURL;
 
+        public string GoogleCloudStorageSecret;
+
         public string ProjectorSlackAPIToken;
 
         public string ProjectorSlackChannels;

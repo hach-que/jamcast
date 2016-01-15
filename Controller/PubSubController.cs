@@ -46,10 +46,10 @@ namespace Controller
             thread.Start(jam);
         }
         
-        private static OAuthToken GetOAuthTokenFromEndpoint(string endpoint)
+        private static OAuthToken GetOAuthTokenFromEndpoint(string currentEndpoint, string controllerSecret)
         {
             var client = new WebClient();
-            var jsonResult = client.DownloadString(endpoint);
+            var jsonResult = client.DownloadString(currentEndpoint + "?controller_secret=" + controllerSecret);
             var json = JsonConvert.DeserializeObject<dynamic>(jsonResult);
             if (!(bool)json.has_error)
             {
@@ -71,7 +71,8 @@ namespace Controller
 
             while (true)
             {
-                if (!string.IsNullOrWhiteSpace(jam.GoogleCloudOAuthEndpointURL) && !string.IsNullOrWhiteSpace(jam.GoogleCloudProjectID))
+                if (!string.IsNullOrWhiteSpace(jam.GoogleCloudOAuthEndpointURL) && !string.IsNullOrWhiteSpace(jam.GoogleCloudProjectID) 
+                    && !string.IsNullOrWhiteSpace(jam.GoogleCloudStorageSecret))
                 {
                     Thread.Sleep(100);
                 }
@@ -79,7 +80,10 @@ namespace Controller
                 PubSub pubsub = null;
                 var currentEndpoint = jam.GoogleCloudOAuthEndpointURL;
                 var currentProjectID = jam.GoogleCloudProjectID;
-                while (currentEndpoint == jam.GoogleCloudOAuthEndpointURL && currentProjectID == jam.GoogleCloudProjectID)
+                var currentStorageSecret = jam.GoogleCloudStorageSecret;
+                while (currentEndpoint == jam.GoogleCloudOAuthEndpointURL && 
+                    currentProjectID == jam.GoogleCloudProjectID &&
+                    currentStorageSecret == jam.GoogleCloudStorageSecret)
                 {
                     if (pubsub == null)
                     {
@@ -92,7 +96,7 @@ namespace Controller
                                 _form.RefreshConnectionStatus(jam);
                             }));
 
-                            pubsub = new PubSub(currentProjectID, () => GetOAuthTokenFromEndpoint(currentEndpoint));
+                            pubsub = new PubSub(currentProjectID, () => GetOAuthTokenFromEndpoint(currentEndpoint, currentStorageSecret));
                             pubsub.CreateTopic("game-jam-bootstrap");
                             pubsub.CreateTopic("game-jam-controller");
                             pubsub.Subscribe("game-jam-controller", "controller");
@@ -105,19 +109,26 @@ namespace Controller
                                 {
                                     try
                                     {
-                                        var message = pubsub.Poll(1, false).FirstOrDefault();
-                                        if (message != null)
+                                        var messages = pubsub.Poll(10, false);
+                                        foreach (var message in messages)
                                         {
                                             message.Acknowledge();
-                                            
-                                            var m =
-                                                JsonConvert.DeserializeObject<dynamic>(
-                                                    Encoding.ASCII.GetString(Convert.FromBase64String(message.Data)));
-                                            var source = (string)m.Source;
-                                            _form.Invoke(new Action(() =>
+
+                                            try
                                             {
-                                                jam.ReceivedClientMessage(source, m);
-                                            }));
+                                                var m =
+                                                    JsonConvert.DeserializeObject<dynamic>(
+                                                        Encoding.ASCII.GetString(Convert.FromBase64String(message.Data)));
+                                                var source = (string) m.Source;
+                                                _form.Invoke(new Action(() =>
+                                                {
+                                                    jam.ReceivedClientMessage(source, m);
+                                                }));
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Debug.WriteLine(ex);
+                                            }
                                         }
 
                                         Thread.Sleep(1);
@@ -147,7 +158,8 @@ namespace Controller
 
                                 this.SendPong(pubsub, null, jam);
                                 
-                                while (currentEndpoint == jam.GoogleCloudOAuthEndpointURL && currentProjectID == jam.GoogleCloudProjectID)
+                                while (currentEndpoint == jam.GoogleCloudOAuthEndpointURL && currentProjectID == jam.GoogleCloudProjectID &&
+                                        currentStorageSecret == jam.GoogleCloudStorageSecret)
                                 {
                                     dynamic value;
                                     if (m_JamQueues[jam.Guid].TryDequeue(out value))
@@ -196,7 +208,8 @@ namespace Controller
                     _form.RefreshConnectionStatus(jam);
                 }));
 
-                if (currentEndpoint == jam.GoogleCloudOAuthEndpointURL && currentProjectID == jam.GoogleCloudProjectID)
+                if (currentEndpoint == jam.GoogleCloudOAuthEndpointURL && currentProjectID == jam.GoogleCloudProjectID &&
+                    currentStorageSecret == jam.GoogleCloudOAuthEndpointURL)
                 {
                     // Connection lost or unable to connect.
                     Thread.Sleep(5000);

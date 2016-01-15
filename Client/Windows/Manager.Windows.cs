@@ -87,9 +87,13 @@ namespace Client
 
 	    private void StopStreaming(IPAddress address)
 	    {
-	        if (_streamingProcesses[address] != null && !_streamingProcesses[address].HasExited)
+	        if (_streamingProcesses.ContainsKey(address))
 	        {
-	            _streamingProcesses[address].Kill();
+	            if (_streamingProcesses[address] != null && !_streamingProcesses[address].HasExited)
+	            {
+	                _streamingProcesses[address].Kill();
+	                _streamingProcesses.Remove(address);
+	            }
 	        }
 	    }
 	}

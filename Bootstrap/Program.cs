@@ -202,76 +202,85 @@ namespace Bootstrap
                 {
                     try
                     {
-                        var message = pubsub.Poll(1, false).FirstOrDefault();
-                        if (message != null)
+                        var messages = pubsub.Poll(10, false);
+                        foreach (var message in messages)
                         {
                             message.Acknowledge();
 
-                            var m =
-                                JsonConvert.DeserializeObject<dynamic>(
-                                    Encoding.ASCII.GetString(Convert.FromBase64String(message.Data)));
-                            var target = (string) m.Target;
-
-                            if (!string.IsNullOrEmpty(target))
+                            try
                             {
-                                if (target != guid.ToString())
+                                var m =
+                                    JsonConvert.DeserializeObject<dynamic>(
+                                        Encoding.ASCII.GetString(Convert.FromBase64String(message.Data)));
+                                var target = (string) m.Target;
+
+                                if (!string.IsNullOrEmpty(target))
                                 {
-                                    // not for this client.
-                                    return;
+                                    if (target != guid.ToString())
+                                    {
+                                        // not for this client.
+                                        return;
+                                    }
+                                }
+
+                                Debug.WriteLine("GOT MESSAGE: " + (string)m.Type);
+                                switch ((string) m.Type)
+                                {
+                                    case "pong":
+                                    {
+                                        HasReceivedVersionInformation = true;
+
+                                        SendPing(pubsub, pingTopic, guid);
+
+                                        AvailableClientVersion = m.AvailableClientVersion;
+                                        AvailableProjectorVersion = m.AvailableProjectorVersion;
+                                        AvailableClientFile = m.AvailableClientFile;
+                                        AvailableProjectorFile = m.AvailableProjectorFile;
+
+                                        UpdateVersions(Role);
+                                    }
+                                        break;
+                                    case "designate":
+                                    {
+                                        var oldRole = Role;
+                                        Role = m.Role;
+
+                                        UpdateVersions(oldRole);
+
+                                        SendPing(pubsub, pingTopic, guid);
+                                    }
+                                        break;
+                                    case "client-settings":
+                                    {
+                                        using (var writer = new StreamWriter(ClientSettingsPath))
+                                        {
+                                            writer.Write((string) m.Settings);
+                                        }
+
+                                        KillProcess();
+                                        StartProcess();
+
+                                        SendPing(pubsub, pingTopic, guid);
+                                    }
+                                        break;
+                                    case "projector-settings":
+                                    {
+                                        using (var writer = new StreamWriter(ProjectorSettingsPath))
+                                        {
+                                            writer.Write((string) m.Settings);
+                                        }
+
+                                        KillProcess();
+                                        StartProcess();
+
+                                        SendPing(pubsub, pingTopic, guid);
+                                    }
+                                        break;
                                 }
                             }
-
-                            switch ((string) m.Type)
+                            catch (Exception ex)
                             {
-                                case "pong":
-                                {
-                                    HasReceivedVersionInformation = true;
-
-                                    SendPing(pubsub, pingTopic, guid);
-
-                                    AvailableClientVersion = m.AvailableClientVersion;
-                                    AvailableProjectorVersion = m.AvailableProjectorVersion;
-                                    AvailableClientFile = m.AvailableClientFile;
-                                    AvailableProjectorFile = m.AvailableProjectorFile;
-
-                                    UpdateVersions();
-                                }
-                                    break;
-                                case "designate":
-                                {
-                                    Role = m.Role;
-
-                                    UpdateVersions();
-
-                                    SendPing(pubsub, pingTopic, guid);
-                                }
-                                    break;
-                                case "client-settings":
-                                {
-                                    using (var writer = new StreamWriter(ClientSettingsPath))
-                                    {
-                                        writer.Write((string) m.Settings);
-                                    }
-
-                                    KillProcess();
-                                    StartProcess();
-
-                                    SendPing(pubsub, pingTopic, guid);
-                                }
-                                    break;
-                                case "projector-settings":
-                                {
-                                    using (var writer = new StreamWriter(ProjectorSettingsPath))
-                                    {
-                                        writer.Write((string) m.Settings);
-                                    }
-
-                                    KillProcess();
-                                    StartProcess();
-
-                                    SendPing(pubsub, pingTopic, guid);
-                                }
-                                    break;
+                                Debug.WriteLine(ex);
                             }
                         }
 
@@ -358,14 +367,14 @@ namespace Bootstrap
             throw new Exception("Error when retrieving access token: " + json.error);
         }
 
-        private static void UpdateVersions()
+        private static void UpdateVersions(string oldRole)
         {
             switch (Role)
             {
                 case "Client":
                     if (!string.IsNullOrWhiteSpace(AvailableClientVersion))
                     {
-                        if (ClientVersion != AvailableClientVersion)
+                        if (ClientVersion != AvailableClientVersion || Role != oldRole)
                         {
                             var package = new WebClient();
                             package.DownloadFile(new Uri(AvailableClientFile), ClientPackagePath);
@@ -379,7 +388,7 @@ namespace Bootstrap
                 case "Projector":
                     if (!string.IsNullOrWhiteSpace(AvailableProjectorVersion))
                     {
-                        if (ProjectorVersion != AvailableProjectorVersion)
+                        if (ProjectorVersion != AvailableProjectorVersion || Role != oldRole)
                         {
                             var package = new WebClient();
                             package.DownloadFile(new Uri(AvailableProjectorFile), ProjectorPackagePath);
