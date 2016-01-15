@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Name="Client" Path="Client" Type="Console">
+<Project Name="Client" Path="Client" Type="App">
   <References>
     <Reference Include="System" />
     <Reference Include="System.Core" />
