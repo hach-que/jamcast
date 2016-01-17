@@ -38,6 +38,12 @@ Enter the Google Cloud configuration and OAuth token endpoint URLs into the jam 
 
 When the bootstrap runs on a computer, you should see the computer's hostname appear underneath the jam in the controller.  By right-clicking on the computer, you can designate it as a client (the screen is broadcast) or a projector (the full screen projector application will run).
 
+## Broadcasting to Twitch
+
+To broadcast the jam to Twitch, run the bootstrap on an unused computer and designate it as a projector.  This will show a fullscreen window.  Normally you would run this on computers that are connected to actual projectors (we do this at the Melbourne Global Game Jam which is quite large, but also seperated into seperate rooms, so it gives developers good visibility on what other people are working on).
+
+Once the projector is running, run some form of broadcasting software like [https://obsproject.com/](Open Broadcaster Software) to broadcast the projector's entire screen to Twitch.
+
 ## PHP OAuth authorization example
 
 This is the PHP code we use on our server to generate an authorization token to interact with our jam.  You will almost certainly need to adapt it to your own server and to your own keys, as you won't be building on the same software framework as us:
