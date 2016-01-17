@@ -10,22 +10,47 @@ using Newtonsoft.Json;
 
 namespace GooglePubSub
 {
+    /// <summary>
+    /// A client class for using the Google Cloud Pub/Sub system.
+    /// </summary>
     public class PubSub
     {
+        /// <summary>
+        /// The project name specified on Google Cloud.  This will be something
+        /// like "melbourne-global-game-jam-16".
+        /// </summary>
         private readonly string _projectName;
+
+        /// <summary>
+        /// A list of subscriptions that we are currently subscribed to.  This is
+        /// used when polling so that if we are subscribed to multiple subscriptions,
+        /// we can get messages from the first one that returns, regardless of the
+        /// subscription order.
+        /// </summary>
         private readonly List<string> _subscriptions;
 
-        private Func<OAuthToken> _getToken; 
+        /// <summary>
+        /// A callback which is used to obtain the OAuth token sent on requests.  To
+        /// use this library, you must provide this function.
+        /// </summary>
+        private Func<OAuthToken> _getToken;
+        
+        /// <summary>
+        /// The cached OAuth token which is used until it expires.
+        /// </summary>
         private OAuthToken _token;
 
         /// <summary>
-        /// Creates a new node in a many-to-many PubSub system.
+        /// Creates a client for the Google Cloud Pub/Sub system.
         /// </summary>
         /// <param name="projectName">
-        /// A project URL like "melbourne-global-game-jam-16"
+        /// A Google Cloud project name like "melbourne-global-game-jam-16".
         /// </param>
         /// <param name="getBearerToken">
-        /// The API bearer token to use.
+        /// A callback which provides an OAuth token for authorizing requests with
+        /// Google Cloud.  You will most likely need to implement a remote server that
+        /// can generate the OAuth token using the Google Cloud PHP libraries.  Refer
+        /// to <see cref="OAuthToken"/> for more information.
         /// </param>
         public PubSub(string projectName, Func<OAuthToken> getBearerToken)
         {
@@ -36,6 +61,11 @@ namespace GooglePubSub
             CheckToken();
         }
 
+        /// <summary>
+        /// Creates a <see cref="WebClient"/> internally that has the correct authorization
+        /// header for making requests.
+        /// </summary>
+        /// <returns>A <see cref="WebClient"/> with the correct header information.</returns>
         private WebClient MakeClient()
         {
             var client = new WebClient();
@@ -43,6 +73,11 @@ namespace GooglePubSub
             return client;
         }
 
+        /// <summary>
+        /// Checks the currently cached token in <see cref="_token"/> and ensures that it
+        /// is still valid.  If it is not valid, uses the token callback that was provided
+        /// in the constructor to obtain a new token.
+        /// </summary>
         private void CheckToken()
         {
             if (_token == null)
@@ -55,6 +90,15 @@ namespace GooglePubSub
             }
         }
 
+        /// <summary>
+        /// Creates a new Pub/Sub topic with the given name.  A topic can be subscribed to
+        /// by clients, e.g. with the <see cref="Subscribe"/> method.
+        /// <para>
+        /// If the topic already exists, this method does not throw an exception and instead
+        /// continues normally (it is idempotent).
+        /// </para>
+        /// </summary>
+        /// <param name="topic">The topic name.</param>
         public void CreateTopic(string topic)
         {
             CheckToken();
@@ -85,6 +129,26 @@ namespace GooglePubSub
             }
         }
 
+        /// <summary>
+        /// Creates a new uniquely named subscription to a Pub/Sub topic.
+        /// <para>
+        /// When we create the subscription in the Pub/Sub system, we internally give
+        /// it a name of "t-(topic)-s-(subscription)".  We do this because subscription
+        /// names must be unique across the whole system, not just unique within the 
+        /// topic they are subscribing to.
+        /// </para>
+        /// </summary>
+        /// <param name="topic">The topic name.</param>
+        /// <param name="subscription">
+        /// A unique subscription identifier.  This should be unique per instance of the application, while
+        /// at the same time, it should not be randomly generated on every invocation (to avoid creating
+        /// an infinite number of subscriptions when the application does not exit cleanly).
+        /// <para>
+        /// For JamCast, we implement this by uniquely creating a GUID and saving it on disk, and then loading
+        /// it for every future run on the application.  We use this GUID in all subscriptions, with a prefix
+        /// for the application name.
+        /// </para>
+        /// </param>
         public void Subscribe(string topic, string subscription)
         {
             CheckToken();
@@ -122,6 +186,23 @@ namespace GooglePubSub
             }
         }
 
+        /// <summary>
+        /// Polls the Pub/Sub system for new messages, up to a given number of messages per
+        /// subscription.  This will poll all topics you have subscribed to.
+        /// </summary>
+        /// <param name="messagesPerSubscription">
+        /// The maximum number of messages per subscription.  From observations, it appears that
+        /// message delivery is more responsive when this number is set to something like 10 rather
+        /// than 1, potentially because it reduces the amount of locking that must be performed on
+        /// Google's servers for clients that are polling.
+        /// </param>
+        /// <param name="immediate">
+        /// Whether to return immediately if there are no new messages.  If this is set to <c>false</c>,
+        /// then this method will perform a long poll.
+        /// </param>
+        /// <returns>
+        /// A list of messages that were received.
+        /// </returns>
         public List<Message> Poll(int messagesPerSubscription, bool immediate)
         {
             CheckToken();
@@ -235,6 +316,12 @@ namespace GooglePubSub
             return messages.ToList();
         }
 
+        /// <summary>
+        /// Publishes a message to the given Pub/Sub topic.
+        /// </summary>
+        /// <param name="topic">The Pub/Sub topic name.</param>
+        /// <param name="data">The string data to set as the message.  If this is <c>null</c>, then no data is attached.</param>
+        /// <param name="attributes">The message attributes as string-string pairs.  If this is <c>null</c>, then no attributes are attached.</param>
         public void Publish(string topic, string data, Dictionary<string, string> attributes)
         {
             CheckToken();
@@ -267,6 +354,19 @@ namespace GooglePubSub
                 requestSerialized);
         }
 
+        /// <summary>
+        /// Internally makes a retryable request to the given URL, with the given method
+        /// and upload data.
+        /// <para>
+        /// As with all cloud services, Google Cloud servers may be unresponsive or timeout
+        /// when requests are made to them.  This method retries the request if a timeout
+        /// occurs, or if the OAuth token has expired by the time the request was made (in
+        /// which case it requests a new token).
+        /// </para>
+        /// </summary>
+        /// <param name="url">The URL to send the HTTP request to.</param>
+        /// <param name="method">The method to use.</param>
+        /// <param name="data">The data to upload.</param>
         private void MakeRetryableRequest(string url, string method, string data)
         {
             var succeeded = false;
@@ -300,16 +400,27 @@ namespace GooglePubSub
             }
         }
 
+        /// <summary>
+        /// Unsubscribes from the given Pub/Sub topic.  The arguments passed to this
+        /// function should be the same as those passed to <see cref="Subscribe"/>.
+        /// </summary>
+        /// <param name="topic">The topic name.</param>
+        /// <param name="subscription">The subscription name.</param>
         public void Unsubscribe(string topic, string subscription)
         {
             CheckToken();
             
             MakeRetryableRequest(
-                "https://pubsub.googleapis.com/v1/projects/" + _projectName + "/subscriptions/" + subscription,
+                "https://pubsub.googleapis.com/v1/projects/" + _projectName + "/subscriptions/t-" + topic + "-s-" + subscription,
                 "DELETE",
                 string.Empty);
         }
-
+        
+        /// <summary>
+        /// Deletes the given Pub/Sub topic.  The arguments passed to this
+        /// function should be the same as those passed to <see cref="CreateTopic"/>.
+        /// </summary>
+        /// <param name="topic">The topic name.</param>
         public void DeleteTopic(string topic)
         {
             CheckToken();
