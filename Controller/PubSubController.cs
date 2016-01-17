@@ -22,7 +22,8 @@ namespace Controller
         private readonly MainForm _form;
         private Dictionary<Guid, Thread> m_JamThreads;
         private ConcurrentDictionary<Guid, PubSubConnectionStatus> m_IsConnected;
-        private Dictionary<Guid, ConcurrentQueue<dynamic>> m_JamQueues; 
+        private Dictionary<Guid, ConcurrentQueue<dynamic>> m_JamQueues;
+        private Dictionary<Guid, int> _pubSubOperations;
 
         public PubSubController(MainForm form)
         {
@@ -30,6 +31,17 @@ namespace Controller
             m_JamThreads = new Dictionary<Guid, Thread>();
             m_IsConnected = new ConcurrentDictionary<Guid, PubSubConnectionStatus>();
             m_JamQueues = new Dictionary<Guid, ConcurrentQueue<dynamic>>();
+            _pubSubOperations = new Dictionary<Guid, int>();
+        }
+
+        public int GetPubSubOperations(Jam jam)
+        {
+            if (_pubSubOperations.ContainsKey(jam.Guid))
+            {
+                return _pubSubOperations[jam.Guid];
+            }
+
+            return 0;
         }
 
         public void RegisterJam(Jam jam)
@@ -37,6 +49,7 @@ namespace Controller
             var thread = new Thread(Run);
             thread.IsBackground = true;
 
+            _pubSubOperations.Add(jam.Guid, 0);
             m_JamThreads.Add(jam.Guid, thread);
             m_IsConnected.TryAdd(jam.Guid, PubSubConnectionStatus.Disconnected);
             m_JamQueues.Add(jam.Guid, new ConcurrentQueue<dynamic>());
@@ -105,6 +118,8 @@ namespace Controller
                             {
                                 while (!pubsubCancellationToken.IsCancellationRequested)
                                 {
+                                    _pubSubOperations[jam.Guid] = pubsub.OperationsRequested;
+
                                     try
                                     {
                                         var messages = pubsub.Poll(10, false);
@@ -129,7 +144,7 @@ namespace Controller
                                             }
                                         }
 
-                                        Thread.Sleep(1);
+                                        Thread.Sleep(1000);
                                     }
                                     catch (OperationCanceledException ex)
                                     {

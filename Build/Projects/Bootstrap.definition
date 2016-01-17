@@ -7,16 +7,17 @@
     <Reference Include="SharpZipLib" />
     <Reference Include="GooglePubSub" />
     <Reference Include="Newtonsoft.Json" />
+    <Reference Include="Bootstrap.ThirdParty" />
   </References>
   <Files>
     <Compile Include="Package.cs" />
     <Compile Include="Prerun.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="Program.Windows.cs">
-      <Platforms>Windows</Platforms>
-    </Compile>
     <Compile Include="Program.MacOS.cs">
       <Platforms>MacOS</Platforms>
+    </Compile>
+    <Compile Include="Program.Windows.cs">
+      <Platforms>Windows</Platforms>
     </Compile>
     <EmbeddedResource Include="endpoint.txt" />
     <EmbeddedResource Include="project.txt" />

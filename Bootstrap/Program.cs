@@ -65,6 +65,8 @@ namespace Bootstrap
 
         private static string _oAuthEndpoint;
 
+        private static PubSub PubSub;
+
         private static Package Active
         {
             get
@@ -221,18 +223,18 @@ namespace Bootstrap
             }
 
             Status = "Connecting to Pub/Sub";
-            var pubsub = new PubSub(project, GetOAuthToken);
+            PubSub = new PubSub(project, GetOAuthToken);
 
             Status = "Creating Bootstrap Global Topic";
-            pubsub.CreateTopic("game-jam-bootstrap");
+            PubSub.CreateTopic("game-jam-bootstrap");
             Status = "Creating Controller Global Topic";
-            pubsub.CreateTopic("game-jam-controller");
+            PubSub.CreateTopic("game-jam-controller");
             Status = "Creating Bootstrap Instance Topic";
-            pubsub.CreateTopic("bootstrap-" + guid);
+            PubSub.CreateTopic("bootstrap-" + guid);
             Status = "Subscribing to Bootstrap Instance Topic";
-            pubsub.Subscribe("bootstrap-" + guid, "bootstrap-" + guid);
+            PubSub.Subscribe("bootstrap-" + guid, "bootstrap-" + guid);
             Status = "Subscribing to Bootstrap Global Topic";
-            pubsub.Subscribe("game-jam-bootstrap", "bootstrap-" + guid);
+            PubSub.Subscribe("game-jam-bootstrap", "bootstrap-" + guid);
 
             var pingTopic = "game-jam-controller";
 
@@ -244,7 +246,7 @@ namespace Bootstrap
 
                     try
                     {
-                        var messages = pubsub.Poll(10, false);
+                        var messages = PubSub.Poll(10, false);
                         foreach (var message in messages)
                         {
                             message.Acknowledge();
@@ -275,7 +277,7 @@ namespace Bootstrap
                                         HasReceivedVersionInformation = true;
 
                                         Status = "Got Pong";
-                                        SendPing(pubsub, pingTopic, guid);
+                                        SendPing(PubSub, pingTopic, guid);
 
                                         Client.SetAvailableVersions(
                                             (string) m.AvailableClientVersion,
@@ -299,7 +301,7 @@ namespace Bootstrap
                                         Status = "Updating Software";
                                         UpdateVersions(oldRole);
 
-                                        SendPing(pubsub, pingTopic, guid);
+                                        SendPing(PubSub, pingTopic, guid);
                                     }
                                         break;
                                     case "client-settings":
@@ -313,7 +315,7 @@ namespace Bootstrap
                                         Client.KillProcess();
                                         Client.StartProcess();
 
-                                        SendPing(pubsub, pingTopic, guid);
+                                        SendPing(PubSub, pingTopic, guid);
                                     }
                                         break;
                                     case "projector-settings":
@@ -327,7 +329,7 @@ namespace Bootstrap
                                         Projector.KillProcess();
                                         Projector.StartProcess();
 
-                                        SendPing(pubsub, pingTopic, guid);
+                                        SendPing(PubSub, pingTopic, guid);
                                     }
                                         break;
                                 }
@@ -362,7 +364,7 @@ namespace Bootstrap
                 }
 
                 Status = "Sending Ping";
-                SendPing(pubsub, pingTopic, guid);
+                SendPing(PubSub, pingTopic, guid);
                 Status = "Sent Ping";
 
                 var timer = 0;
@@ -375,7 +377,7 @@ namespace Bootstrap
                     if (timer > 10000)
                     {
                         Status = "Sending Ping";
-                        SendPing(pubsub, pingTopic, guid);
+                        SendPing(PubSub, pingTopic, guid);
                         Status = "Sent Ping";
                         timer = 0;
                     }
@@ -386,9 +388,9 @@ namespace Bootstrap
                 Status = "Exiting";
                 thread.Abort();
 
-                pubsub.DeleteTopic("bootstrap-" + guid);
-                pubsub.Unsubscribe("bootstrap-" + guid, "bootstrap-" + guid);
-                pubsub.Unsubscribe("game-jam-bootstrap", "bootstrap-" + guid);
+                PubSub.DeleteTopic("bootstrap-" + guid);
+                PubSub.Unsubscribe("bootstrap-" + guid, "bootstrap-" + guid);
+                PubSub.Unsubscribe("game-jam-bootstrap", "bootstrap-" + guid);
                 // Don't delete the game-jam topic because it's the global one
             }
         }
@@ -450,6 +452,7 @@ namespace Bootstrap
                 Role = Role,
                 HasReceivedVersionInformation = HasReceivedVersionInformation,
                 IPAddresses = ipaddresses,
+                CloudOperationsRequested = PubSub.OperationsRequested + 1,
             }))), null);
         }
     }

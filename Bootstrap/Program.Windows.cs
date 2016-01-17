@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
+using GooglePubSub;
 
 namespace Bootstrap
 {
@@ -27,6 +28,7 @@ namespace Bootstrap
         private static MenuItem _bootstrapAvailableVersionMenuItem;
         private static MenuItem _clientAvailableVersionMenuItem;
         private static MenuItem _projectorAvailableVersionMenuItem;
+        private static MenuItem _cloudOperationsMenuItem;
 
         public static void PlatformTraySetup()
         {
@@ -45,6 +47,7 @@ namespace Bootstrap
 					_lastContactMenuItem = new MenuItem("Last Contact: " + (LastContact == null ? "Never" : LastContact.ToString())) { Enabled = false },
 					_roleMenuItem = new MenuItem("Role: " + Role) { Enabled = false },
                     _statusMenuItem = new MenuItem("Status: " + Status) { Enabled = false },
+                    _cloudOperationsMenuItem = new MenuItem("Cloud Operations: " + (PubSub == null ? 0 : PubSub.OperationsRequested)) { Enabled = false },
                     new MenuItem("-"),
                     _bootstrapVersionMenuItem = new MenuItem("Bootstrap Version: " + (Bootstrap == null ? "..." : Bootstrap.Version)) { Enabled = false },
                     _clientVersionMenuItem = new MenuItem("Client Version: " + (Client == null ? "..." : Client.Version)) { Enabled = false },
@@ -70,6 +73,7 @@ namespace Bootstrap
                             ;
                         _roleMenuItem.Text = "Role: " + Role;
                         _statusMenuItem.Text = "Status: " + Status;
+                        _cloudOperationsMenuItem.Text = "Cloud Operations: " + (PubSub == null ? 0 : PubSub.OperationsRequested);
                         _bootstrapVersionMenuItem.Text = "Bootstrap Version: " +
                                                          (Bootstrap == null ? "..." : Bootstrap.Version)
                             ;

@@ -58,8 +58,25 @@ namespace GooglePubSub
             _subscriptions = new List<string>();
             _getToken = getBearerToken;
 
+            Timeout = 60;
+            OperationsRequested = 0;
+
             CheckToken();
         }
+
+        /// <summary>
+        /// The timeout (in seconds) for all Google Cloud Pub/Sub operations.
+        /// <para>
+        /// The default is 60 seconds.
+        /// </para>
+        /// </summary>
+        public int Timeout { get; set; }
+
+        /// <summary>
+        /// The number of Google Cloud Pub/Sub operations performed by this
+        /// client.
+        /// </summary>
+        public int OperationsRequested { get; private set; }
 
         /// <summary>
         /// Creates a <see cref="WebClient"/> internally that has the correct authorization
@@ -68,7 +85,7 @@ namespace GooglePubSub
         /// <returns>A <see cref="WebClient"/> with the correct header information.</returns>
         private WebClient MakeClient()
         {
-            var client = new ShortTimeoutWebClient();
+            var client = new ShortTimeoutWebClient(Timeout);
             client.Headers["Authorization"] = "Bearer " + _token.AccessToken;
             
             return client;
@@ -238,6 +255,7 @@ namespace GooglePubSub
                         {
                             var client = MakeClient();
                             webClients.Add(client);
+                            OperationsRequested++;
                             responseSerialized = await client.UploadStringTaskAsync(
                                 "https://pubsub.googleapis.com/v1/projects/" + _projectName + "/subscriptions/" +
                                 topicSubscription + ":pull",
@@ -376,6 +394,7 @@ namespace GooglePubSub
                 try
                 {
                     CheckToken();
+                    OperationsRequested++;
                     MakeClient().UploadString(url, method, data);
                     succeeded = true;
                 }
@@ -387,13 +406,13 @@ namespace GooglePubSub
                         if (httpWebResponse.StatusCode == HttpStatusCode.Unauthorized)
                         {
                             // Retry with CheckToken.
-                            Thread.Sleep(1);
+                            Thread.Sleep(1000);
                             continue;
                         }
                     }
                     if (ex.Status == WebExceptionStatus.Timeout)
                     {
-                        Thread.Sleep(1);
+                        Thread.Sleep(1000);
                         continue;
                     }
                     throw;

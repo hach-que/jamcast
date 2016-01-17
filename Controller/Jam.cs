@@ -105,6 +105,7 @@ namespace Controller
                             WaitingForPing = false,
                             LastContact = DateTime.UtcNow,
                             IPAddresses = ipaddresses.ToArray(),
+                            CloudOperationsRequested = 0,
                         };
                         Computers.Add(computer);
                         _node.NewComputerRegistered(computer);
@@ -118,6 +119,7 @@ namespace Controller
                         computer.WaitingForPing = false;
                         computer.LastContact = DateTime.UtcNow;
                         computer.IPAddresses = ipaddresses.ToArray();
+                        computer.CloudOperationsRequested = ((int?)data.CloudOperationsRequested ?? 0);
                         foreach (var node in _node.Nodes.OfType<ComputerTreeNode>())
                         {
                             node.Update();

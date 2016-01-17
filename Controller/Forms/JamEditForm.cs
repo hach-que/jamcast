@@ -162,6 +162,8 @@ namespace Controller.Forms
         public void RefreshConnectionStatus()
         {
             var mainForm = JamTreeNode.TreeView.FindForm() as MainForm;
+            _pubSubOperationsText.Text =
+                (JamTreeNode.Jam.Computers.Sum(x => x.CloudOperationsRequested) + mainForm.PubSubController.GetPubSubOperations(JamTreeNode.Jam)).ToString();
             var status = mainForm.PubSubController.GetConnectionStatus(JamTreeNode.Jam.Guid);
             switch (status)
             {

@@ -13,6 +13,7 @@ namespace Controller
         public bool WaitingForPing;
         public IPAddress[] IPAddresses;
         public DateTime LastContact;
+        public int CloudOperationsRequested;
 
         [NonSerialized]
         public bool HasWaitingTask;
