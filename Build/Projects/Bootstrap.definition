@@ -16,8 +16,8 @@
     <EmbeddedResource Include="endpoint.txt" />
     <EmbeddedResource Include="project.txt" />
     <EmbeddedResource Include="satellite-16.png" />
-    <EmbeddedResource Include="satellite-256-downloading.png" />
-    <EmbeddedResource Include="satellite-256-nocontact.png" />
+    <EmbeddedResource Include="satellite-16-downloading.png" />
+    <EmbeddedResource Include="satellite-16-nocontact.png" />
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>

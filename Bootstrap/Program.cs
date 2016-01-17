@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using GooglePubSub;
@@ -115,9 +116,11 @@ namespace Bootstrap
                 processToKillOnSuccess = int.Parse(args[0]);
             }
 
-            Status = "Initializing...";
+            Status = "Initializing";
 
             PlatformTraySetup();
+
+            Status = "Reading Configuration";
 
             string project;
             var projectStream = typeof(Program).Assembly.GetManifestResourceStream("Bootstrap.project.txt");
@@ -136,6 +139,8 @@ namespace Bootstrap
                 throw new InvalidOperationException("This bootstrap is not configured correctly.");
             }
 
+            Status = "Setting Up Packages";
+
             // Create folder for storing client, projector and bootstrap software.
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -146,6 +151,25 @@ namespace Bootstrap
             Client = new Package(BasePath, "Client");
             Projector = new Package(BasePath, "Projector");
             Bootstrap = new Package(BasePath, "Bootstrap");
+
+            // Check whether we're running from one of the blue-green folders
+            // from the bootstrap package, and set the active mode appropriately
+            // (so that when the bootstrap is updated, it gets written out to the
+            // other directory).
+            var directoryName = new FileInfo(Assembly.GetEntryAssembly().Location).DirectoryName;
+            if (directoryName != null)
+            {
+                if (directoryName.StartsWith(Bootstrap.BluePath))
+                {
+                    Bootstrap.ActiveMode = "Blue";
+                }
+                else if (directoryName.StartsWith(Bootstrap.GreenPath))
+                {
+                    Bootstrap.ActiveMode = "Green";
+                }
+            }
+
+            Status = "Querying Computer GUID";
 
             Guid guid;
             if (File.Exists(Path.Combine(BasePath, "guid.txt")))
@@ -163,6 +187,8 @@ namespace Bootstrap
                     writer.Write(guid.ToString());
                 }
             }
+
+            Status = "Querying Hostname";
 
             try
             {
@@ -189,14 +215,23 @@ namespace Bootstrap
 
             if (processToKillOnSuccess != null)
             {
+                Status = "Killing Previous Process";
+
                 Process.GetProcessById(processToKillOnSuccess.Value).Kill();
             }
 
+            Status = "Connecting to Pub/Sub";
             var pubsub = new PubSub(project, GetOAuthToken);
+
+            Status = "Creating Bootstrap Global Topic";
             pubsub.CreateTopic("game-jam-bootstrap");
+            Status = "Creating Controller Global Topic";
             pubsub.CreateTopic("game-jam-controller");
+            Status = "Creating Bootstrap Instance Topic";
             pubsub.CreateTopic("bootstrap-" + guid);
+            Status = "Subscribing to Bootstrap Instance Topic";
             pubsub.Subscribe("bootstrap-" + guid, "bootstrap-" + guid);
+            Status = "Subscribing to Bootstrap Global Topic";
             pubsub.Subscribe("game-jam-bootstrap", "bootstrap-" + guid);
 
             var pingTopic = "game-jam-controller";
@@ -314,12 +349,9 @@ namespace Bootstrap
 
             try
             {
+                Status = "Starting Messaging Thread";
                 thread.IsBackground = true;
                 thread.Start();
-
-                Client.CalculatePackageVersion();
-                Projector.CalculatePackageVersion();
-                Bootstrap.CalculatePackageVersion();
 
                 Status = "Starting " + Role;
                 if (!Active.StartProcess())
@@ -329,7 +361,9 @@ namespace Bootstrap
                     Active.StartProcess();
                 }
 
+                Status = "Sending Ping";
                 SendPing(pubsub, pingTopic, guid);
+                Status = "Sent Ping";
 
                 var timer = 0;
 
@@ -340,13 +374,16 @@ namespace Bootstrap
 
                     if (timer > 10000)
                     {
+                        Status = "Sending Ping";
                         SendPing(pubsub, pingTopic, guid);
+                        Status = "Sent Ping";
                         timer = 0;
                     }
                 }
             }
             finally
             {
+                Status = "Exiting";
                 thread.Abort();
 
                 pubsub.DeleteTopic("bootstrap-" + guid);
@@ -390,6 +427,8 @@ namespace Bootstrap
             {
                 Status = "Updating Bootstrap (" + (d * 100).ToString("F1") + "%)";
             }).Wait();
+
+            Bootstrap.RestartMainProcessIfOutOfDate();
         }
         
         private static void SendPing(PubSub pubsub, string pingTopic, Guid guid)

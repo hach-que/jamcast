@@ -32,7 +32,7 @@ namespace Bootstrap
 
         public string GreenPath { get; private set; }
 
-        public string ActiveMode { get; private set; }
+        public string ActiveMode { get; set; }
 
         public string AvailableFile { get; private set; }
 
@@ -147,7 +147,7 @@ namespace Bootstrap
 
             var startInfo = new ProcessStartInfo();
 
-            var clientPath = Path.Combine(ActivePath, "Client.exe");
+            var clientPath = Path.Combine(ActivePath, ExecutableName);
             if (Version != null && File.Exists(clientPath))
             {
                 startInfo.FileName = clientPath;
@@ -229,6 +229,46 @@ namespace Bootstrap
             md5.TransformFinalBlock(contentBytes, 0, contentBytes.Length);
 
             return BitConverter.ToString(md5.Hash).Replace("-", "").ToLower();
+        }
+
+        public bool RestartMainProcessIfOutOfDate()
+        {
+            // This is used for the self-update of the bootstrap.  If our available
+            // version is set and does not match.
+            if (!string.IsNullOrWhiteSpace(AvailableVersion) &&
+                AvailableVersion != Version)
+            {
+                // We have written out into the active version, but we
+                // won't be currently running from there.
+                var startInfo = new ProcessStartInfo();
+
+                var clientPath = Path.Combine(ActivePath, ExecutableName);
+                if (Version != null && File.Exists(clientPath))
+                {
+                    startInfo.FileName = clientPath;
+                    // Pass the current process ID to the new bootstrap so that it will
+                    // terminate this one.
+                    startInfo.Arguments = Process.GetCurrentProcess().Id.ToString();
+                    startInfo.WorkingDirectory = ActivePath;
+                }
+                else
+                {
+                    return false;
+                }
+
+                startInfo.UseShellExecute = false;
+
+                if (startInfo.FileName == "")
+                {
+                    return false;
+                }
+
+                var process = new Process();
+                process.StartInfo = startInfo;
+                process.Start();
+            }
+
+            return false;
         }
     }
 }

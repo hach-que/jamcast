@@ -48,9 +48,13 @@ namespace Controller
 
         public string AvailableProjectorVersion;
 
+        public string AvailableBootstrapVersion;
+
         public string AvailableClientFile;
 
         public string AvailableProjectorFile;
+
+        public string AvailableBootstrapFile;
 
         public void SetTreeNode(JamTreeNode node)
         {

@@ -146,23 +146,6 @@ namespace Controller.Forms
                             writer.Flush();
                         }
 
-                        //var path = new FileInfo(sfd.FileName).Directory.FullName;
-
-                        //foreach (var file in new FileInfo(typeof (Program).Assembly.Location).Directory.GetFiles("*.dll"))
-                        //{
-                        //    file.CopyTo(Path.Combine(path, file.Name), true);
-                        //}
-
-                        //foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.pdb"))
-                        //{
-                        //    file.CopyTo(Path.Combine(path, file.Name), true);
-                        //}
-
-                        //foreach (var file in new FileInfo(typeof(Program).Assembly.Location).Directory.GetFiles("*.dll.config"))
-                        //{
-                        //    file.CopyTo(Path.Combine(path, file.Name), true);
-                        //}
-
                         using (var writer = new StreamWriter(sfd.FileName + ".config", false))
                         {
                             writer.Write(NewtonsoftJsonRedirect);
@@ -305,6 +288,24 @@ namespace Controller.Forms
 
                 showProgress(20);
 
+                var bootstrapMemory = new MemoryStream();
+                var bootstrapZip = new ZipOutputStream(bootstrapMemory);
+                bootstrapZip.SetLevel(3);
+
+                var bootstrap = BootstrapCreator.CreateCustomBootstrap(
+                    _googleCloudProjectID.Text,
+                    _googleCloudOAuthEndpointURL.Text);
+                entry2 = new ZipEntry("Bootstrap.exe");
+                entry2.DateTime = DateTime.Now;
+                entry2.Size = bootstrap.Length;
+                bootstrapZip.PutNextEntry(entry2);
+                bootstrapZip.Write(bootstrap, 0, bootstrap.Length);
+                bootstrapZip.CloseEntry();
+                bootstrapZip.IsStreamOwner = false;
+                bootstrapZip.Close();
+
+                showProgress(30);
+
                 var clientData = new byte[clientMemory.Position];
                 clientMemory.Seek(0, SeekOrigin.Begin);
                 clientMemory.Read(clientData, 0, clientData.Length);
@@ -316,7 +317,7 @@ namespace Controller.Forms
                 var clientUrl = 
                     UploadFile("Client.zip", clientData, p =>
                     {
-                        showProgress(20 + (int)(p * 40));
+                        showProgress(30 + (int)(p * 30));
                     });
 
                 var projectorData = new byte[projectorMemory.Position];
@@ -330,7 +331,21 @@ namespace Controller.Forms
                 var projectorUrl = 
                     UploadFile("Projector.zip", projectorData, p =>
                     {
-                        showProgress(60 + (int)(p * 40));
+                        showProgress(60 + (int)(p * 30));
+                    });
+
+                var bootstrapData = new byte[bootstrapMemory.Position];
+                bootstrapMemory.Seek(0, SeekOrigin.Begin);
+                bootstrapMemory.Read(bootstrapData, 0, bootstrapData.Length);
+
+                md5 = MD5.Create();
+                md5.TransformFinalBlock(bootstrapData, 0, bootstrapData.Length);
+                var bootstrapHash = BitConverter.ToString(md5.Hash).Replace("-", "").ToLower();
+
+                var bootstrapUrl =
+                    UploadFile("Bootstrap.zip", bootstrapData, p =>
+                    {
+                        showProgress(90 + (int)(p * 10));
                     });
 
                 mainForm.Invoke(new Action(() =>
@@ -339,6 +354,8 @@ namespace Controller.Forms
                     jam.AvailableClientVersion = clientHash;
                     jam.AvailableProjectorFile = projectorUrl;
                     jam.AvailableProjectorVersion = projectorHash;
+                    jam.AvailableBootstrapFile = bootstrapUrl;
+                    jam.AvailableBootstrapVersion = bootstrapHash;
                     jam.Save();
                     this.m_Deploying = false;
                     this.UpdateDeployButtons();

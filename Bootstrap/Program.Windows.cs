@@ -24,12 +24,15 @@ namespace Bootstrap
         private static MenuItem _bootstrapVersionMenuItem;
         private static MenuItem _clientVersionMenuItem;
         private static MenuItem _projectorVersionMenuItem;
+        private static MenuItem _bootstrapAvailableVersionMenuItem;
+        private static MenuItem _clientAvailableVersionMenuItem;
+        private static MenuItem _projectorAvailableVersionMenuItem;
 
         public static void PlatformTraySetup()
         {
             _trayIconNormal = ConvertEmbeddedResourceToIcon("Bootstrap.satellite-16.png");
-            _trayIconNoContact = ConvertEmbeddedResourceToIcon("Bootstrap.satellite-256-nocontact.png");
-            _trayIconDownloading = ConvertEmbeddedResourceToIcon("Bootstrap.satellite-256-downloading.png");
+            _trayIconNoContact = ConvertEmbeddedResourceToIcon("Bootstrap.satellite-16-nocontact.png");
+            _trayIconDownloading = ConvertEmbeddedResourceToIcon("Bootstrap.satellite-16-downloading.png");
 
             new Thread(() =>
             {
@@ -46,6 +49,10 @@ namespace Bootstrap
                     _bootstrapVersionMenuItem = new MenuItem("Bootstrap Version: " + (Bootstrap == null ? "..." : Bootstrap.Version)) { Enabled = false },
                     _clientVersionMenuItem = new MenuItem("Client Version: " + (Client == null ? "..." : Client.Version)) { Enabled = false },
                     _projectorVersionMenuItem = new MenuItem("Projector Version: " + (Projector == null ? "..." : Projector.Version)) { Enabled = false },
+                    new MenuItem("-"),
+                    _bootstrapAvailableVersionMenuItem = new MenuItem("Bootstrap Available Version: " + (Bootstrap == null ? "..." : Bootstrap.AvailableVersion)) { Enabled = false },
+                    _clientAvailableVersionMenuItem = new MenuItem("Client Available Version: " + (Client == null ? "..." : Client.AvailableVersion)) { Enabled = false },
+                    _projectorAvailableVersionMenuItem = new MenuItem("Projector Available Version: " + (Projector == null ? "..." : Projector.AvailableVersion)) { Enabled = false },
                 });
 
                 _trayIcon = new NotifyIcon();
@@ -69,6 +76,13 @@ namespace Bootstrap
                         _clientVersionMenuItem.Text = "Client Version: " + (Client == null ? "..." : Client.Version);
                         _projectorVersionMenuItem.Text = "Projector Version: " +
                                                          (Projector == null ? "..." : Projector.Version)
+                            ;
+                        _bootstrapAvailableVersionMenuItem.Text = "Bootstrap Available Version: " +
+                                                         (Bootstrap == null ? "..." : Bootstrap.AvailableVersion)
+                            ;
+                        _clientAvailableVersionMenuItem.Text = "Client Available Version: " + (Client == null ? "..." : Client.AvailableVersion);
+                        _projectorAvailableVersionMenuItem.Text = "Projector Available Version: " +
+                                                         (Projector == null ? "..." : Projector.AvailableVersion)
                             ;
 
                         if (LastContact == null || LastContact < DateTime.Now.AddSeconds(-60))

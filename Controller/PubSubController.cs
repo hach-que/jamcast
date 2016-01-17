@@ -225,8 +225,10 @@ namespace Controller
                 Type = "pong",
                 AvailableClientVersion = jam.AvailableClientVersion,
                 AvailableProjectorVersion = jam.AvailableProjectorVersion,
+                AvailableBootstrapVersion = jam.AvailableBootstrapVersion,
                 AvailableClientFile = jam.AvailableClientFile,
                 AvailableProjectorFile = jam.AvailableProjectorFile,
+                AvailableBootstrapFile = jam.AvailableBootstrapFile,
             }))), null);
         }
 
