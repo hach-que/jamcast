@@ -102,6 +102,7 @@ namespace Client
 
 	    private void StartStreaming(IPAddress address, out string sdp, Action onProcessExit)
 	    {
+            sdp = string.Empty;
 	        //var controller = new FfmpegStreamController();
 	        //var process = controller.StreamToTarget(address.ToString(), out sdp);
 	        //process.Exited += (sender, args) =>
