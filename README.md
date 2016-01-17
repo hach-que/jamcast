@@ -18,7 +18,7 @@ You will also need a web server that can provide a signed OAuth token to access 
 
 1. Create a Google Cloud project and save the project ID.
 2. Create a Google Cloud service account from the "API Manager" section, under the "Credentials" subsection.  You need to create a "Service Account", not an "OAuth 2.0 Client ID".  When being asked to generate the key, save it in the recommended JSON format.
-3. Turn on the "Cloud Storage API" and "Cloud Pub/Sub API" from the "OVerview" page.  You may need to click on "More" to see these APIs.
+3. Turn on the "Cloud Storage API" and "Cloud Pub/Sub API" from the "Overview" page.  You may need to click on "More" to see these APIs.
 4. Create a Google Cloud storage bucket with the same name as the project ID.
 5. Configure a website using the PHP (or other language libraries) on your web server.  See the bottom of these README for an example.
 
