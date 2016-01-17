@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Name="Bootstrap" Path="Bootstrap" Type="App" Platforms="Windows">
+<Project Name="Bootstrap" Path="Bootstrap" Type="App" Platforms="Windows,MacOS">
   <References>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -12,12 +12,23 @@
     <Compile Include="Package.cs" />
     <Compile Include="Prerun.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="Program.Windows.cs" />
+    <Compile Include="Program.Windows.cs">
+      <Platforms>Windows</Platforms>
+    </Compile>
+    <Compile Include="Program.MacOS.cs">
+      <Platforms>MacOS</Platforms>
+    </Compile>
     <EmbeddedResource Include="endpoint.txt" />
     <EmbeddedResource Include="project.txt" />
-    <EmbeddedResource Include="satellite-16.png" />
-    <EmbeddedResource Include="satellite-16-downloading.png" />
-    <EmbeddedResource Include="satellite-16-nocontact.png" />
+    <EmbeddedResource Include="satellite-16.png">
+      <Platforms>Windows</Platforms>
+    </EmbeddedResource>
+    <EmbeddedResource Include="satellite-16-downloading.png">
+      <Platforms>Windows</Platforms>
+    </EmbeddedResource>
+    <EmbeddedResource Include="satellite-16-nocontact.png">
+      <Platforms>Windows</Platforms>
+    </EmbeddedResource>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>

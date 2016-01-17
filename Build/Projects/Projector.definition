@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Name="Projector" Path="Projector" Type="App">
+<Project Name="Projector" Path="Projector" Type="App" Platforms="Windows">
   <References>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
