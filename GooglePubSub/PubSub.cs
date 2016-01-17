@@ -68,8 +68,9 @@ namespace GooglePubSub
         /// <returns>A <see cref="WebClient"/> with the correct header information.</returns>
         private WebClient MakeClient()
         {
-            var client = new WebClient();
+            var client = new ShortTimeoutWebClient();
             client.Headers["Authorization"] = "Bearer " + _token.AccessToken;
+            
             return client;
         }
 

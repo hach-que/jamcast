@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Reflection;
@@ -69,6 +70,29 @@ namespace Bootstrap
                         _projectorVersionMenuItem.Text = "Projector Version: " +
                                                          (Projector == null ? "..." : Projector.Version)
                             ;
+
+                        if (LastContact == null || LastContact < DateTime.Now.AddSeconds(-60))
+                        {
+                            _trayIcon.Icon = _trayIconNoContact;
+                        }
+                        else
+                        {
+                            if (Status.StartsWith("Updating"))
+                            {
+                                if (_trayIcon.Icon == _trayIconNormal)
+                                {
+                                    _trayIcon.Icon = _trayIconDownloading;
+                                }
+                                else
+                                {
+                                    _trayIcon.Icon = _trayIconNormal;
+                                }
+                            }
+                            else
+                            {
+                                _trayIcon.Icon = _trayIconNormal;
+                            }
+                        }
 
 						Thread.Sleep(500);
                     }

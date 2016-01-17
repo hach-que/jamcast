@@ -10,6 +10,9 @@
     <Compile Include="Message.cs" />
     <Compile Include="OAuthToken.cs" />
     <Compile Include="PubSub.cs" />
+    <Compile Include="ShortTimeoutWebClient.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Storage.cs" />
   </Files>
 </Project>
