@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 using Client.Properties;
-using System.Drawing;
 using System.Net;
 using Client.Windows;
 

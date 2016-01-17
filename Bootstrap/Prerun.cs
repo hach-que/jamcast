@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bootstrap
 {
@@ -20,7 +17,7 @@ namespace Bootstrap
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            
+            Debug.WriteLine(e.ExceptionObject.ToString());
             File.WriteAllText("error.log", e.ExceptionObject.ToString());
         }
 

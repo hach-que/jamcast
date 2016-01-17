@@ -9,10 +9,15 @@
     <Reference Include="Newtonsoft.Json" />
   </References>
   <Files>
+    <Compile Include="Package.cs" />
     <Compile Include="Prerun.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Program.Windows.cs" />
     <EmbeddedResource Include="endpoint.txt" />
     <EmbeddedResource Include="project.txt" />
+    <EmbeddedResource Include="satellite-16.png" />
+    <EmbeddedResource Include="satellite-256-downloading.png" />
+    <EmbeddedResource Include="satellite-256-nocontact.png" />
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>

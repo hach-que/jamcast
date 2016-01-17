@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Threading;
-using Client.Windows;
 using NetCast;
 using NetCast.Messages;
 

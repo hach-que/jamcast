@@ -6,7 +6,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Controller.TreeNode;
 using GooglePubSub;
@@ -380,7 +379,7 @@ namespace Controller.Forms
                 () => GetOAuthTokenFromEndpoint(_googleCloudOAuthEndpointURL.Text, _googleCloudStorageSecret.Text));
             var unixTimestamp = (long)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
             var uploadName = Path.GetFileNameWithoutExtension(filename) + "." + unixTimestamp + Path.GetExtension(filename);
-            return storage.Upload(data, uploadName, progress);
+            return storage.Upload(data, uploadName, progress).Result;
         }
     }
 }

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Compat.Web;
-using System.Drawing;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Windows.Forms;
 using NetCast;
 using NetCast.Messages;

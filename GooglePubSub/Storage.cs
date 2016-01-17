@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -49,20 +47,7 @@ namespace GooglePubSub
 
             CheckToken();
         }
-
-        /// <summary>
-        /// Creates a <see cref="WebClient"/> internally that has the correct authorization
-        /// header for making requests.
-        /// </summary>
-        /// <returns>A <see cref="WebClient"/> with the correct header information.</returns>
-        private WebClient MakeClient()
-        {
-            var client = new WebClient();
-            client.Headers["Authorization"] = "Bearer " + _token.AccessToken;
-            client.Headers["Content-Type"] = "application/json";
-            return client;
-        }
-
+        
         /// <summary>
         /// Checks the currently cached token in <see cref="_token"/> and ensures that it
         /// is still valid.  If it is not valid, uses the token callback that was provided
@@ -89,7 +74,7 @@ namespace GooglePubSub
         /// <param name="name">The filename to use to store the file.</param>
         /// <param name="progress">A callback that reports the upload progress.</param>
         /// <returns>The publically accessible URL that is used to download the file.</returns>
-        public string Upload(byte[] fileData, string name, Action<double> progress)
+        public async Task<string> Upload(byte[] fileData, string name, Action<double> progress)
         {
             var request = new
             {
@@ -119,12 +104,13 @@ namespace GooglePubSub
             var response = webRequest.GetResponse();
             var uploadLocation = response.Headers["Location"];
 
-            var client = MakeClient();
+            var client = new AccurateWebClient(fileData.Length);
+            client.Headers.Add("Authorization", "Bearer " + _token.AccessToken);
             client.UploadProgressChanged += (sender, args) =>
             {
                 progress(args.BytesSent/(double) args.TotalBytesToSend);
             };
-            var result = client.UploadData(uploadLocation, "PUT", fileData);
+            var result = await client.UploadDataTaskAsync(uploadLocation, "PUT", fileData);
 
             using (var s = new StreamReader(new MemoryStream(result)))
             {
@@ -133,6 +119,22 @@ namespace GooglePubSub
             }
         }
 
-        
+        private class AccurateWebClient : WebClient
+        {
+            private readonly int m_ContentLength;
+
+            public AccurateWebClient(int length)
+            {
+                this.m_ContentLength = length;
+            }
+
+            protected override WebRequest GetWebRequest(Uri address)
+            {
+                var req = base.GetWebRequest(address) as HttpWebRequest;
+                req.AllowWriteStreamBuffering = false;
+                req.ContentLength = this.m_ContentLength;
+                return req;
+            }
+        }
     }
 }
