@@ -8,8 +8,9 @@ namespace Client
 {
     public partial class Manager
     {
-        private Queue p_NetCast = null;
-        private string m_Name = "Unknown!";
+        private Queue _netCast = null;
+        private string _name = "Unknown!";
+        private string _email = string.Empty;
 
         /// <summary>
         /// Starts the manager cycle.
@@ -21,8 +22,8 @@ namespace Client
 			ListenForApplicationExit(OnStop);
 
             // Start the NetCast listener.
-            this.p_NetCast = new Queue(12000, 12001);
-            this.p_NetCast.OnReceived += new EventHandler<MessageEventArgs>(p_NetCast_OnReceived);
+            this._netCast = new Queue(12000, 12001);
+            this._netCast.OnReceived += new EventHandler<MessageEventArgs>(p_NetCast_OnReceived);
 
 			ConfigureSystemTrayIcon();
 
@@ -31,7 +32,7 @@ namespace Client
                 {
                     while (true)
                     {
-                        var message = new ClientServiceStartingMessage(this.p_NetCast.TcpSelf, this.m_Name);
+                        var message = new ClientServiceStartingMessage(this._netCast.TcpSelf, this._name);
                         message.SendUDP(new IPEndPoint(IPAddress.Broadcast, 13000));
                         Thread.Sleep(1000);
                     }
@@ -42,10 +43,10 @@ namespace Client
 
 		private void OnStop()
         {
-            var message = new ClientServiceStoppingMessage(this.p_NetCast.TcpSelf);
+            var message = new ClientServiceStoppingMessage(this._netCast.TcpSelf);
             message.SendUDP(new IPEndPoint(IPAddress.Broadcast, 13000));
             Thread.Sleep(1000);
-            this.p_NetCast.Stop();
+            this._netCast.Stop();
         }
 
         /// <summary>
@@ -70,11 +71,11 @@ namespace Client
 
                     StopStreaming(e.Message.Source.Address);
 
-                    var stoppedMessage = new StreamingStoppedMessage(this.p_NetCast.TcpSelf);
+                    var stoppedMessage = new StreamingStoppedMessage(this._netCast.TcpSelf);
                     stoppedMessage.SendTCP(e.Message.Source);
                 });
 
-                var startedMessage = new StreamingStartedMessage(this.p_NetCast.TcpSelf, sdp);
+                var startedMessage = new StreamingStartedMessage(this._netCast.TcpSelf, sdp);
                 startedMessage.SendTCP(e.Message.Source);
             }
             else if (e.Message is EndStreamingMessage)
@@ -83,16 +84,16 @@ namespace Client
 
                 StopStreaming(e.Message.Source.Address);
 
-                var stoppedMessage = new StreamingStoppedMessage(this.p_NetCast.TcpSelf);
+                var stoppedMessage = new StreamingStoppedMessage(this._netCast.TcpSelf);
                 stoppedMessage.SendTCP(e.Message.Source);
             }
         }
 
         public Queue NetCast
         {
-            get { return this.p_NetCast; }
+            get { return this._netCast; }
         }
 
-        public string User { get { return this.m_Name; } }
+        public string User { get { return this._name; } }
     }
 }

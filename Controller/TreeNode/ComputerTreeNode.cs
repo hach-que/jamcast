@@ -67,6 +67,20 @@ namespace Controller.TreeNode
                     projectorEditForm.Show();
                 }
             }
+            else if (Computer.Role == Role.Client)
+            {
+                var child = mainForm.MdiChildren.OfType<ClientEditForm>().FirstOrDefault(x => x.ComputerTreeNode == this);
+                if (child != null)
+                {
+                    child.Focus();
+                }
+                else
+                {
+                    var clientEditForm = new ClientEditForm(this.Jam, this);
+                    clientEditForm.MdiParent = mainForm;
+                    clientEditForm.Show();
+                }
+            }
         }
 
         public void Update(bool isThreaded = false)

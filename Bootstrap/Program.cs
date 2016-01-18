@@ -215,11 +215,27 @@ namespace Bootstrap
                 }
             }
 
-            if (processToKillOnSuccess != null)
-            {
-                Status = "Killing Previous Process";
+            Status = "Killing Previous Process";
 
-                Process.GetProcessById(processToKillOnSuccess.Value).Kill();
+            try
+            {
+                if (processToKillOnSuccess != null)
+                {
+                    Process.GetProcessById(processToKillOnSuccess.Value).Kill();
+                }
+            }
+            catch { }
+
+            foreach (var process in Process.GetProcessesByName("Bootstrap"))
+            {
+                try
+                {
+                    if (process.Id != Process.GetCurrentProcess().Id)
+                    {
+                        process.Kill();
+                    }
+                }
+                catch { }
             }
 
             Status = "Connecting to Pub/Sub";
@@ -275,9 +291,10 @@ namespace Bootstrap
                                     case "pong":
                                     {
                                         HasReceivedVersionInformation = true;
-
-                                        Status = "Got Pong";
+                                            
+                                        Status = "Got Pong (Sending Ping)";
                                         SendPing(PubSub, pingTopic, guid);
+                                        Status = "Sent Ping";
 
                                         Client.SetAvailableVersions(
                                             (string) m.AvailableClientVersion,
@@ -300,8 +317,10 @@ namespace Bootstrap
 
                                         Status = "Updating Software";
                                         UpdateVersions(oldRole);
-
+                                            
+                                        Status = "Sending Ping";
                                         SendPing(PubSub, pingTopic, guid);
+                                        Status = "Sent Ping";
                                     }
                                         break;
                                     case "client-settings":
@@ -314,8 +333,10 @@ namespace Bootstrap
                                         Status = "Restarting Client";
                                         Client.KillProcess();
                                         Client.StartProcess();
-
+                                            
+                                        Status = "Sending Ping";
                                         SendPing(PubSub, pingTopic, guid);
+                                        Status = "Sent Ping";
                                     }
                                         break;
                                     case "projector-settings":
@@ -329,9 +350,11 @@ namespace Bootstrap
                                         Projector.KillProcess();
                                         Projector.StartProcess();
 
+                                        Status = "Sending Ping";
                                         SendPing(PubSub, pingTopic, guid);
+                                        Status = "Sent Ping";
                                     }
-                                        break;
+                                    break;
                                 }
                             }
                             catch (Exception ex)
@@ -351,11 +374,11 @@ namespace Bootstrap
 
             try
             {
-                Status = "Starting Messaging Thread";
+                PingStatus = "Starting Messaging Thread";
                 thread.IsBackground = true;
                 thread.Start();
 
-                Status = "Starting " + Role;
+                PingStatus = "Starting " + Role;
                 if (!Active.StartProcess())
                 {
                     Active.KillUnmonitoredProcesses();
@@ -363,9 +386,9 @@ namespace Bootstrap
                     Active.StartProcess();
                 }
 
-                Status = "Sending Ping";
+                PingStatus = "Sending Ping";
                 SendPing(PubSub, pingTopic, guid);
-                Status = "Sent Ping";
+                PingStatus = "Sent Ping (Idle)";
 
                 var timer = 0;
 
@@ -376,16 +399,16 @@ namespace Bootstrap
 
                     if (timer > 10000)
                     {
-                        Status = "Sending Ping";
+                        PingStatus = "Sending Ping";
                         SendPing(PubSub, pingTopic, guid);
-                        Status = "Sent Ping";
+                        PingStatus = "Sent Ping (Idle)";
                         timer = 0;
                     }
                 }
             }
             finally
             {
-                Status = "Exiting";
+                PingStatus = "Exiting";
                 thread.Abort();
 
                 PubSub.DeleteTopic("bootstrap-" + guid);
@@ -398,6 +421,7 @@ namespace Bootstrap
         public static DateTime? LastContact { get; set; }
 
         public static string Status { get; set; }
+        public static string PingStatus { get; set; }
 
         public static OAuthToken GetOAuthToken()
         {
@@ -436,6 +460,22 @@ namespace Bootstrap
         private static void SendPing(PubSub pubsub, string pingTopic, Guid guid)
         {
             var ipaddresses = GetAllKnownIPAddresses().Select(x => x.ToString()).ToArray();
+            
+            var userPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "JamCast",
+                "user.txt");
+
+            string fullName = null;
+            string emailAddress = null;
+            if (File.Exists(userPath))
+            {
+                using (var reader = new StreamReader(userPath))
+                {
+                    fullName = reader.ReadLine()?.Trim();
+                    emailAddress = reader.ReadLine()?.Trim();
+                }
+            }
 
             pubsub.Publish(pingTopic, Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
             {
@@ -453,6 +493,8 @@ namespace Bootstrap
                 HasReceivedVersionInformation = HasReceivedVersionInformation,
                 IPAddresses = ipaddresses,
                 CloudOperationsRequested = PubSub.OperationsRequested + 1,
+                FullName = fullName,
+                EmailAddress = emailAddress
             }))), null);
         }
     }

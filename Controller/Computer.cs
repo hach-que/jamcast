@@ -14,6 +14,8 @@ namespace Controller
         public IPAddress[] IPAddresses;
         public DateTime LastContact;
         public int CloudOperationsRequested;
+        public string EmailAddress;
+        public string FullName;
 
         [NonSerialized]
         public bool HasWaitingTask;

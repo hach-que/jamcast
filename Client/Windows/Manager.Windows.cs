@@ -19,29 +19,42 @@ namespace Client
 
 		private void LoadUsername()
 		{
-			if (File.Exists("user.txt"))
+		    var userPath = Path.Combine(
+		        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+		        "JamCast",
+		        "user.txt");
+		    Directory.CreateDirectory(
+		        Path.Combine(
+		            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+		            "JamCast"));
+
+			if (File.Exists(userPath))
 			{
-				using (var reader = new StreamReader("user.txt"))
+				using (var reader = new StreamReader(userPath))
 				{
-					this.m_Name = reader.ReadToEnd().Trim();
+					_name = reader.ReadLine()?.Trim();
+				    _email = reader.ReadLine()?.Trim();
 				}
 			}
-			else
+			
+            if (string.IsNullOrWhiteSpace(_name) || string.IsNullOrWhiteSpace(_email))
 			{
 				// Ask the person who they are ;)
-				WhoAreYou way = new WhoAreYou();
+				AuthForm way = new AuthForm();
 				if (way.ShowDialog() != DialogResult.OK)
 				{
 					Environment.Exit(1);
 					return;
 				}
-				this.m_Name = way.Name;
+				_name = way.AuthResult.FullName;
+                _email = way.AuthResult.EmailAddress;
 				way.Dispose();
 				GC.Collect();
 
-				using (var writer = new StreamWriter("user.txt"))
+				using (var writer = new StreamWriter(userPath))
 				{
-					writer.Write(this.m_Name);
+					writer.Write(_name);
+                    writer.Write(_email);
 				}
 			}
 		}
@@ -55,22 +68,22 @@ namespace Client
 		private void ConfigureSystemTrayIcon()
 		{
 			// Show the system tray icon.
-			this._trayIcon = new TrayIcon(this);
+			_trayIcon = new TrayIcon(this);
 		}
 
 		private void SetTrayIconToCountdown()
 		{
-			this._trayIcon.Icon = Resources.TrayCountdown;
+			_trayIcon.Icon = Resources.TrayCountdown;
 		}
 
 		private void SetTrayIconToOff()
 		{
-			this._trayIcon.Icon = Resources.TrayOff;
+			_trayIcon.Icon = Resources.TrayOff;
 		}
 
 		private void SetTrayIconToOn()
 		{
-			this._trayIcon.Icon = Resources.TrayOn;
+			_trayIcon.Icon = Resources.TrayOn;
 		}
 
 	    private void StartStreaming(IPAddress address, out string sdp, Action onProcessExit)

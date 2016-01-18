@@ -21,6 +21,7 @@
     <BundleResource Include="MacOS\TrayOn.icns">
       <Platforms>MacOS</Platforms>
     </BundleResource>
+    <Compile Include="AuthInfo.cs" />
     <Compile Include="MacOS\Manager.MacOS.cs">
       <Platforms>MacOS</Platforms>
     </Compile>
@@ -52,6 +53,14 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Windows\Auth.Windows.cs">
+      <Platforms>Windows</Platforms>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Windows\Auth.Windows.Designer.cs">
+      <Platforms>Windows</Platforms>
+      <DependentUpon>Auth.Windows.cs</DependentUpon>
+    </Compile>
     <Compile Include="Windows\FfmpegStreamController.cs" />
     <Compile Include="Windows\Manager.Windows.cs">
       <Platforms>Windows</Platforms>
@@ -61,14 +70,6 @@
     </Compile>
     <Compile Include="Windows\TrayIcon.cs">
       <Platforms>Windows</Platforms>
-    </Compile>
-    <Compile Include="Windows\WhoAreYou.Windows.cs">
-      <Platforms>Windows</Platforms>
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Windows\WhoAreYou.Windows.Designer.cs">
-      <Platforms>Windows</Platforms>
-      <DependentUpon>WhoAreYou.Windows.cs</DependentUpon>
     </Compile>
     <Content Include="Windows\TrayCountdown.ico">
       <Platforms>Windows</Platforms>
@@ -85,11 +86,12 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Windows\WhoAreYou.Windows.resx">
+    <EmbeddedResource Include="Windows\Auth.Windows.resx">
       <Platforms>Windows</Platforms>
-      <DependentUpon>WhoAreYou.Windows.cs</DependentUpon>
+      <DependentUpon>Auth.Windows.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="Windows\banner.jpg" />
     <InterfaceDefinition Include="MacOS\WhoAreYou.xib">
       <Platforms>MacOS</Platforms>
     </InterfaceDefinition>

@@ -22,6 +22,7 @@ namespace Bootstrap
         private static MenuItem _lastContactMenuItem;
         private static MenuItem _roleMenuItem;
         private static MenuItem _statusMenuItem;
+        private static MenuItem _pingStatusMenuItem;
         private static MenuItem _bootstrapVersionMenuItem;
         private static MenuItem _clientVersionMenuItem;
         private static MenuItem _projectorVersionMenuItem;
@@ -47,6 +48,7 @@ namespace Bootstrap
 					_lastContactMenuItem = new MenuItem("Last Contact: " + (LastContact == null ? "Never" : LastContact.ToString())) { Enabled = false },
 					_roleMenuItem = new MenuItem("Role: " + Role) { Enabled = false },
                     _statusMenuItem = new MenuItem("Status: " + Status) { Enabled = false },
+                    _pingStatusMenuItem = new MenuItem("Ping Status: " + Status) { Enabled = false },
                     _cloudOperationsMenuItem = new MenuItem("Cloud Operations: " + (PubSub == null ? 0 : PubSub.OperationsRequested)) { Enabled = false },
                     new MenuItem("-"),
                     _bootstrapVersionMenuItem = new MenuItem("Bootstrap Version: " + (Bootstrap == null ? "..." : Bootstrap.Version)) { Enabled = false },
@@ -73,6 +75,7 @@ namespace Bootstrap
                             ;
                         _roleMenuItem.Text = "Role: " + Role;
                         _statusMenuItem.Text = "Status: " + Status;
+                        _pingStatusMenuItem.Text = "Ping Status: " + PingStatus;
                         _cloudOperationsMenuItem.Text = "Cloud Operations: " + (PubSub == null ? 0 : PubSub.OperationsRequested);
                         _bootstrapVersionMenuItem.Text = "Bootstrap Version: " +
                                                          (Bootstrap == null ? "..." : Bootstrap.Version)

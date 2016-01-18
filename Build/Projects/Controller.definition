@@ -23,6 +23,12 @@
   <Files>
     <Compile Include="BootstrapCreator.cs" />
     <Compile Include="Computer.cs" />
+    <Compile Include="Forms\ClientEditForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ClientEditForm.Designer.cs">
+      <DependentUpon>ClientEditForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\JamEditForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -60,6 +66,9 @@
     <Compile Include="TreeNode\ComputerTreeNode.cs" />
     <Compile Include="TreeNode\JamTreeNode.cs" />
     <Content Include="Resources\error.png" />
+    <EmbeddedResource Include="Forms\ClientEditForm.resx">
+      <DependentUpon>ClientEditForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\JamEditForm.resx">
       <DependentUpon>JamEditForm.cs</DependentUpon>
     </EmbeddedResource>
