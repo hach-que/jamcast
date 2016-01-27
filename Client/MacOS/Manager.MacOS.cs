@@ -51,7 +51,7 @@ namespace Client
 				PerformExit();
 			}
 
-			this.m_Name = ProvidedName;
+			this._name = ProvidedName;
 		}
 
 		private void ListenForApplicationExit(Action onExitMethod)
@@ -63,7 +63,7 @@ namespace Client
 		{
 			// Construct menu that will be displayed when tray icon is clicked
 			var notifyMenu = new NSMenu();
-			var nameItem = new NSMenuItem ("Name: " + m_Name);
+			var nameItem = new NSMenuItem ("Name: " + _name);
 			nameItem.Enabled = false;
 			var exitMenuItem = new NSMenuItem("Exit JamCast", 
 				(a,b) => PerformExit ()); // Just add 'Quit' command

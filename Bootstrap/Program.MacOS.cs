@@ -1,3 +1,4 @@
+#if NULL
 namespace Bootstrap
 {
     public static partial class Program
@@ -7,3 +8,4 @@ namespace Bootstrap
         }
     }
 }
+#endif

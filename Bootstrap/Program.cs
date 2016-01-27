@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading;
 using GooglePubSub;
 using Newtonsoft.Json;
+using System.Net.NetworkInformation;
+using System.Collections.Generic;
 
 namespace Bootstrap
 {
@@ -18,6 +20,8 @@ namespace Bootstrap
     /// </summary>
     public static partial class Program
     {
+		public static readonly bool IsRunningOnMono = (Type.GetType ("Mono.Runtime") != null);
+
         private static string Host;
 
         private static string Role
@@ -110,6 +114,39 @@ namespace Bootstrap
             }
         }
 
+		private static IEnumerable<PhysicalAddress> GetAllKnownHWAddresses()
+		{
+			try
+			{
+				return NetworkInterface.GetAllNetworkInterfaces().Select(nic => nic.GetPhysicalAddress());
+			}
+			catch (Exception)
+			{
+				return new PhysicalAddress[0];
+			}
+		}
+
+		public static OperatingSystem GetPlatform()
+		{
+			switch (Environment.OSVersion.Platform) {
+
+			case PlatformID.Unix:
+				if (System.IO.Directory.Exists ("/Library"))
+					return new OperatingSystem (PlatformID.MacOSX, Environment.OSVersion.Version);
+				else
+					return Environment.OSVersion;
+				break;
+
+			case PlatformID.MacOSX: // Silverlight or CoreCLR?
+				// Mono is never going to get here, because of this code:
+				// https://github.com/mono/mono/blob/9e396e4022a4eefbcdeeae1d86c03afbf04043b7/mcs/class/corlib/System/Environment.cs#L239
+			case PlatformID.Win32NT:
+			default:
+				return Environment.OSVersion;
+
+			}
+		}
+
         internal static void RealMain(string[] args)
         {
             int? processToKillOnSuccess = null;
@@ -136,10 +173,20 @@ namespace Bootstrap
                 _oAuthEndpoint = reader.ReadToEnd().Trim();
             }
 
+			var locdir = Path.GetDirectoryName (typeof(Program).Assembly.Location);
+
+			if (string.IsNullOrWhiteSpace (project) && File.Exists (Path.Combine (locdir, "project.txt")))
+				project = File.ReadAllText (Path.Combine (locdir, "project.txt")).Trim();
+			if (string.IsNullOrWhiteSpace (_oAuthEndpoint) && File.Exists (Path.Combine (locdir, "endpoint.txt")))
+				_oAuthEndpoint = File.ReadAllText (Path.Combine (locdir, "endpoint.txt")).Trim();
+
             if (string.IsNullOrWhiteSpace(project) || string.IsNullOrWhiteSpace(_oAuthEndpoint))
             {
                 throw new InvalidOperationException("This bootstrap is not configured correctly.");
             }
+
+			if (IsRunningOnMono)
+				_oAuthEndpoint = _oAuthEndpoint.Replace ("https", "http");
 
             Status = "Setting Up Packages";
 
@@ -198,12 +245,14 @@ namespace Bootstrap
             try
             {
                 Host = Dns.GetHostEntry("").HostName;
+				if (String.IsNullOrEmpty(Host)) throw new Exception();
             }
             catch
             {
                 try
                 {
                     Host = Environment.MachineName;
+					if (String.IsNullOrEmpty(Host)) throw new Exception();
                 }
                 catch
                 {
@@ -463,7 +512,7 @@ namespace Bootstrap
         private static void SendPing(PubSub pubsub, string pingTopic, Guid guid)
         {
             var ipaddresses = GetAllKnownIPAddresses().Select(x => x.ToString()).ToArray();
-            
+			var hwaddresses = GetAllKnownHWAddresses().Select(x => x.ToString()).Where(x => !string.IsNullOrEmpty(x)).ToArray();
             var userPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "JamCast",
@@ -485,16 +534,11 @@ namespace Bootstrap
                 Source = guid.ToString(),
                 Type = "ping",
                 Hostname = Host,
-#if PLATFORM_WINDOWS
-                Platform = "Windows",
-#elif PLATFORM_MACOS
-                    Platform = "MacOS",
-#else
-#error Platform not supported
-#endif
+				Platform = GetPlatform().Platform,
                 Role = Role,
                 HasReceivedVersionInformation = HasReceivedVersionInformation,
                 IPAddresses = ipaddresses,
+				HWAddresses = hwaddresses,
                 CloudOperationsRequested = PubSub.OperationsRequested + 1,
                 FullName = fullName,
                 EmailAddress = emailAddress
