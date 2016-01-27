@@ -12,6 +12,7 @@ namespace Controller
         public bool HasReceivedVersionInformation;
         public bool WaitingForPing;
         public IPAddress[] IPAddresses;
+        public string[] MACAddresses;
         public DateTime LastContact;
         public int CloudOperationsRequested;
         public string EmailAddress;

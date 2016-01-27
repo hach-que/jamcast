@@ -34,8 +34,8 @@ namespace Controller.Forms
             _emailAddress.Text = ComputerTreeNode.Computer.EmailAddress;
             _fullName.Text = ComputerTreeNode.Computer.FullName;
             _hostname.Text = ComputerTreeNode.Computer.Hostname;
-            _ipAddresses.Text = ComputerTreeNode.Computer.IPAddresses.Select(x => x.ToString()).Aggregate((a, b) => a + Environment.NewLine + b);
-            _macAddresses.Text = "N/A";
+            _ipAddresses.Text = ComputerTreeNode.Computer.IPAddresses.Select(x => x.ToString()).DefaultIfEmpty("None reported").Aggregate((a, b) => a + Environment.NewLine + b);
+            _macAddresses.Text = ComputerTreeNode.Computer.MACAddresses.Select(x => x.ToString()).DefaultIfEmpty("None reported").Aggregate((a, b) => a + Environment.NewLine + b);
             _cloudOperations.Text = ComputerTreeNode.Computer.CloudOperationsRequested.ToString();
         }
     }

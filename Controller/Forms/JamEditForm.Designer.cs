@@ -52,6 +52,8 @@
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this._pubSubOperationsText = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
+            this._macAddressReportingEndpoint = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -76,6 +78,8 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this._macAddressReportingEndpoint);
+            this.groupBox1.Controls.Add(this.label7);
             this.groupBox1.Controls.Add(this._googleCloudStorageSecret);
             this.groupBox1.Controls.Add(this.label6);
             this.groupBox1.Controls.Add(this.label5);
@@ -85,14 +89,14 @@
             this.groupBox1.Controls.Add(this.c_ControllerSlackAPITokenLabel);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(382, 162);
+            this.groupBox1.Size = new System.Drawing.Size(382, 198);
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Controller Settings";
             // 
             // _googleCloudStorageSecret
             // 
-            this._googleCloudStorageSecret.Location = new System.Drawing.Point(184, 71);
+            this._googleCloudStorageSecret.Location = new System.Drawing.Point(184, 97);
             this._googleCloudStorageSecret.Name = "_googleCloudStorageSecret";
             this._googleCloudStorageSecret.Size = new System.Drawing.Size(192, 20);
             this._googleCloudStorageSecret.TabIndex = 5;
@@ -101,7 +105,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(17, 74);
+            this.label6.Location = new System.Drawing.Point(17, 100);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(128, 13);
             this.label6.TabIndex = 6;
@@ -109,7 +113,7 @@
             // 
             // label5
             // 
-            this.label5.Location = new System.Drawing.Point(17, 98);
+            this.label5.Location = new System.Drawing.Point(15, 125);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(359, 61);
             this.label5.TabIndex = 4;
@@ -134,11 +138,12 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.groupBox2.Controls.Add(this.c_ProjectorSlackChannelsLabel);
             this.groupBox2.Controls.Add(this._projectorSlackAPIToken);
             this.groupBox2.Controls.Add(this._projectorSlackChannels);
             this.groupBox2.Controls.Add(this.c_ClientSlackAPITokenLabel);
-            this.groupBox2.Location = new System.Drawing.Point(12, 246);
+            this.groupBox2.Location = new System.Drawing.Point(12, 282);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(382, 76);
             this.groupBox2.TabIndex = 6;
@@ -181,7 +186,8 @@
             // 
             // c_CreateBootstrap
             // 
-            this.c_CreateBootstrap.Location = new System.Drawing.Point(262, 328);
+            this.c_CreateBootstrap.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.c_CreateBootstrap.Location = new System.Drawing.Point(262, 364);
             this.c_CreateBootstrap.Name = "c_CreateBootstrap";
             this.c_CreateBootstrap.Size = new System.Drawing.Size(124, 70);
             this.c_CreateBootstrap.TabIndex = 7;
@@ -191,7 +197,8 @@
             // 
             // label1
             // 
-            this.label1.Location = new System.Drawing.Point(12, 330);
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label1.Location = new System.Drawing.Point(12, 366);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(240, 68);
             this.label1.TabIndex = 8;
@@ -202,7 +209,7 @@
             this.m_SlackConnectionStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.m_SlackConnectionStatus.BackColor = System.Drawing.Color.LightCoral;
             this.m_SlackConnectionStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.m_SlackConnectionStatus.Location = new System.Drawing.Point(-2, 517);
+            this.m_SlackConnectionStatus.Location = new System.Drawing.Point(-2, 553);
             this.m_SlackConnectionStatus.Name = "m_SlackConnectionStatus";
             this.m_SlackConnectionStatus.Size = new System.Drawing.Size(410, 35);
             this.m_SlackConnectionStatus.TabIndex = 9;
@@ -211,7 +218,8 @@
             // 
             // label2
             // 
-            this.label2.Location = new System.Drawing.Point(12, 408);
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label2.Location = new System.Drawing.Point(12, 444);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(240, 41);
             this.label2.TabIndex = 11;
@@ -220,7 +228,8 @@
             // 
             // c_PackageAndDeploy
             // 
-            this.c_PackageAndDeploy.Location = new System.Drawing.Point(262, 406);
+            this.c_PackageAndDeploy.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.c_PackageAndDeploy.Location = new System.Drawing.Point(262, 442);
             this.c_PackageAndDeploy.Name = "c_PackageAndDeploy";
             this.c_PackageAndDeploy.Size = new System.Drawing.Size(124, 43);
             this.c_PackageAndDeploy.TabIndex = 10;
@@ -230,7 +239,8 @@
             // 
             // label3
             // 
-            this.label3.Location = new System.Drawing.Point(12, 460);
+            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label3.Location = new System.Drawing.Point(12, 496);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(240, 41);
             this.label3.TabIndex = 13;
@@ -239,7 +249,8 @@
             // 
             // c_PackageAndDeployExternal
             // 
-            this.c_PackageAndDeployExternal.Location = new System.Drawing.Point(262, 458);
+            this.c_PackageAndDeployExternal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.c_PackageAndDeployExternal.Location = new System.Drawing.Point(262, 494);
             this.c_PackageAndDeployExternal.Name = "c_PackageAndDeployExternal";
             this.c_PackageAndDeployExternal.Size = new System.Drawing.Size(124, 43);
             this.c_PackageAndDeployExternal.TabIndex = 12;
@@ -249,9 +260,10 @@
             // 
             // groupBox3
             // 
+            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.groupBox3.Controls.Add(this._pubSubOperationsText);
             this.groupBox3.Controls.Add(this.label8);
-            this.groupBox3.Location = new System.Drawing.Point(12, 180);
+            this.groupBox3.Location = new System.Drawing.Point(12, 216);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(382, 60);
             this.groupBox3.TabIndex = 7;
@@ -275,11 +287,28 @@
             this.label8.TabIndex = 1;
             this.label8.Text = "Pub/Sub Operations:";
             // 
+            // _macAddressReportingEndpoint
+            // 
+            this._macAddressReportingEndpoint.Location = new System.Drawing.Point(184, 71);
+            this._macAddressReportingEndpoint.Name = "_macAddressReportingEndpoint";
+            this._macAddressReportingEndpoint.Size = new System.Drawing.Size(192, 20);
+            this._macAddressReportingEndpoint.TabIndex = 7;
+            this._macAddressReportingEndpoint.TextChanged += new System.EventHandler(this._macAddressReportingEndpoint_TextChanged);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(17, 74);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(168, 13);
+            this.label7.TabIndex = 8;
+            this.label7.Text = "MAC Address Reporting Endpoint:";
+            // 
             // JamEditForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(406, 552);
+            this.ClientSize = new System.Drawing.Size(406, 588);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.c_PackageAndDeployExternal);
@@ -329,5 +358,7 @@
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.TextBox _pubSubOperationsText;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox _macAddressReportingEndpoint;
+        private System.Windows.Forms.Label label7;
     }
 }

@@ -22,9 +22,12 @@ namespace Bootstrap
             SettingsPath = Path.Combine(basePath, name.ToLowerInvariant() + "-settings.json");
             ExecutableName = name + ".exe";
             ActiveMode = "Blue";
+
+            // Preemptively calculate the current version?
+            Version = CalculatePackageVersion();
         }
 
-        public string Version { get; private set; }
+        public string Version { get; set; }
 
         public string AvailableVersion { get; private set; }
 

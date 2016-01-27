@@ -171,6 +171,9 @@ namespace Bootstrap
                 }
             }
 
+            // Preemptively calculate the current version?
+            Bootstrap.Version = Bootstrap.CalculatePackageVersion();
+
             Status = "Querying Computer GUID";
 
             Guid guid;

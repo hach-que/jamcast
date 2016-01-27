@@ -53,8 +53,8 @@ namespace Client
 
 				using (var writer = new StreamWriter(userPath))
 				{
-					writer.Write(_name);
-                    writer.Write(_email);
+					writer.WriteLine(_name);
+                    writer.WriteLine(_email);
 				}
 			}
 		}

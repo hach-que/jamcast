@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Controller.TreeNode;
 using GooglePubSub;
 using Newtonsoft.Json;
@@ -56,6 +58,8 @@ namespace Controller
 
         public string AvailableBootstrapFile;
 
+        public string MacAddressReportingEndpointURL;
+
         public void SetTreeNode(JamTreeNode node)
         {
             _node = node;
@@ -93,6 +97,28 @@ namespace Controller
                         }
                     }
 
+                    var macaddresses = new List<string>();
+                    if (data.HWAddresses != null && data.HWAddresses is JArray)
+                    {
+                        foreach (var hw in data.HWAddresses)
+                        {
+                            var mac = (string) hw;
+                            if (!mac.Contains(":") && mac.Length == 12)
+                            {
+                                mac =
+                                    mac.Substring(0, 2).ToLowerInvariant() + ":" +
+                                    mac.Substring(2, 2).ToLowerInvariant() + ":" +
+                                    mac.Substring(4, 2).ToLowerInvariant() + ":" +
+                                    mac.Substring(6, 2).ToLowerInvariant() + ":" +
+                                    mac.Substring(8, 2).ToLowerInvariant() + ":" +
+                                    mac.Substring(10, 2).ToLowerInvariant();
+                            }
+                            macaddresses.Add(mac);
+                        }
+                    }
+
+                    Computer computerToSubmit = null;
+
                     if (Computers.All(x => x.Guid != guid))
                     {
                         var computer = new Computer
@@ -105,10 +131,14 @@ namespace Controller
                             WaitingForPing = false,
                             LastContact = DateTime.UtcNow,
                             IPAddresses = ipaddresses.ToArray(),
+                            MACAddresses = macaddresses.ToArray(),
                             CloudOperationsRequested = 0,
+                            FullName = (string)data.FullName,
+                            EmailAddress = (string)data.EmailAddress,
                         };
                         Computers.Add(computer);
                         _node.NewComputerRegistered(computer);
+                        computerToSubmit = computer;
                     }
                     else
                     {
@@ -119,10 +149,33 @@ namespace Controller
                         computer.WaitingForPing = false;
                         computer.LastContact = DateTime.UtcNow;
                         computer.IPAddresses = ipaddresses.ToArray();
+                        computer.MACAddresses = macaddresses.ToArray();
                         computer.CloudOperationsRequested = ((int?)data.CloudOperationsRequested ?? 0);
+                        computer.FullName = (string)data.FullName;
+                        computer.EmailAddress = (string)data.EmailAddress;
                         foreach (var node in _node.Nodes.OfType<ComputerTreeNode>())
                         {
                             node.Update();
+                        }
+                        computerToSubmit = computer;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(MacAddressReportingEndpointURL))
+                    {
+                        if (computerToSubmit.EmailAddress != null && computerToSubmit.MACAddresses.Length > 0)
+                        {
+                            foreach (var mac in computerToSubmit.MACAddresses)
+                            {
+                                var client = new WebClient();
+                                Task.Run(async () => await client.UploadValuesTaskAsync(MacAddressReportingEndpointURL, "POST",
+                                    new NameValueCollection
+                                    {
+                                        {"email", computerToSubmit.EmailAddress},
+                                        {"ip_addresses", string.Join(" ", computerToSubmit.IPAddresses.Select(x => x.ToString()))},
+                                        {"hostname", computerToSubmit.Hostname},
+                                        {"mac_address", mac},
+                                    }));
+                            }
                         }
                     }
 

@@ -42,6 +42,7 @@ namespace Controller.Forms
             this._googleCloudProjectID.Text = JamTreeNode.Jam.GoogleCloudProjectID;
             this._projectorSlackChannels.Text = JamTreeNode.Jam.ProjectorSlackChannels;
             this._projectorSlackAPIToken.Text = JamTreeNode.Jam.ProjectorSlackAPIToken;
+            this._macAddressReportingEndpoint.Text = JamTreeNode.Jam.MacAddressReportingEndpointURL;
             this._googleCloudOAuthEndpointURL.Text = JamTreeNode.Jam.GoogleCloudOAuthEndpointURL;
             this._googleCloudStorageSecret.Text = JamTreeNode.Jam.GoogleCloudStorageSecret;
 
@@ -71,6 +72,12 @@ namespace Controller.Forms
             this.JamTreeNode.Jam.Save();
         }
 
+        private void _macAddressReportingEndpoint_TextChanged(object sender, EventArgs e)
+        {
+            this.JamTreeNode.Jam.MacAddressReportingEndpointURL = this._macAddressReportingEndpoint.Text;
+            this.JamTreeNode.Jam.Save();
+        }
+
         private void _projectorSlackChannels_TextChanged(object sender, System.EventArgs e)
         {
             this.JamTreeNode.Jam.ProjectorSlackChannels = this._projectorSlackChannels.Text;
@@ -88,6 +95,7 @@ namespace Controller.Forms
             this.JamTreeNode.Jam.GoogleCloudOAuthEndpointURL = this._googleCloudOAuthEndpointURL.Text;
             this.JamTreeNode.Jam.GoogleCloudProjectID = this._googleCloudProjectID.Text;
             this.JamTreeNode.Jam.GoogleCloudStorageSecret = this._googleCloudStorageSecret.Text;
+            this.JamTreeNode.Jam.MacAddressReportingEndpointURL = this._macAddressReportingEndpoint.Text;
             this.JamTreeNode.Jam.ProjectorSlackChannels = this._projectorSlackChannels.Text;
             this.JamTreeNode.Jam.ProjectorSlackAPIToken = this._projectorSlackAPIToken.Text;
             this.JamTreeNode.Jam.Save();
