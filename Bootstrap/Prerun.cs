@@ -7,9 +7,12 @@ namespace Bootstrap
 {
     class Prerun
     {
+        public static readonly bool IsRunningOnMono = (Type.GetType ("Mono.Runtime") != null);
 
         internal static void Main(string[] args)
         {
+            if (IsRunningOnMono) // It's everyone's favorite mono runtime!
+                ExtractAllSatellites();
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             Program.RealMain(args);
@@ -31,6 +34,37 @@ namespace Bootstrap
                 {
                     using (var assemblyStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(item))
                     {
+                        if (IsRunningOnMono)
+                        {
+                            var fs = File.OpenWrite(item);
+                            assemblyStream.CopyTo(fs);
+                            fs.Flush();
+                            fs.Close();
+                        }
+                        else
+                        {
+                            byte[] assemblyBuffer = new byte[assemblyStream.Length];
+                            assemblyStream.Read(assemblyBuffer, 0, (int)assemblyStream.Length);
+                            return Assembly.Load(assemblyBuffer);
+                        }
+                    }
+                }
+            }
+            if (File.Exists(name+".dll"))
+                return Assembly.LoadFile(new FileInfo( name+".dll").FullName);
+            return null;
+        }
+
+        public static void ExtractAllSatellites()
+        {
+            var locdir = Path.GetDirectoryName (Assembly.GetExecutingAssembly().Location);
+
+            foreach (var item in Assembly.GetExecutingAssembly().GetManifestResourceNames())
+            {
+                if (item.Contains(".dll") && !File.Exists(Path.Combine(locdir, item)))
+                {
+                    using (var assemblyStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(item))
+                    {
                         byte[] assemblyBuffer = new byte[assemblyStream.Length];
                         var fs = File.OpenWrite(item);
                         assemblyStream.CopyTo(fs);
@@ -39,9 +73,6 @@ namespace Bootstrap
                     }
                 }
             }
-            if (File.Exists(name+".dll"))
-                return Assembly.LoadFile(new FileInfo( name+".dll").FullName);
-            return null;
         }
     }
 }
