@@ -44,12 +44,13 @@ namespace Bootstrap
             BluePath = Path.Combine(basePath, name + "-Blue");
             GreenPath = Path.Combine(basePath, name + "-Green");
             PackagePath = Path.Combine(basePath, name + ".zip");
+            CachedVersionPath = Path.Combine(basePath, name + ".version.txt");
             SettingsPath = Path.Combine(basePath, name.ToLowerInvariant() + "-settings.json");
             ExecutableName = name + ".exe";
             ActiveMode = "Blue";
 
             // Preemptively calculate the current version?
-            Version = CalculatePackageVersion();
+            CalculatePackageVersion();
         }
 
         public string Version { get; set; }
@@ -65,6 +66,8 @@ namespace Bootstrap
         public string AvailableFile { get; private set; }
 
         public string PackagePath { get; private set; }
+
+        public string CachedVersionPath { get; private set; }
 
         public string SettingsPath { get; private set; }
 
@@ -111,8 +114,8 @@ namespace Bootstrap
                     };
                     await package.DownloadFileTaskAsync(new Uri(AvailableFile), PackagePath);
                     KillUnmonitoredProcesses();
+                    CalculatePackageVersion();
                     ExtractPackage();
-                    Version = CalculatePackageVersion();
                     KillProcess();
                     SwapMode();
                     StartProcess();
@@ -253,18 +256,68 @@ namespace Bootstrap
             }
         }
 
-        public string CalculatePackageVersion()
+        public void CalculatePackageVersion()
         {
             if (!File.Exists(PackagePath))
             {
-                return null;
+                Version = null;
+                return;
             }
 
-            var md5 = MD5.Create();
-            var contentBytes = File.ReadAllBytes(PackagePath);
-            md5.TransformFinalBlock(contentBytes, 0, contentBytes.Length);
+            var success = false;
+            Exception cachedException = null;
+            for (var i = 0; i < 3; i++)
+            {
+                try
+                {
+                    var md5 = MD5.Create();
+                    var contentBytes = File.ReadAllBytes(PackagePath);
+                    md5.TransformFinalBlock(contentBytes, 0, contentBytes.Length);
 
-            return BitConverter.ToString(md5.Hash).Replace("-", "").ToLower();
+                    Version = BitConverter.ToString(md5.Hash).Replace("-", "").ToLower();
+                    try
+                    {
+                        using (var writer = new StreamWriter(CachedVersionPath))
+                        {
+                            writer.Write(Version);
+                        }
+                    }
+                    catch
+                    {
+                    }
+                    success = true;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    cachedException = ex;
+                    Thread.Sleep(1000);
+                }
+            }
+
+            if (!success)
+            {
+                Version = null;
+
+                if (File.Exists(CachedVersionPath))
+                {
+                    try
+                    {
+                        using (var reader = new StreamReader(CachedVersionPath))
+                        {
+                            Version = reader.ReadToEnd();
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                if (Version != null)
+                {
+                    throw new Exception("Unable to calculation version for " + PackagePath, cachedException);
+                }
+            }
         }
 
         public bool RestartMainProcessIfOutOfDate()

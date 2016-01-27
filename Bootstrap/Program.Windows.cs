@@ -30,8 +30,11 @@ namespace Bootstrap
 		private static MenuItem _clientAvailableVersionMenuItem;
 		private static MenuItem _projectorAvailableVersionMenuItem;
 		private static MenuItem _cloudOperationsMenuItem;
+	    private static MenuItem _threadWaitForMessagesMenuItem;
+        private static MenuItem _threadUpdateContextMenuMenuItem;
+        private static MenuItem _threadApplicationPumpMenuItem;
 
-		public static void PlatformTraySetup()
+        public static void PlatformTraySetup()
 		{
 			try
 			{
@@ -43,7 +46,7 @@ namespace Bootstrap
 			{
 				return; // WE'RE INVISIBLE!  INNNVISIBLLLLLE!!!!!!!
 			}
-			new Thread(() =>
+			ThreadApplication = new Thread(() =>
 				{
 					// Create the menu.
 					var context = new ContextMenu();
@@ -56,7 +59,11 @@ namespace Bootstrap
 							_statusMenuItem = new MenuItem("Status: " + Status) { Enabled = false },
 							_pingStatusMenuItem = new MenuItem("Ping Status: " + Status) { Enabled = false },
 							_cloudOperationsMenuItem = new MenuItem("Cloud Operations: " + (PubSub == null ? 0 : PubSub.OperationsRequested)) { Enabled = false },
-							new MenuItem("-"),
+                            new MenuItem("-"),
+                            _threadWaitForMessagesMenuItem = new MenuItem("Thread - Wait for Messages: " + GetStatusForThread(ThreadWaitForMessages)) { Enabled = false },
+                            _threadUpdateContextMenuMenuItem = new MenuItem("Thread - Update Context Menu: " + GetStatusForThread(ThreadUpdateContextMenu)) { Enabled = false },
+                            _threadApplicationPumpMenuItem = new MenuItem("Thread - Application Pump: " + GetStatusForThread(ThreadApplication)) { Enabled = false },
+                            new MenuItem("-"),
 							_bootstrapVersionMenuItem = new MenuItem("Bootstrap Version: " + (Bootstrap == null ? "..." : Bootstrap.Version)) { Enabled = false },
 							_clientVersionMenuItem = new MenuItem("Client Version: " + (Client == null ? "..." : Client.Version)) { Enabled = false },
 							_projectorVersionMenuItem = new MenuItem("Projector Version: " + (Projector == null ? "..." : Projector.Version)) { Enabled = false },
@@ -72,7 +79,7 @@ namespace Bootstrap
 					_trayIcon.ContextMenu = context;
 					_trayIcon.Visible = true;
 
-					new Thread(() =>
+					ThreadUpdateContextMenu = new Thread(() =>
 						{
 							while (Thread.CurrentThread.IsAlive)
 							{
@@ -82,14 +89,23 @@ namespace Bootstrap
 								_statusMenuItem.Text = "Status: " + Status;
 								_pingStatusMenuItem.Text = "Ping Status: " + PingStatus;
 								_cloudOperationsMenuItem.Text = "Cloud Operations: " + (PubSub == null ? 0 : PubSub.OperationsRequested);
+                                _statusMenuItem.Text = "Status: " + Status;
+
+                                _threadWaitForMessagesMenuItem.Text = "Thread - Wait for Messages: " + GetStatusForThread(ThreadWaitForMessages);
+                                _threadUpdateContextMenuMenuItem.Text = "Thread - Update Context Menu: " + GetStatusForThread(ThreadUpdateContextMenu);
+                                _threadApplicationPumpMenuItem.Text = "Thread - Application Pump: " + GetStatusForThread(ThreadApplication);
+
 								_bootstrapVersionMenuItem.Text = "Bootstrap Version: " +
 								(Bootstrap == null ? "..." : Bootstrap.Version);
-								_clientVersionMenuItem.Text = "Client Version: " + (Client == null ? "..." : Client.Version);
-								_projectorVersionMenuItem.Text = "Projector Version: " +
-								(Projector == null ? "..." : Projector.Version);
-								_bootstrapAvailableVersionMenuItem.Text = "Bootstrap Available Version: " +
+                                _clientVersionMenuItem.Text = "Client Version: " +
+                                (Client == null ? "..." : Client.Version);
+                                _projectorVersionMenuItem.Text = "Projector Version: " +
+                                (Projector == null ? "..." : Projector.Version);
+
+                                _bootstrapAvailableVersionMenuItem.Text = "Bootstrap Available Version: " +
 								(Bootstrap == null ? "..." : Bootstrap.AvailableVersion);
-								_clientAvailableVersionMenuItem.Text = "Client Available Version: " + (Client == null ? "..." : Client.AvailableVersion);
+								_clientAvailableVersionMenuItem.Text = "Client Available Version: " + 
+                                (Client == null ? "..." : Client.AvailableVersion);
 								_projectorAvailableVersionMenuItem.Text = "Projector Available Version: " +
 								(Projector == null ? "..." : Projector.AvailableVersion);
 
@@ -119,13 +135,32 @@ namespace Bootstrap
 								Thread.Sleep(500);
 							}
 						})
-                { IsBackground = true }.Start();
+                { IsBackground = true };
+                    ThreadUpdateContextMenu.Start();
 
 					Application.Run();
-				}) { IsBackground = true }.Start();
+				}) { IsBackground = true };
+            ThreadApplication.Start();
 		}
 
-		private static Icon ConvertEmbeddedResourceToIcon(string name)
+	    private static string GetStatusForThread(Thread thread)
+	    {
+	        if (thread == null)
+	        {
+	            return "Not Created";
+	        }
+
+	        try
+	        {
+	            return thread.ThreadState.ToString();
+	        }
+	        catch (Exception)
+	        {
+	            return "(Exception while getting status)";
+	        }
+	    }
+
+	    private static Icon ConvertEmbeddedResourceToIcon(string name)
 		{
 			try
 			{

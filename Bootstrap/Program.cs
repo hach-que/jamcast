@@ -12,6 +12,7 @@ using GooglePubSub;
 using Newtonsoft.Json;
 using System.Net.NetworkInformation;
 using System.Collections.Generic;
+using ThreadState = System.Threading.ThreadState;
 
 namespace Bootstrap
 {
@@ -70,6 +71,14 @@ namespace Bootstrap
         private static string _oAuthEndpoint;
 
         private static PubSub PubSub;
+
+        private static Thread ThreadWaitForMessages;
+
+        private static Thread ThreadApplication;
+
+        private static Thread ThreadUpdateContextMenu;
+        private static Guid guid;
+        private static string pingTopic;
 
         private static Package Active
         {
@@ -219,11 +228,10 @@ namespace Bootstrap
             }
 
             // Preemptively calculate the current version?
-            Bootstrap.Version = Bootstrap.CalculatePackageVersion();
+            Bootstrap.CalculatePackageVersion();
 
             Status = "Querying Computer GUID";
-
-            Guid guid;
+            
             if (File.Exists(Path.Combine(BasePath, "guid.txt")))
             {
                 using (var reader = new StreamReader(Path.Combine(BasePath, "guid.txt")))
@@ -290,145 +298,52 @@ namespace Bootstrap
                 catch { }
             }
 
-            Status = "Connecting to Pub/Sub";
-            PubSub = new PubSub(project, GetOAuthToken);
-
-            Status = "Creating Bootstrap Global Topic";
-            PubSub.CreateTopic("game-jam-bootstrap");
-            Status = "Creating Controller Global Topic";
-            PubSub.CreateTopic("game-jam-controller");
-            Status = "Creating Bootstrap Instance Topic";
-            PubSub.CreateTopic("bootstrap-" + guid);
-            Status = "Subscribing to Bootstrap Instance Topic";
-            PubSub.Subscribe("bootstrap-" + guid, "bootstrap-" + guid);
-            Status = "Subscribing to Bootstrap Global Topic";
-            PubSub.Subscribe("game-jam-bootstrap", "bootstrap-" + guid);
-
-            var pingTopic = "game-jam-controller";
-
-            var thread = new Thread(() =>
+            while (true)
             {
-                while (true)
+                try
                 {
-                    Status = "Waiting for Messages";
+                    Status = "Connecting to Pub/Sub";
+                    PubSub = new PubSub(project, GetOAuthToken);
+
+                    Status = "Creating Bootstrap Global Topic";
+                    PubSub.CreateTopic("game-jam-bootstrap");
+                    Status = "Creating Controller Global Topic";
+                    PubSub.CreateTopic("game-jam-controller");
+                    Status = "Creating Bootstrap Instance Topic";
+                    PubSub.CreateTopic("bootstrap-" + guid);
+                    Status = "Subscribing to Bootstrap Instance Topic";
+                    PubSub.Subscribe("bootstrap-" + guid, "bootstrap-" + guid);
+                    Status = "Subscribing to Bootstrap Global Topic";
+                    PubSub.Subscribe("game-jam-bootstrap", "bootstrap-" + guid);
+
+                    pingTopic = "game-jam-controller";
+
+                    ThreadWaitForMessages = new Thread(ThreadWaitForMessagesRun);
+
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Status = "Initialization Failed! (will retry)";
 
                     try
                     {
-                        var messages = PubSub.Poll(10, false);
-                        foreach (var message in messages)
+                        using (var writer = new StreamWriter(Path.Combine(BasePath, "launch-error-log.txt"), true))
                         {
-                            message.Acknowledge();
-
-                            LastContact = DateTime.Now;
-
-                            try
-                            {
-                                var m =
-                                    JsonConvert.DeserializeObject<dynamic>(
-                                        Encoding.ASCII.GetString(Convert.FromBase64String(message.Data)));
-                                var target = (string) m.Target;
-
-                                if (!string.IsNullOrEmpty(target))
-                                {
-                                    if (target != guid.ToString())
-                                    {
-                                        // not for this client.
-                                        return;
-                                    }
-                                }
-
-                                Debug.WriteLine("GOT MESSAGE: " + (string)m.Type);
-                                switch ((string) m.Type)
-                                {
-                                    case "pong":
-                                    {
-                                        HasReceivedVersionInformation = true;
-                                            
-                                        Status = "Got Pong (Sending Ping)";
-                                        SendPing(PubSub, pingTopic, guid);
-                                        Status = "Sent Ping";
-
-                                        Client.SetAvailableVersions(
-                                            (string) m.AvailableClientVersion,
-                                            (string) m.AvailableClientFile);
-                                        Projector.SetAvailableVersions(
-                                            (string)m.AvailableProjectorVersion,
-                                            (string)m.AvailableProjectorFile);
-                                        Bootstrap.SetAvailableVersions(
-                                            (string)m.AvailableBootstrapVersion,
-                                            (string)m.AvailableBootstrapFile);
-
-                                        Status = "Updating Software";
-                                        UpdateVersions(Role);
-                                    }
-                                        break;
-                                    case "designate":
-                                    {
-                                        var oldRole = Role;
-                                        Role = m.Role;
-
-                                        Status = "Updating Software";
-                                        UpdateVersions(oldRole);
-                                            
-                                        Status = "Sending Ping";
-                                        SendPing(PubSub, pingTopic, guid);
-                                        Status = "Sent Ping";
-                                    }
-                                        break;
-                                    case "client-settings":
-                                    {
-                                        using (var writer = new StreamWriter(Client.SettingsPath))
-                                        {
-                                            writer.Write((string) m.Settings);
-                                        }
-
-                                        Status = "Restarting Client";
-                                        Client.KillProcess();
-                                        Client.StartProcess();
-                                            
-                                        Status = "Sending Ping";
-                                        SendPing(PubSub, pingTopic, guid);
-                                        Status = "Sent Ping";
-                                    }
-                                        break;
-                                    case "projector-settings":
-                                    {
-                                        using (var writer = new StreamWriter(Projector.SettingsPath))
-                                        {
-                                            writer.Write((string) m.Settings);
-                                        }
-
-                                        Status = "Restarting Projector";
-                                        Projector.KillProcess();
-                                        Projector.StartProcess();
-
-                                        Status = "Sending Ping";
-                                        SendPing(PubSub, pingTopic, guid);
-                                        Status = "Sent Ping";
-                                    }
-                                    break;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine(ex);
-                            }
+                            writer.WriteLine(ex.ToString());
                         }
+                    }
+                    catch { }
 
-                        Thread.Sleep(1);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex);
-                    }
+                    Thread.Sleep(1000);
                 }
-            });
+            }
 
             try
             {
                 PingStatus = "Starting Messaging Thread";
-                thread.IsBackground = true;
-                thread.Start();
+                ThreadWaitForMessages.IsBackground = true;
+                ThreadWaitForMessages.Start();
 
                 PingStatus = "Starting " + Role;
                 if (!Active.StartProcess())
@@ -456,12 +371,29 @@ namespace Bootstrap
                         PingStatus = "Sent Ping (Idle)";
                         timer = 0;
                     }
+
+                    PingStatus = "Restarting Messaging Thread";
+                    try
+                    {
+                        if (ThreadWaitForMessages.ThreadState.HasFlag(ThreadState.Stopped))
+                        {
+                            ThreadWaitForMessages = new Thread(ThreadWaitForMessagesRun);
+                            ThreadWaitForMessages.IsBackground = true;
+                            ThreadWaitForMessages.Start();
+                        }
+                        PingStatus = "Restarted Messaging Thread";
+                    }
+                    catch (Exception)
+                    {
+                        PingStatus = "Unable to restart Messaging Thread";
+                        Thread.Sleep(1000);
+                    }
                 }
             }
             finally
             {
                 PingStatus = "Exiting";
-                thread.Abort();
+                ThreadWaitForMessages.Abort();
 
                 PubSub.DeleteTopic("bootstrap-" + guid);
                 PubSub.Unsubscribe("bootstrap-" + guid, "bootstrap-" + guid);
@@ -543,6 +475,164 @@ namespace Bootstrap
                 FullName = fullName,
                 EmailAddress = emailAddress
             }))), null);
+        }
+
+        private static void ThreadWaitForMessagesRun()
+        {
+            try
+            {
+                while (true)
+                {
+                    Status = "Waiting for Messages";
+
+                    try
+                    {
+                        var messages = PubSub.Poll(10, false);
+                        foreach (var message in messages)
+                        {
+                            message.Acknowledge();
+
+                            LastContact = DateTime.Now;
+
+                            try
+                            {
+                                var m =
+                                    JsonConvert.DeserializeObject<dynamic>(
+                                        Encoding.ASCII.GetString(Convert.FromBase64String(message.Data)));
+                                var target = (string) m.Target;
+
+                                if (!string.IsNullOrEmpty(target))
+                                {
+                                    if (target != guid.ToString())
+                                    {
+                                        // not for this client.
+                                        return;
+                                    }
+                                }
+
+                                Debug.WriteLine("GOT MESSAGE: " + (string) m.Type);
+                                switch ((string) m.Type)
+                                {
+                                    case "pong":
+                                    {
+                                        HasReceivedVersionInformation = true;
+
+                                        Status = "Got Pong (Sending Ping)";
+                                        SendPing(PubSub, pingTopic, guid);
+                                        Status = "Sent Ping";
+
+                                        Client.SetAvailableVersions(
+                                            (string) m.AvailableClientVersion,
+                                            (string) m.AvailableClientFile);
+                                        Projector.SetAvailableVersions(
+                                            (string) m.AvailableProjectorVersion,
+                                            (string) m.AvailableProjectorFile);
+                                        Bootstrap.SetAvailableVersions(
+                                            (string) m.AvailableBootstrapVersion,
+                                            (string) m.AvailableBootstrapFile);
+
+                                        Status = "Updating Software";
+                                        UpdateVersions(Role);
+                                    }
+                                        break;
+                                    case "designate":
+                                    {
+                                        var oldRole = Role;
+                                        Role = m.Role;
+
+                                        Status = "Updating Software";
+                                        UpdateVersions(oldRole);
+
+                                        Status = "Sending Ping";
+                                        SendPing(PubSub, pingTopic, guid);
+                                        Status = "Sent Ping";
+                                    }
+                                        break;
+                                    case "client-settings":
+                                    {
+                                        using (var writer = new StreamWriter(Client.SettingsPath))
+                                        {
+                                            writer.Write((string) m.Settings);
+                                        }
+
+                                        Status = "Restarting Client";
+                                        Client.KillProcess();
+                                        Client.StartProcess();
+
+                                        Status = "Sending Ping";
+                                        SendPing(PubSub, pingTopic, guid);
+                                        Status = "Sent Ping";
+                                    }
+                                        break;
+                                    case "projector-settings":
+                                    {
+                                        using (var writer = new StreamWriter(Projector.SettingsPath))
+                                        {
+                                            writer.Write((string) m.Settings);
+                                        }
+
+                                        Status = "Restarting Projector";
+                                        Projector.KillProcess();
+                                        Projector.StartProcess();
+
+                                        Status = "Sending Ping";
+                                        SendPing(PubSub, pingTopic, guid);
+                                        Status = "Sent Ping";
+                                    }
+                                        break;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Status = "Got Exception on Inner Operation";
+                                Debug.WriteLine(ex);
+
+                                try
+                                {
+                                    using (var writer = new StreamWriter(Path.Combine(BasePath, "message-error-log.txt"), true))
+                                    {
+                                        writer.WriteLine("Recoverable on inner exception:");
+                                        writer.WriteLine(ex.ToString());
+                                    }
+                                }
+                                catch { }
+                            }
+                        }
+
+                        Thread.Sleep(1);
+                    }
+                    catch (Exception ex)
+                    {
+                        Status = "Got Exception on Outer Operation";
+                        Debug.WriteLine(ex);
+
+                        try
+                        {
+                            using (var writer = new StreamWriter(Path.Combine(BasePath, "message-error-log.txt"), true))
+                            {
+                                writer.WriteLine("Recoverable on outer exception:");
+                                writer.WriteLine(ex.ToString());
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    using (var writer = new StreamWriter(Path.Combine(BasePath, "message-error-log.txt"), true))
+                    {
+                        writer.WriteLine("Unrecoverable:");
+                        writer.WriteLine(ex.ToString());
+                    }
+                } catch { }
+            }
+            finally
+            {
+                Status = "Message Polling Thread Died! :(";
+            }
         }
     }
 }

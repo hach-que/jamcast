@@ -10,6 +10,8 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="NetCast" />
+    <Reference Include="Newtonsoft.Json" />
+    <Reference Include="Microsoft.CSharp" />
   </References>
   <Files>
     <BundleResource Include="MacOS\TrayCountdown.icns">
