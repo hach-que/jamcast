@@ -33,10 +33,16 @@ namespace Bootstrap
 
 		public static void PlatformTraySetup()
 		{
-			_trayIconNormal = ConvertEmbeddedResourceToIcon("Bootstrap.satellite-16.png");
-			_trayIconNoContact = ConvertEmbeddedResourceToIcon("Bootstrap.satellite-16-nocontact.png");
-			_trayIconDownloading = ConvertEmbeddedResourceToIcon("Bootstrap.satellite-16-downloading.png");
-
+			try
+			{
+				_trayIconNormal = ConvertEmbeddedResourceToIcon("Bootstrap.satellite-16.png");
+				_trayIconNoContact = ConvertEmbeddedResourceToIcon("Bootstrap.satellite-16-nocontact.png");
+				_trayIconDownloading = ConvertEmbeddedResourceToIcon("Bootstrap.satellite-16-downloading.png");
+			}
+			catch (Exception c)
+			{
+				return; // WE'RE INVISIBLE!  INNNVISIBLLLLLE!!!!!!!
+			}
 			new Thread(() =>
 				{
 					// Create the menu.
@@ -133,12 +139,12 @@ namespace Bootstrap
 			}
 			catch (Exception c)
 			{
-				var locdir = Path.GetDirectoryName (typeof(Program).Assembly.Location);
+				var locdir = Path.GetDirectoryName(typeof(Program).Assembly.Location);
 				if (File.Exists(Path.Combine(locdir, name)))
 				{
 					using (var fs = File.OpenRead(Path.Combine(locdir, name)))
 					{
-						return new Icon(fs,new Size(16,16));
+						return new Icon(fs, new Size(16, 16));
 					}
 				}
 				throw c;

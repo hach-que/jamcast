@@ -12,6 +12,31 @@ namespace Bootstrap
 {
     public class Package
     {
+        private static string _monopath;
+        public static string MonoPath
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_monopath))
+                {
+                    foreach (var path in new string[] 
+                        {
+                            "/usr/local/bin/mono",
+                            "/usr/bin/mono",
+                            "/bin/mono",
+                        })
+                    {
+                        if (File.Exists(path))
+                        {
+                            _monopath = path;
+                            break;
+                        }
+                    }
+                }
+                return _monopath;
+            } 
+        }
+
         public Package(string basePath, string name)
         {
             Directory.CreateDirectory(Path.Combine(basePath, name + "-Blue"));
@@ -153,7 +178,15 @@ namespace Bootstrap
             var clientPath = Path.Combine(ActivePath, ExecutableName);
             if (Version != null && File.Exists(clientPath))
             {
-                startInfo.FileName = clientPath;
+                if (Program.IsRunningOnMono)
+                {
+                    startInfo.FileName = MonoPath;
+                    startInfo.Arguments = clientPath;
+                }
+                else
+                {
+                    startInfo.FileName = clientPath;
+                }
                 startInfo.WorkingDirectory = ActivePath;
             }
             else
