@@ -58,7 +58,7 @@ namespace GooglePubSub
             _subscriptions = new List<string>();
             _getToken = getBearerToken;
 
-            Timeout = 60;
+            Timeout = 120;
             OperationsRequested = 0;
 
             CheckToken();

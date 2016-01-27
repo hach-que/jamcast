@@ -350,7 +350,11 @@ namespace Bootstrap
                 {
                     Active.KillUnmonitoredProcesses();
                     Active.ExtractPackageIfExists();
-                    Active.StartProcess();
+                    if (!Active.StartProcess())
+                    {
+                        PingStatus = "Unable to start " + Role;
+                        Thread.Sleep(10000);
+                    }
                 }
 
                 PingStatus = "Sending Ping";
@@ -372,20 +376,28 @@ namespace Bootstrap
                         timer = 0;
                     }
 
-                    PingStatus = "Restarting Messaging Thread";
                     try
                     {
                         if (ThreadWaitForMessages.ThreadState.HasFlag(ThreadState.Stopped))
                         {
-                            ThreadWaitForMessages = new Thread(ThreadWaitForMessagesRun);
-                            ThreadWaitForMessages.IsBackground = true;
-                            ThreadWaitForMessages.Start();
+                            try
+                            {
+                                PingStatus = "Restarting Messaging Thread";
+                                ThreadWaitForMessages = new Thread(ThreadWaitForMessagesRun);
+                                ThreadWaitForMessages.IsBackground = true;
+                                ThreadWaitForMessages.Start();
+                                PingStatus = "Restarted Messaging Thread";
+                            }
+                            catch (Exception)
+                            {
+                                PingStatus = "Unable to restart Messaging Thread";
+                                Thread.Sleep(1000);
+                            }
                         }
-                        PingStatus = "Restarted Messaging Thread";
                     }
                     catch (Exception)
                     {
-                        PingStatus = "Unable to restart Messaging Thread";
+                        PingStatus = "Unable to check Messaging Thread";
                         Thread.Sleep(1000);
                     }
                 }
@@ -428,17 +440,18 @@ namespace Bootstrap
 
         private static void UpdateVersions(string oldRole)
         {
-            Active.UpdateVersion(Role != oldRole, d =>
-            {
-                Status = "Updating " + Role + " (" + (d*100).ToString("F1") + "%)";
-            }).Wait();
-
             Bootstrap.UpdateVersion(false, d =>
             {
                 Status = "Updating Bootstrap (" + (d * 100).ToString("F1") + "%)";
             }).Wait();
 
-            Bootstrap.RestartMainProcessIfOutOfDate();
+            if (!Bootstrap.RestartMainProcessIfOutOfDate())
+            {
+                Active.UpdateVersion(Role != oldRole, d =>
+                {
+                    Status = "Updating " + Role + " (" + (d*100).ToString("F1") + "%)";
+                }).Wait();
+            }
         }
         
         private static void SendPing(PubSub pubsub, string pingTopic, Guid guid)
@@ -506,7 +519,7 @@ namespace Bootstrap
                                     if (target != guid.ToString())
                                     {
                                         // not for this client.
-                                        return;
+                                        continue;
                                     }
                                 }
 

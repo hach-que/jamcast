@@ -46,9 +46,7 @@ namespace JamCast
             // Start the NetCast listener.
             this.p_NetCast = new Queue(13000, 13001);
             this.p_NetCast.OnReceived += new EventHandler<MessageEventArgs>(p_NetCast_OnReceived);
-
-            AddClientExplicitly(new IPEndPoint(IPAddress.Parse("10.1.1.28"), 12001), "test client");
-
+            
             // Start the application message loop.
             Application.Run();
         }

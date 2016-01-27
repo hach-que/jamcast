@@ -144,7 +144,10 @@ namespace Controller
                                             }
                                         }
 
-                                        Thread.Sleep(1000);
+                                        if (messages.Count == 0)
+                                        {
+                                            Thread.Sleep(1000);
+                                        }
                                     }
                                     catch (OperationCanceledException ex)
                                     {

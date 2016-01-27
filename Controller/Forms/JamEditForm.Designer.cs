@@ -32,6 +32,8 @@
             this._googleCloudProjectID = new System.Windows.Forms.TextBox();
             this.c_ControllerSlackAPITokenLabel = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this._macAddressReportingEndpoint = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
             this._googleCloudStorageSecret = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
@@ -48,12 +50,10 @@
             this.label2 = new System.Windows.Forms.Label();
             this.c_PackageAndDeploy = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
-            this.c_PackageAndDeployExternal = new System.Windows.Forms.Button();
+            this.c_PackageAndDeployNoBootstrap = new System.Windows.Forms.Button();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this._pubSubOperationsText = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
-            this._macAddressReportingEndpoint = new System.Windows.Forms.TextBox();
-            this.label7 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -93,6 +93,23 @@
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Controller Settings";
+            // 
+            // _macAddressReportingEndpoint
+            // 
+            this._macAddressReportingEndpoint.Location = new System.Drawing.Point(184, 71);
+            this._macAddressReportingEndpoint.Name = "_macAddressReportingEndpoint";
+            this._macAddressReportingEndpoint.Size = new System.Drawing.Size(192, 20);
+            this._macAddressReportingEndpoint.TabIndex = 7;
+            this._macAddressReportingEndpoint.TextChanged += new System.EventHandler(this._macAddressReportingEndpoint_TextChanged);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(17, 74);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(168, 13);
+            this.label7.TabIndex = 8;
+            this.label7.Text = "MAC Address Reporting Endpoint:";
             // 
             // _googleCloudStorageSecret
             // 
@@ -138,7 +155,6 @@
             // 
             // groupBox2
             // 
-            this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.groupBox2.Controls.Add(this.c_ProjectorSlackChannelsLabel);
             this.groupBox2.Controls.Add(this._projectorSlackAPIToken);
             this.groupBox2.Controls.Add(this._projectorSlackChannels);
@@ -186,7 +202,6 @@
             // 
             // c_CreateBootstrap
             // 
-            this.c_CreateBootstrap.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.c_CreateBootstrap.Location = new System.Drawing.Point(262, 364);
             this.c_CreateBootstrap.Name = "c_CreateBootstrap";
             this.c_CreateBootstrap.Size = new System.Drawing.Size(124, 70);
@@ -197,7 +212,6 @@
             // 
             // label1
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label1.Location = new System.Drawing.Point(12, 366);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(240, 68);
@@ -244,23 +258,22 @@
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(240, 41);
             this.label3.TabIndex = 13;
-            this.label3.Text = "Package and deploy the client and projector software from another folder on this " +
-    "computer.  Useful during development of JamCast.";
+            this.label3.Text = "Package and deploy the client and projector software, but skip deployment of the " +
+    "bootstrap executable.";
             // 
-            // c_PackageAndDeployExternal
+            // c_PackageAndDeployNoBootstrap
             // 
-            this.c_PackageAndDeployExternal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.c_PackageAndDeployExternal.Location = new System.Drawing.Point(262, 494);
-            this.c_PackageAndDeployExternal.Name = "c_PackageAndDeployExternal";
-            this.c_PackageAndDeployExternal.Size = new System.Drawing.Size(124, 43);
-            this.c_PackageAndDeployExternal.TabIndex = 12;
-            this.c_PackageAndDeployExternal.Text = "Package and Deploy External";
-            this.c_PackageAndDeployExternal.UseVisualStyleBackColor = true;
-            this.c_PackageAndDeployExternal.Click += new System.EventHandler(this.c_PackageAndDeployExternal_Click);
+            this.c_PackageAndDeployNoBootstrap.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.c_PackageAndDeployNoBootstrap.Location = new System.Drawing.Point(262, 494);
+            this.c_PackageAndDeployNoBootstrap.Name = "c_PackageAndDeployNoBootstrap";
+            this.c_PackageAndDeployNoBootstrap.Size = new System.Drawing.Size(124, 43);
+            this.c_PackageAndDeployNoBootstrap.TabIndex = 12;
+            this.c_PackageAndDeployNoBootstrap.Text = "Package and Deploy (No Bootstrap)";
+            this.c_PackageAndDeployNoBootstrap.UseVisualStyleBackColor = true;
+            this.c_PackageAndDeployNoBootstrap.Click += new System.EventHandler(this.c_PackageAndDeployExternal_Click);
             // 
             // groupBox3
             // 
-            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.groupBox3.Controls.Add(this._pubSubOperationsText);
             this.groupBox3.Controls.Add(this.label8);
             this.groupBox3.Location = new System.Drawing.Point(12, 216);
@@ -287,23 +300,6 @@
             this.label8.TabIndex = 1;
             this.label8.Text = "Pub/Sub Operations:";
             // 
-            // _macAddressReportingEndpoint
-            // 
-            this._macAddressReportingEndpoint.Location = new System.Drawing.Point(184, 71);
-            this._macAddressReportingEndpoint.Name = "_macAddressReportingEndpoint";
-            this._macAddressReportingEndpoint.Size = new System.Drawing.Size(192, 20);
-            this._macAddressReportingEndpoint.TabIndex = 7;
-            this._macAddressReportingEndpoint.TextChanged += new System.EventHandler(this._macAddressReportingEndpoint_TextChanged);
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(17, 74);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(168, 13);
-            this.label7.TabIndex = 8;
-            this.label7.Text = "MAC Address Reporting Endpoint:";
-            // 
             // JamEditForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -311,7 +307,7 @@
             this.ClientSize = new System.Drawing.Size(406, 588);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.label3);
-            this.Controls.Add(this.c_PackageAndDeployExternal);
+            this.Controls.Add(this.c_PackageAndDeployNoBootstrap);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.c_PackageAndDeploy);
             this.Controls.Add(this.m_SlackConnectionStatus);
@@ -349,7 +345,7 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button c_PackageAndDeploy;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Button c_PackageAndDeployExternal;
+        private System.Windows.Forms.Button c_PackageAndDeployNoBootstrap;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TextBox _googleCloudOAuthEndpointURL;
         private System.Windows.Forms.Label label4;

@@ -21,7 +21,7 @@ namespace JamCast
         public static string[] SlackChannels;
         public static string SlackToken;
         
-        public readonly static DateTime EndTime = new DateTime(2015, 01, 25, 15, 0, 0, DateTimeKind.Local);
+        public readonly static DateTime EndTime = new DateTime(2016, 01, 31, 15, 0, 0, DateTimeKind.Local);
 
         static AppSettings()
         {

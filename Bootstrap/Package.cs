@@ -45,9 +45,65 @@ namespace Bootstrap
             GreenPath = Path.Combine(basePath, name + "-Green");
             PackagePath = Path.Combine(basePath, name + ".zip");
             CachedVersionPath = Path.Combine(basePath, name + ".version.txt");
+            ActiveModePath = Path.Combine(basePath, name + ".mode.txt");
             SettingsPath = Path.Combine(basePath, name.ToLowerInvariant() + "-settings.json");
             ExecutableName = name + ".exe";
-            ActiveMode = "Blue";
+
+            // Try and find the active mode from somewhere...
+            if (File.Exists(ActiveModePath))
+            {
+                try
+                {
+                    using (var reader = new StreamReader(ActiveModePath))
+                    {
+                        ActiveMode = reader.ReadToEnd().Trim();
+                    }
+                }
+                catch
+                {
+                    try
+                    {
+                        if (File.Exists(Path.Combine(BluePath, ExecutableName)))
+                        {
+                            ActiveMode = "Blue";
+                        }
+                        else if (File.Exists(Path.Combine(GreenPath, ExecutableName)))
+                        {
+                            ActiveMode = "Green";
+                        }
+                        else
+                        {
+                            ActiveMode = "Blue";
+                        }
+                    }
+                    catch
+                    {
+                        ActiveMode = "Blue";
+                    }
+                }
+            }
+            else
+            {
+                try
+                {
+                    if (File.Exists(Path.Combine(BluePath, ExecutableName)))
+                    {
+                        ActiveMode = "Blue";
+                    }
+                    else if (File.Exists(Path.Combine(GreenPath, ExecutableName)))
+                    {
+                        ActiveMode = "Green";
+                    }
+                    else
+                    {
+                        ActiveMode = "Blue";
+                    }
+                }
+                catch
+                {
+                    ActiveMode = "Blue";
+                }
+            }
 
             // Preemptively calculate the current version?
             CalculatePackageVersion();
@@ -62,6 +118,8 @@ namespace Bootstrap
         public string GreenPath { get; private set; }
 
         public string ActiveMode { get; set; }
+
+        public string ActiveModePath { get; private set; }
 
         public string AvailableFile { get; private set; }
 
@@ -126,6 +184,15 @@ namespace Bootstrap
         private void SwapMode()
         {
             ActiveMode = ActiveMode == "Blue" ? "Green" : "Blue";
+
+            try
+            {
+                using (var writer = new StreamWriter(ActiveModePath))
+                {
+                    writer.Write(ActiveMode);
+                }
+            }
+            catch { }
         }
 
         private void ExtractPackage()
@@ -355,6 +422,8 @@ namespace Bootstrap
                 var process = new Process();
                 process.StartInfo = startInfo;
                 process.Start();
+
+                return true;
             }
 
             return false;

@@ -127,12 +127,12 @@ namespace Controller.Forms
             if (enabled)
             {
                 this.c_PackageAndDeploy.Enabled = true;
-                this.c_PackageAndDeployExternal.Enabled = true;
+                this.c_PackageAndDeployNoBootstrap.Enabled = true;
             }
             else
             {
                 this.c_PackageAndDeploy.Enabled = false;
-                this.c_PackageAndDeployExternal.Enabled = false;
+                this.c_PackageAndDeployNoBootstrap.Enabled = false;
             }
         }
 
@@ -195,14 +195,16 @@ namespace Controller.Forms
         private void c_PackageAndDeploy_Click(object sender, System.EventArgs e)
         {
             var path = new FileInfo(typeof (JamEditForm).Assembly.Location).Directory.FullName;
-            this.DeployPackage(path, path);
+            this.DeployPackage(path, path, false);
         }
 
         private void c_PackageAndDeployExternal_Click(object sender, System.EventArgs e)
         {
+            var path = new FileInfo(typeof(JamEditForm).Assembly.Location).Directory.FullName;
+            this.DeployPackage(path, path, true);
         }
 
-        private void DeployPackage(string clientPath, string projectorPath)
+        private void DeployPackage(string clientPath, string projectorPath, bool skipBootstrap)
         {
             var token = this._googleCloudOAuthEndpointURL.Text;
             
@@ -298,21 +300,25 @@ namespace Controller.Forms
 
                 showProgress(20);
 
-                var bootstrapMemory = new MemoryStream();
-                var bootstrapZip = new ZipOutputStream(bootstrapMemory);
-                bootstrapZip.SetLevel(3);
+                MemoryStream bootstrapMemory = null;
+                if (!skipBootstrap)
+                {
+                    bootstrapMemory = new MemoryStream();
+                    var bootstrapZip = new ZipOutputStream(bootstrapMemory);
+                    bootstrapZip.SetLevel(3);
 
-                var bootstrap = BootstrapCreator.CreateCustomBootstrap(
-                    _googleCloudProjectID.Text,
-                    _googleCloudOAuthEndpointURL.Text);
-                entry2 = new ZipEntry("Bootstrap.exe");
-                entry2.DateTime = DateTime.Now;
-                entry2.Size = bootstrap.Length;
-                bootstrapZip.PutNextEntry(entry2);
-                bootstrapZip.Write(bootstrap, 0, bootstrap.Length);
-                bootstrapZip.CloseEntry();
-                bootstrapZip.IsStreamOwner = false;
-                bootstrapZip.Close();
+                    var bootstrap = BootstrapCreator.CreateCustomBootstrap(
+                        _googleCloudProjectID.Text,
+                        _googleCloudOAuthEndpointURL.Text);
+                    entry2 = new ZipEntry("Bootstrap.exe");
+                    entry2.DateTime = DateTime.Now;
+                    entry2.Size = bootstrap.Length;
+                    bootstrapZip.PutNextEntry(entry2);
+                    bootstrapZip.Write(bootstrap, 0, bootstrap.Length);
+                    bootstrapZip.CloseEntry();
+                    bootstrapZip.IsStreamOwner = false;
+                    bootstrapZip.Close();
+                }
 
                 showProgress(30);
 
@@ -344,19 +350,24 @@ namespace Controller.Forms
                         showProgress(60 + (int)(p * 30));
                     });
 
-                var bootstrapData = new byte[bootstrapMemory.Position];
-                bootstrapMemory.Seek(0, SeekOrigin.Begin);
-                bootstrapMemory.Read(bootstrapData, 0, bootstrapData.Length);
+                string bootstrapHash = null;
+                string bootstrapUrl = null;
+                if (!skipBootstrap)
+                {
+                    var bootstrapData = new byte[bootstrapMemory.Position];
+                    bootstrapMemory.Seek(0, SeekOrigin.Begin);
+                    bootstrapMemory.Read(bootstrapData, 0, bootstrapData.Length);
 
-                md5 = MD5.Create();
-                md5.TransformFinalBlock(bootstrapData, 0, bootstrapData.Length);
-                var bootstrapHash = BitConverter.ToString(md5.Hash).Replace("-", "").ToLower();
+                    md5 = MD5.Create();
+                    md5.TransformFinalBlock(bootstrapData, 0, bootstrapData.Length);
+                    bootstrapHash = BitConverter.ToString(md5.Hash).Replace("-", "").ToLower();
 
-                var bootstrapUrl =
-                    UploadFile("Bootstrap.zip", bootstrapData, p =>
-                    {
-                        showProgress(90 + (int)(p * 10));
-                    });
+                    bootstrapUrl =
+                        UploadFile("Bootstrap.zip", bootstrapData, p =>
+                        {
+                            showProgress(90 + (int) (p*10));
+                        });
+                }
 
                 mainForm.Invoke(new Action(() =>
                 {
@@ -364,8 +375,11 @@ namespace Controller.Forms
                     jam.AvailableClientVersion = clientHash;
                     jam.AvailableProjectorFile = projectorUrl;
                     jam.AvailableProjectorVersion = projectorHash;
-                    jam.AvailableBootstrapFile = bootstrapUrl;
-                    jam.AvailableBootstrapVersion = bootstrapHash;
+                    if (!skipBootstrap)
+                    {
+                        jam.AvailableBootstrapFile = bootstrapUrl;
+                        jam.AvailableBootstrapVersion = bootstrapHash;
+                    }
                     jam.Save();
                     this.m_Deploying = false;
                     this.UpdateDeployButtons();
