@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -279,8 +280,11 @@ namespace Bootstrap
 
         public void KillUnmonitoredProcesses()
         {
+            var thisId = Process.GetCurrentProcess().Id;
             foreach (var process in Process.GetProcesses())
             {
+                if (process.Id == thisId)
+                    continue;
                 var isMatchingProcess = false;
                 try
                 {
@@ -291,6 +295,33 @@ namespace Bootstrap
                 {
                     // ignored
                 }
+                try
+                {
+                    if (Path.GetFileName(process.MainModule.FileName).Contains("mono"))
+                    {
+                        // Yay. Messy.
+                        if (Platform.IsRunningOnMono && Platform.GetPlatform().Platform != PlatformID.Win32NT)
+                        {
+                            var ps = new ProcessStartInfo("/bin/ps", $"-p {process.Id} -o command");
+                            ps.RedirectStandardOutput=true;
+                            ps.UseShellExecute=false;
+                            var p = Process.Start(ps);
+                            var reader = p.StandardOutput;
+                            p.WaitForExit();
+                            var output = reader.ReadToEnd();
+                            output= output.Trim().Split('\n').Last();
+                            while (!File.Exists(output))
+                                output = output.Substring(output.IndexOf(' ')).Trim();
+                            // Now we've got that out of the way...
+                            isMatchingProcess = output.StartsWith(InactivePath, StringComparison.InvariantCultureIgnoreCase);
+                        }
+                        else
+                        {
+                            // Let's just ignore whoever decided this was a good idea. [Probably Katelyn]
+                        }
+                    }
+                }
+                catch (Exception c) { Console.WriteLine(c); }
                 if (isMatchingProcess)
                 {
                     process.Kill();

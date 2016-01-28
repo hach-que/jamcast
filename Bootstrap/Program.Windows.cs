@@ -174,7 +174,6 @@ namespace Bootstrap
 			}
 			catch (Exception c)
 			{
-				var Platform.AssemblyLocation = Path.GetDirectoryName(typeof(Program).Assembly.Location);
 				if (File.Exists(Path.Combine(Platform.AssemblyLocation, name)))
 				{
 					using (var fs = File.OpenRead(Path.Combine(Platform.AssemblyLocation, name)))

@@ -206,6 +206,10 @@ namespace Bootstrap
                 "JamCast");
             Directory.CreateDirectory(path);
             BasePath = path;
+            if (Platform.GetPlatform().Platform == PlatformID.MacOSX)
+            {
+                BasePath = new DirectoryInfo(Platform.AssemblyLocation).Parent.FullName; // HACK: Keep it in the bundle.
+            }
 
             Client = new Package(BasePath, "Client");
             Projector = new Package(BasePath, "Projector");
@@ -287,17 +291,7 @@ namespace Bootstrap
             }
             catch { }
 
-            foreach (var process in Process.GetProcessesByName("Bootstrap"))
-            {
-                try
-                {
-                    if (process.Id != Process.GetCurrentProcess().Id)
-                    {
-                        process.Kill();
-                    }
-                }
-                catch { }
-            }
+            Bootstrap.KillUnmonitoredProcesses();
 
             while (true)
             {
@@ -347,9 +341,9 @@ namespace Bootstrap
                 ThreadWaitForMessages.Start();
 
                 PingStatus = "Starting " + Role;
+                Active.KillUnmonitoredProcesses();
                 if (!Active.StartProcess())
                 {
-                    Active.KillUnmonitoredProcesses();
                     Active.ExtractPackageIfExists();
                     if (!Active.StartProcess())
                     {
