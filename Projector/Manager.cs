@@ -1,11 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Compat.Web;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
+using System.Threading;
 using System.Windows.Forms;
+using GooglePubSub;
 using NetCast;
 using NetCast.Messages;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using TweetSharp;
 using Timer = System.Windows.Forms.Timer;
 
@@ -23,7 +30,7 @@ namespace JamCast
         private Twitter m_Twitter = null;
         private int p_TweetID = 0;
         private Timer p_TweetTimer = null;
-        private SlackController m_Slack;
+        private Thread _pubSubThread;
 
         /// <summary>
         /// Starts the manager cycle.
@@ -33,8 +40,8 @@ namespace JamCast
 			// Initalize Twitter.
 			this.InitalizeTwitter();
 
-			// Initialize Slack.
-			this.InitializeSlack();
+            // Initialize Cloud Pub/Sub.
+            this.InitializeCloudPubSub();
 
             // Initalize everything.
             this.InitalizeBroadcast();
@@ -51,11 +58,109 @@ namespace JamCast
             Application.Run();
         }
 
-        private void InitializeSlack()
+        private void InitializeCloudPubSub()
         {
-            this.m_Slack = new SlackController(this);
+            _pubSubThread = new Thread(() =>
+            {
+                var path = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "JamCast");
+                Directory.CreateDirectory(path);
 
-            this.IsLocked = false;
+                var guid = Guid.NewGuid();
+                using (var reader = new StreamReader(Path.Combine(path, "guid.txt")))
+                {
+                    guid = Guid.Parse(reader.ReadToEnd().Trim());
+                }
+
+                var pubsub = new PubSub(AppSettings.GoogleCloudProjectID, () => GetOAuthTokenFromEndpoint(AppSettings.GoogleCloudOAuthEndpointURL));
+                pubsub.CreateTopic("projector-client-ips");
+                pubsub.Subscribe("projector-client-ips", "projector-" + guid);
+                try
+                {
+                    while (true)
+                    {
+                        try
+                        {
+                            var messages = pubsub.Poll(10, false);
+                            foreach (var message in messages)
+                            {
+                                message.Acknowledge();
+
+                                try
+                                {
+                                    var m =
+                                        JsonConvert.DeserializeObject<dynamic>(
+                                            Encoding.ASCII.GetString(Convert.FromBase64String(message.Data)));
+
+                                    if ((string) m.Operation == "add-clients")
+                                    {
+                                        foreach (var client in ((JArray) m.Clients).Select(x => (string) x))
+                                        {
+                                            // TODO: AddClientExplicitly();
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Debug.WriteLine(ex);
+
+                                    try
+                                    {
+                                        using (var writer = new StreamWriter(Path.Combine(path, "projector-error-log.txt"), true))
+                                        {
+                                            writer.WriteLine("Recoverable on inner exception:");
+                                            writer.WriteLine(ex.ToString());
+                                        }
+                                    }
+                                    catch { }
+                                }
+                            }
+
+                            Thread.Sleep(1);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine(ex);
+
+                            try
+                            {
+                                using (var writer = new StreamWriter(Path.Combine(path, "projector-error-log.txt"), true))
+                                {
+                                    writer.WriteLine("Recoverable on outer exception:");
+                                    writer.WriteLine(ex.ToString());
+                                }
+                            }
+                            catch { }
+                        }
+                    }
+                }
+                finally
+                {
+                    pubsub.Unsubscribe("projector-client-ips", "projector-" + guid);
+                }
+            });
+            _pubSubThread.IsBackground = true;
+            _pubSubThread.Start();
+        }
+
+        private static OAuthToken GetOAuthTokenFromEndpoint(string currentEndpoint)
+        {
+            var client = new WebClient();
+            var jsonResult = client.DownloadString(currentEndpoint);
+            var json = JsonConvert.DeserializeObject<dynamic>(jsonResult);
+            if (!(bool)json.has_error)
+            {
+                var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+                dtDateTime = dtDateTime.AddSeconds((double)(json.result.created + json.result.expires_in));
+                return new OAuthToken
+                {
+                    ExpiryUtc = dtDateTime,
+                    AccessToken = json.result.access_token
+                };
+            }
+
+            throw new Exception("Error when retrieving access token: " + json.error);
         }
 
         private void InitalizeTwitter()
@@ -89,11 +194,6 @@ namespace JamCast
                 t += "*" + HttpUtility.HtmlDecode(tss.Author.ScreenName) + "* - " + HttpUtility.HtmlDecode(tss.Text) + "                    ";
             }
             return t;
-        }
-
-        public List<string> GetChatStream()
-        {
-            return this.m_Slack.UpdateAndGetChat();
         }
 
         /// <summary>

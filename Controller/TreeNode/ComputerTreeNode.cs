@@ -83,6 +83,8 @@ namespace Controller.TreeNode
             }
         }
 
+        private static DateTime _lastTimeThisWasUpdated;
+
         public void Update(bool isThreaded = false)
         {
             if (isThreaded)
@@ -92,7 +94,11 @@ namespace Controller.TreeNode
                     this.UpdateText();
                     this.UpdateImage();
 
-                    TreeView.Refresh();
+                    if ((DateTime.UtcNow - _lastTimeThisWasUpdated).TotalMilliseconds > 20)
+                    {
+                        TreeView.Refresh();
+                        _lastTimeThisWasUpdated = DateTime.UtcNow;
+                    }
                 }));
             }
             else
@@ -102,7 +108,11 @@ namespace Controller.TreeNode
 
                 if (TreeView != null)
                 {
-                    TreeView.Refresh();
+                    if ((DateTime.UtcNow - _lastTimeThisWasUpdated).TotalMilliseconds > 20)
+                    {
+                        TreeView.Refresh();
+                        _lastTimeThisWasUpdated = DateTime.UtcNow;
+                    }
                 }
             }
 

@@ -13,8 +13,8 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Projector.ThirdParty" />
+    <Reference Include="GooglePubSub" />
     <Reference Include="NetCast" />
-    <Reference Include="SlackRTM" />
     <Reference Include="Newtonsoft.Json" />
   </References>
   <Files>

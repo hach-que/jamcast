@@ -17,10 +17,9 @@ namespace JamCast
         public static string TwitterOAuthSecret;
         public static string TwitterSearchQuery;
 
-        public static bool SlackEnabled;
-        public static string[] SlackChannels;
-        public static string SlackToken;
-        
+        public static string GoogleCloudProjectID;
+        public static string GoogleCloudOAuthEndpointURL;
+
         public readonly static DateTime EndTime = new DateTime(2016, 01, 31, 15, 0, 0, DateTimeKind.Local);
 
         static AppSettings()
@@ -50,9 +49,9 @@ namespace JamCast
                     TwitterOAuthSecret = (string) settings.TwitterOAuthSecret;
                     TwitterSearchQuery = (string) settings.TwitterSearchQuery;
                     ProjectorName = (string) settings.ProjectorName;
-                    SlackChannels = ((string) settings.SlackChannels).Split(',');
-                    SlackToken = (string) settings.SlackToken;
                     IsPrimary = (bool) settings.IsPrimary;
+                    GoogleCloudProjectID = (string) settings.GoogleCloudProjectID;
+                    GoogleCloudOAuthEndpointURL = (string) settings.GoogleCloudOAuthEndpointURL;
                 }
             }
             catch (Exception)
@@ -63,5 +62,7 @@ namespace JamCast
                 Application.Exit();
             }
         }
+
+        public static bool SlackEnabled { get { return false; } }
     }
 }

@@ -52,7 +52,9 @@ namespace Controller.Forms
                 ProjectorName = c_ProjectorName.Text,
                 SlackToken = Jam.ProjectorSlackAPIToken,
                 SlackChannels = Jam.ProjectorSlackChannels,
-                IsPrimary = c_IsPrimaryProjector.Checked
+                IsPrimary = c_IsPrimaryProjector.Checked,
+                GoogleCloudOAuthEndpointURL = Jam.GoogleCloudOAuthEndpointURL,
+                GoogleCloudProjectID = Jam.GoogleCloudProjectID,
             };
 
             var settingsJson = JsonConvert.SerializeObject(settingsObject);

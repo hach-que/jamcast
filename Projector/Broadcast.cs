@@ -122,25 +122,6 @@ namespace JamCast
             {
             }*/
 
-            if (AppSettings.SlackEnabled)
-            {
-                // Draw the chat.
-                List<string> chat = this.m_Manager.GetChatStream();
-                string d = null;
-                if (chat.Count == 0)
-                    d = "Showing messages from the " + string.Join(", ", AppSettings.SlackChannels.Select(x => "#" + x)) + " slack channels.";
-                else
-                    d = chat.Reverse<string>().Aggregate((a2, b2) => a2 + "\r\n" + b2);
-                e.Graphics.FillRectangle(new SolidBrush(Color.White), this.ClientSize.Width - 256 + 16, 64, 256, this.ClientSize.Height - 128);
-                e.Graphics.DrawString(
-                    d,
-                    new Font(FontFamily.GenericSansSerif, 14, FontStyle.Regular, GraphicsUnit.Pixel),
-                    new SolidBrush(Color.Black),
-                    new Rectangle(this.ClientSize.Width - 256 + 16, 64, 256 - 32, this.ClientSize.Height - 128 - 32),
-                    tleft
-                    );
-            }
-
             // Draw memory usage (top-middle)
             string mem = (Process.GetCurrentProcess().WorkingSet64 / 1024 / 1024).ToString() + "MB";
             e.Graphics.DrawString(

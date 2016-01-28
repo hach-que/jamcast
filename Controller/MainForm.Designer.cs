@@ -86,6 +86,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(865, 541);
             this.Controls.Add(this.c_JamHierarchy);
+            this.DoubleBuffered = true;
             this.IsMdiContainer = true;
             this.Name = "MainForm";
             this.Text = "JamCast Controller";
