@@ -12,6 +12,7 @@ using GooglePubSub;
 using Newtonsoft.Json;
 using System.Net.NetworkInformation;
 using System.Collections.Generic;
+using Microsoft.Win32;
 using ThreadState = System.Threading.ThreadState;
 
 namespace Bootstrap
@@ -21,8 +22,6 @@ namespace Bootstrap
     /// </summary>
     public static partial class Program
     {
-		public static readonly bool IsRunningOnMono = (Type.GetType ("Mono.Runtime") != null);
-
         private static string Host;
 
         private static string Role
@@ -135,27 +134,6 @@ namespace Bootstrap
 			}
 		}
 
-		public static OperatingSystem GetPlatform()
-		{
-			switch (Environment.OSVersion.Platform) {
-
-			case PlatformID.Unix:
-				if (System.IO.Directory.Exists ("/Library"))
-					return new OperatingSystem (PlatformID.MacOSX, Environment.OSVersion.Version);
-				else
-					return Environment.OSVersion;
-				break;
-
-			case PlatformID.MacOSX: // Silverlight or CoreCLR?
-				// Mono is never going to get here, because of this code:
-				// https://github.com/mono/mono/blob/9e396e4022a4eefbcdeeae1d86c03afbf04043b7/mcs/class/corlib/System/Environment.cs#L239
-			case PlatformID.Win32NT:
-			default:
-				return Environment.OSVersion;
-
-			}
-		}
-
         internal static void RealMain(string[] args)
         {
             int? processToKillOnSuccess = null;
@@ -167,6 +145,29 @@ namespace Bootstrap
             Status = "Initializing";
 
             PlatformTraySetup();
+
+            if (Platform.GetPlatform().Platform == PlatformID.Win32NT)
+            {
+                Status = "Configuring Startup";
+
+                try
+                {
+                    var startup = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+                    Directory.CreateDirectory(startup);
+                    var urlFile = Path.Combine(startup, "JamCast Bootstrap.url");
+                    //using (var writer = new StreamWriter(urlFile))
+                    //{
+                    //    writer.WriteLine("[Internet Shortcut]");
+                    //    writer.WriteLine("URL=file:///" + Assembly.GetExecutingAssembly().Location.Replace("\\", "/"));
+                    //    writer.Flush();
+                    //}
+                    if (File.Exists(urlFile))
+                        File.Delete(urlFile);
+                    var registryKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+                    registryKey?.SetValue("Jamcast Bootstrap", Assembly.GetExecutingAssembly().Location);
+                }
+                catch { }
+            }
 
             Status = "Reading Configuration";
 
@@ -182,19 +183,19 @@ namespace Bootstrap
                 _oAuthEndpoint = reader.ReadToEnd().Trim();
             }
 
-			var locdir = Path.GetDirectoryName (typeof(Program).Assembly.Location);
+			
 
-			if (string.IsNullOrWhiteSpace (project) && File.Exists (Path.Combine (locdir, "project.txt")))
-				project = File.ReadAllText (Path.Combine (locdir, "project.txt")).Trim();
-			if (string.IsNullOrWhiteSpace (_oAuthEndpoint) && File.Exists (Path.Combine (locdir, "endpoint.txt")))
-				_oAuthEndpoint = File.ReadAllText (Path.Combine (locdir, "endpoint.txt")).Trim();
+			if (string.IsNullOrWhiteSpace (project) && File.Exists (Path.Combine (Platform.AssemblyLocation, "project.txt")))
+				project = File.ReadAllText (Path.Combine (Platform.AssemblyLocation, "project.txt")).Trim();
+			if (string.IsNullOrWhiteSpace (_oAuthEndpoint) && File.Exists (Path.Combine (Platform.AssemblyLocation, "endpoint.txt")))
+				_oAuthEndpoint = File.ReadAllText (Path.Combine (Platform.AssemblyLocation, "endpoint.txt")).Trim();
 
             if (string.IsNullOrWhiteSpace(project) || string.IsNullOrWhiteSpace(_oAuthEndpoint))
             {
                 throw new InvalidOperationException("This bootstrap is not configured correctly.");
             }
 
-			if (IsRunningOnMono)
+			if (Platform.IsRunningOnMono)
 				_oAuthEndpoint = _oAuthEndpoint.Replace ("https", "http");
 
             Status = "Setting Up Packages";
@@ -479,7 +480,7 @@ namespace Bootstrap
                 Source = guid.ToString(),
                 Type = "ping",
                 Hostname = Host,
-				Platform = GetPlatform().Platform,
+				Platform = Platform.GetPlatform().Platform,
                 Role = Role,
                 HasReceivedVersionInformation = HasReceivedVersionInformation,
                 IPAddresses = ipaddresses,

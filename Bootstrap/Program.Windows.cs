@@ -174,10 +174,10 @@ namespace Bootstrap
 			}
 			catch (Exception c)
 			{
-				var locdir = Path.GetDirectoryName(typeof(Program).Assembly.Location);
-				if (File.Exists(Path.Combine(locdir, name)))
+				var Platform.AssemblyLocation = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+				if (File.Exists(Path.Combine(Platform.AssemblyLocation, name)))
 				{
-					using (var fs = File.OpenRead(Path.Combine(locdir, name)))
+					using (var fs = File.OpenRead(Path.Combine(Platform.AssemblyLocation, name)))
 					{
 						return new Icon(fs, new Size(16, 16));
 					}

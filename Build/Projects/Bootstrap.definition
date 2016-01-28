@@ -11,6 +11,7 @@
   </References>
   <Files>
     <Compile Include="Package.cs" />
+    <Compile Include="Platform.cs" />
     <Compile Include="Prerun.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Program.Windows.cs" />

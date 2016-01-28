@@ -57,11 +57,9 @@ namespace Bootstrap
 
         public static void ExtractAllSatellites()
         {
-            var locdir = Path.GetDirectoryName (Assembly.GetExecutingAssembly().Location);
-
             foreach (var item in Assembly.GetExecutingAssembly().GetManifestResourceNames())
             {
-                if (item.Contains(".dll") && !File.Exists(Path.Combine(locdir, item)))
+                if (item.Contains(".dll") && !File.Exists(Path.Combine(Platform.AssemblyLocation, item)))
                 {
                     using (var assemblyStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(item))
                     {
