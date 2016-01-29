@@ -13,7 +13,6 @@ namespace Controller
         public bool WaitingForPing;
         public IPAddress[] IPAddresses;
         public string[] MACAddresses;
-        public DateTime LastContact;
         public int CloudOperationsRequested;
         public string EmailAddress;
         public string FullName;

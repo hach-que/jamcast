@@ -51,6 +51,13 @@ namespace Client
                         }));
                     }
                 }
+                catch (Exception ex)
+                {
+                    this.Invoke(new Action(() =>
+                    {
+                        _error.Text = ex.Message;
+                    }));
+                }
                 finally
                 {
                     this.Invoke(new Action(() =>
@@ -68,7 +75,7 @@ namespace Client
 
         private async Task<AuthInfo> Authenticate(string emailAddress, string password)
         {
-            var url = @"https://melbggj16.info/jamcast/authenticate/api";
+            var url = @"http://melbggj16.info/jamcast/authenticate/api";
             var client = new WebClient();
 
             var result = await client.UploadValuesTaskAsync(url, "POST", new NameValueCollection

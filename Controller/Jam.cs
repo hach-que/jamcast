@@ -144,7 +144,6 @@ namespace Controller
                             Role = (Role)Enum.Parse(typeof(Role), (string)data.Role),
                             HasReceivedVersionInformation = (bool)(data.HasReceivedVersionInformation ?? false),
                             WaitingForPing = false,
-                            LastContact = DateTime.UtcNow,
                             IPAddresses = ipaddresses.ToArray(),
                             MACAddresses = macaddresses.ToArray(),
                             CloudOperationsRequested = 0,
@@ -163,7 +162,6 @@ namespace Controller
                         computer.Role = (Role)Enum.Parse(typeof(Role), (string)data.Role);
                         computer.HasReceivedVersionInformation = (bool) (data.HasReceivedVersionInformation ?? false);
                         computer.WaitingForPing = false;
-                        computer.LastContact = DateTime.UtcNow;
                         computer.IPAddresses = ipaddresses.ToArray();
                         computer.MACAddresses = macaddresses.ToArray();
                         computer.CloudOperationsRequested = ((int?)data.CloudOperationsRequested ?? 0);

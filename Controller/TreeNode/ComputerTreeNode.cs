@@ -93,7 +93,7 @@ namespace Controller.TreeNode
                 {
                     if (this.UpdateText() || this.UpdateImage())
                     {
-                        if ((DateTime.UtcNow - _lastTimeThisWasUpdated).TotalMilliseconds > 20)
+                        if ((DateTime.UtcNow - _lastTimeThisWasUpdated).TotalMilliseconds > 500)
                         {
                             TreeView.Refresh();
                             _lastTimeThisWasUpdated = DateTime.UtcNow;
@@ -108,7 +108,7 @@ namespace Controller.TreeNode
 
                     if (TreeView != null)
                     {
-                        if ((DateTime.UtcNow - _lastTimeThisWasUpdated).TotalMilliseconds > 20)
+                        if ((DateTime.UtcNow - _lastTimeThisWasUpdated).TotalMilliseconds > 500)
                         {
                             TreeView.Refresh();
                             _lastTimeThisWasUpdated = DateTime.UtcNow;
@@ -144,7 +144,7 @@ namespace Controller.TreeNode
             Text = Computer.Hostname;
             if (Computer.WaitingForPing)
             {
-                var span = DateTime.UtcNow - Computer.LastContact;
+                var span = DateTime.UtcNow - Computer.LastTimeControllerRecievedMessageFromBootstrap;
                 Text += " (" + (int)Math.Floor(span.TotalMinutes) + ":" + span.Seconds.ToString("D2") + " since last contact)";
             }
             else if (Computer.EmailAddress != null)
@@ -184,7 +184,7 @@ namespace Controller.TreeNode
                             {
                                 this.ImageKey = @"monitor_never_sent.fw.png";
                             }
-                            else if (Computer.LastTimeBootstrapSentAMessage < DateTime.UtcNow.AddMinutes(-10))
+                            else if (Computer.LastTimeControllerRecievedMessageFromBootstrap < DateTime.UtcNow.AddMinutes(-10))
                             {
                                 this.ImageKey = @"monitor_not_responding.fw.png";
                             }

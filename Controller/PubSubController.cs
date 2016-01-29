@@ -225,6 +225,7 @@ namespace Controller
                         }
                         catch (Exception ex)
                         {
+                            Debug.WriteLine(ex);
                             break;
                         }
                     }
