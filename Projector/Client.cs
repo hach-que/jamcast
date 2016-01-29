@@ -100,7 +100,7 @@ namespace JamCast
                 var srm = new EndStreamingMessage(this.m_Queue.TcpSelf);
                 srm.SendTCP(this.p_Source);
 
-                FfplayProcess.Kill();
+                FfplayProcess?.Kill();
                 FfplayProcess = null;
             }
             catch (SocketException)
