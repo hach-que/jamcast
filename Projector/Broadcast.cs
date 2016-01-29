@@ -147,7 +147,7 @@ namespace JamCast
                 right
                 );
 
-            if (span.Hours < 2)
+            if (span.TotalHours < 2)
             {
                 string str = "";
                 if (span.Ticks < 0)
@@ -155,7 +155,7 @@ namespace JamCast
                 else
                     str = hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ";
 
-                if (span.Hours > 1 || Math.Floor((double)span.Milliseconds / 500) % 2 == 0 || span.Seconds < 0)
+                if (span.TotalHours > 1 || Math.Floor((double)span.Milliseconds / 500) % 2 == 0 || span.Seconds < 0)
                 {
                     // Draw the COUNTDOWN! (center)
                     e.Graphics.DrawString(

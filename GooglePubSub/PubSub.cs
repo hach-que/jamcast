@@ -271,6 +271,12 @@ namespace GooglePubSub
                             }
                             else
                             {
+                                var exx = ex.Response as HttpWebResponse;
+                                if (exx.StatusCode == HttpStatusCode.BadGateway || exx.StatusCode == HttpStatusCode.GatewayTimeout)
+                                {
+                                    // Just let the long poll happen again.
+                                    responseSerialized = "{}";
+                                }
                                 throw;
                             }
                         }
