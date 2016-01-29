@@ -41,7 +41,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="SlackController.cs" />
     <Compile Include="Twitter.cs" />
     <EmbeddedResource Include="Broadcast.resx">
       <DependentUpon>Broadcast.cs</DependentUpon>
