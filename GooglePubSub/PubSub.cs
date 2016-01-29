@@ -441,7 +441,122 @@ namespace GooglePubSub
                 "DELETE",
                 string.Empty);
         }
-        
+
+        public void ClearQueue()
+        {
+            CheckToken();
+
+            Debug.WriteLine("CLEAR QUEUE START");
+
+            if (_subscriptions.Count == 0)
+            {
+                throw new InvalidOperationException("You can't poll when you're not subscribed to anything!");
+            }
+
+            var webClients = new ConcurrentBag<WebClient>();
+            var cancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = cancellationTokenSource.Token;
+            var tasks = (from topicSubscription in _subscriptions
+                         select Task.Run(async () =>
+                         {
+                             var didAck = 10000;
+                             while (didAck > 0)
+                             {
+                                 didAck = 0;
+
+                                 var request = new
+                                 {
+                                     maxMessages = 10000,
+                                     returnImmediately = true,
+                                 };
+                                 var requestSerialized = JsonConvert.SerializeObject(request);
+                                 try
+                                 {
+                                     Debug.WriteLine("CLEAR QUEUE TASK STARTED OPERATION");
+
+                                     string responseSerialized;
+                                     try
+                                     {
+                                         using (var client = MakeClient())
+                                         {
+                                             webClients.Add(client);
+                                             OperationsRequested++;
+                                             responseSerialized = await client.UploadStringTaskAsync(
+                                                 "https://pubsub.googleapis.com/v1/projects/" + _projectName + "/subscriptions/" +
+                                                 topicSubscription + ":pull",
+                                                 "POST",
+                                                 requestSerialized);
+                                         }
+                                     }
+                                     catch (WebException ex)
+                                     {
+                                         if (ex.Status == WebExceptionStatus.KeepAliveFailure)
+                                         {
+                                             // This is expected for long polling.
+                                             responseSerialized = "{}";
+                                         }
+                                         else
+                                         {
+                                             var exx = ex.Response as HttpWebResponse;
+                                             if (exx.StatusCode == HttpStatusCode.BadGateway || exx.StatusCode == HttpStatusCode.GatewayTimeout)
+                                             {
+                                                 // Just let the long poll happen again.
+                                                 responseSerialized = "{}";
+                                             }
+                                             throw;
+                                         }
+                                     }
+
+                                     Debug.WriteLine("CLEAR QUEUE TASK RESPONSE RECEIVED");
+
+                                     var toAck = new List<string>();
+
+                                     var response = JsonConvert.DeserializeObject<dynamic>(responseSerialized);
+                                     if (response.receivedMessages != null)
+                                     {
+                                         foreach (var msg in response.receivedMessages)
+                                         {
+                                             toAck.Add((string)msg.ackId);
+                                         }
+                                     }
+
+                                     Debug.WriteLine("To clear: " + toAck.Count);
+
+                                     var ackRequest = new
+                                     {
+                                         ackIds = toAck.ToArray()
+                                     };
+                                     var ackRequestSerialized = JsonConvert.SerializeObject(ackRequest);
+                                     using (var client2 = MakeClient())
+                                     {
+                                         client2.UploadString(
+                                              "https://pubsub.googleapis.com/v1/projects/" + _projectName + "/subscriptions/" +
+                                              topicSubscription + ":acknowledge",
+                                             "POST",
+                                             ackRequestSerialized);
+                                     }
+
+                                     Debug.WriteLine("Acked: " + toAck.Count);
+
+                                     didAck = toAck.Count;
+                                 }
+                                 finally
+                                 {
+                                     Debug.WriteLine("CLEAR QUEUE TASK FINISHED OPERATION");
+                                 }
+                             }
+                         }, cancellationToken)).ToArray();
+
+            Task.WaitAll(tasks);
+
+            Debug.WriteLine("CLEAR QUEUE FINISHED");
+
+            if (tasks.Any(x => x.Status == TaskStatus.Faulted))
+            {
+                throw new AggregateException(tasks.Where(x => x.Exception != null).SelectMany(x => x.Exception.InnerExceptions));
+            }
+        }
+
         /// <summary>
         /// Deletes the given Pub/Sub topic.  The arguments passed to this
         /// function should be the same as those passed to <see cref="CreateTopic"/>.

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using GooglePubSub;
 using Newtonsoft.Json;
+using System.Linq;
 
 namespace Controller
 {
@@ -24,7 +25,7 @@ namespace Controller
         private ConcurrentDictionary<Guid, PubSubConnectionStatus> m_IsConnected;
         private Dictionary<Guid, ConcurrentQueue<dynamic>> m_JamQueues;
         private Dictionary<Guid, int> _pubSubOperations;
-        private PubSub _currentPubSub;
+        public PubSub _currentPubSub;
 
         public PubSubController(MainForm form)
         {
@@ -125,7 +126,7 @@ namespace Controller
 
                                     try
                                     {
-                                        var messages = pubsub.Poll(10, false);
+                                        var messages = pubsub.Poll(1000, false);
                                         foreach (var message in messages)
                                         {
                                             message.Acknowledge();
@@ -183,6 +184,15 @@ namespace Controller
                                     dynamic value;
                                     if (m_JamQueues[jam.Guid].TryDequeue(out value))
                                     {
+                                        if ((string)value.Target != null)
+                                        {
+                                            var computer = jam.Computers.FirstOrDefault(x => x.Guid.ToString() == (string)value.Target);
+                                            if (computer != null)
+                                            {
+                                                computer.LastTimeControllerSentMessageToBootstrap = DateTime.UtcNow;
+                                            }
+                                        }
+
                                         switch ((string) value.Type)
                                         {
                                             case "pong":
@@ -245,14 +255,20 @@ namespace Controller
         {
             var bootstrapTopic = GetBootstrapTopic(pubsub, bootstrapGuid);
 
-            var sendTime = DateTime.UtcNow;
+            DateTime sendTime = DateTime.UtcNow;
             DateTime? lastRecieveTime = null;
 
             if (computer != null)
             {
-                computer.SendTime = DateTime.UtcNow;
-                sendTime = computer.SendTime;
-                lastRecieveTime = computer.LastRecieveTime;
+                computer.LastTimeControllerSentMessageToBootstrap = sendTime;
+                lastRecieveTime = computer.LastTimeControllerRecievedMessageFromBootstrap;
+            }
+            else
+            {
+                foreach (var c in jam.Computers)
+                {
+                    c.LastTimeControllerSentMessageToBootstrap = sendTime;
+                }
             }
 
             try {
@@ -296,7 +312,7 @@ namespace Controller
         private void SendDesignate(PubSub pubsub, string bootstrapGuid, string target, string role)
         {
             var bootstrapTopic = GetBootstrapTopic(pubsub, bootstrapGuid);
-
+            
             pubsub.Publish(bootstrapTopic, Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
             {
                 Target = target,

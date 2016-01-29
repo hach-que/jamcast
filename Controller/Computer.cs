@@ -18,8 +18,10 @@ namespace Controller
         public string EmailAddress;
         public string FullName;
 
-        public DateTime? LastRecieveTime;
-        public DateTime SendTime;
+        public DateTime LastTimeControllerSentMessageToBootstrap;
+        public DateTime LastTimeControllerRecievedMessageFromBootstrap;
+        public DateTime? LastTimeBootstrapSentAMessage;
+        public DateTime? LastTimeBootstrapRecievedAMessageFromControllerAndAckedIt;
 
         [NonSerialized]
         public bool HasWaitingTask;

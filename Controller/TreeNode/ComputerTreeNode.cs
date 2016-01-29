@@ -91,27 +91,28 @@ namespace Controller.TreeNode
             {
                 TreeView?.Invoke(new Action(() =>
                 {
-                    this.UpdateText();
-                    this.UpdateImage();
-
-                    if ((DateTime.UtcNow - _lastTimeThisWasUpdated).TotalMilliseconds > 20)
+                    if (this.UpdateText() || this.UpdateImage())
                     {
-                        TreeView.Refresh();
-                        _lastTimeThisWasUpdated = DateTime.UtcNow;
+                        if ((DateTime.UtcNow - _lastTimeThisWasUpdated).TotalMilliseconds > 20)
+                        {
+                            TreeView.Refresh();
+                            _lastTimeThisWasUpdated = DateTime.UtcNow;
+                        }
                     }
                 }));
             }
             else
             {
-                this.UpdateText();
-                this.UpdateImage();
-
-                if (TreeView != null)
+                if (this.UpdateText() || this.UpdateImage())
                 {
-                    if ((DateTime.UtcNow - _lastTimeThisWasUpdated).TotalMilliseconds > 20)
+
+                    if (TreeView != null)
                     {
-                        TreeView.Refresh();
-                        _lastTimeThisWasUpdated = DateTime.UtcNow;
+                        if ((DateTime.UtcNow - _lastTimeThisWasUpdated).TotalMilliseconds > 20)
+                        {
+                            TreeView.Refresh();
+                            _lastTimeThisWasUpdated = DateTime.UtcNow;
+                        }
                     }
                 }
             }
@@ -137,18 +138,27 @@ namespace Controller.TreeNode
             }
         }
 
-        private void UpdateText()
+        private bool UpdateText()
         {
+            var oldText = Text;
             Text = Computer.Hostname;
             if (Computer.WaitingForPing)
             {
                 var span = DateTime.UtcNow - Computer.LastContact;
                 Text += " (" + (int)Math.Floor(span.TotalMinutes) + ":" + span.Seconds.ToString("D2") + " since last contact)";
             }
+            else if (Computer.EmailAddress != null)
+            {
+                Text += " (" + Computer.EmailAddress + ")";
+            }
+
+            return (oldText != Text);
         }
 
-        private void UpdateImage()
+        private bool UpdateImage()
         {
+            var oldImage = this.ImageKey;
+
             if (Computer.WaitingForPing)
             {
                 this.ImageKey = @"bullet_red.png";
@@ -169,8 +179,25 @@ namespace Controller.TreeNode
                 switch (Computer.Role)
                 {
                     case Role.Client:
-                        this.ImageKey = @"monitor.png";
-                        break;
+                        {
+                            if (Computer.LastTimeControllerSentMessageToBootstrap == null)
+                            {
+                                this.ImageKey = @"monitor_never_sent.fw.png";
+                            }
+                            else if (Computer.LastTimeBootstrapSentAMessage < DateTime.UtcNow.AddMinutes(-10))
+                            {
+                                this.ImageKey = @"monitor_not_responding.fw.png";
+                            }
+                            else if (Computer.EmailAddress == null)
+                            {
+                                this.ImageKey = @"monitor_not_authed.png";
+                            }
+                            else
+                            {
+                                this.ImageKey = @"monitor.png";
+                            }
+                            break;
+                        }
                     case Role.Projector:
                         this.ImageKey = @"photo.png";
                         break;
@@ -179,6 +206,8 @@ namespace Controller.TreeNode
 
             this.SelectedImageKey = this.ImageKey;
             this.StateImageKey = this.ImageKey;
+
+            return (this.ImageKey != oldImage);
         }
     }
 }

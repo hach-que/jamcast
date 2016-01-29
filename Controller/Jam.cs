@@ -14,9 +14,6 @@ namespace Controller
 {
     public class Jam
     {
-        [NonSerialized]
-        private PubSub _pubSub;
-
         [NonSerialized] private JamTreeNode _node;
 
         public Jam(Guid guid, string name)
@@ -60,6 +57,9 @@ namespace Controller
 
         public string MacAddressReportingEndpointURL;
 
+        [NonSerialized]
+        internal PubSubController _pubSubController;
+
         public void SetTreeNode(JamTreeNode node)
         {
             _node = node;
@@ -87,12 +87,19 @@ namespace Controller
             {
                 case "ping":
                     var guid = Guid.Parse(source);
+                    
+                    var lastSendTime = (DateTime?)data.SendTime;
+                    var lastRecieveTime = (DateTime?)data.LastRecieveTime;
 
-                    var lastRecievedTime = (DateTime?)data.SendTime;
-
-                    if (lastRecievedTime != null && lastRecievedTime < DateTime.UtcNow.AddMinutes(-10))
+                    if (lastSendTime != null && lastSendTime < DateTime.UtcNow.AddMinutes(-10))
                     {
                         System.Diagnostics.Debug.WriteLine("Ignored message from " + (string)data.Hostname + " because it's too old.");
+                        return;
+                    }
+
+                    if (lastSendTime == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Computer is offline or way out of date: " + (string)data.Hostname);
                         return;
                     }
 
@@ -143,6 +150,9 @@ namespace Controller
                             CloudOperationsRequested = 0,
                             FullName = (string)data.FullName,
                             EmailAddress = (string)data.EmailAddress,
+                            LastTimeControllerRecievedMessageFromBootstrap = DateTime.UtcNow,
+                            LastTimeBootstrapSentAMessage = lastSendTime,
+                            LastTimeBootstrapRecievedAMessageFromControllerAndAckedIt = lastRecieveTime,
                         };
                         computerToSubmit = computer;
                     }
@@ -159,6 +169,9 @@ namespace Controller
                         computer.CloudOperationsRequested = ((int?)data.CloudOperationsRequested ?? 0);
                         computer.FullName = (string)data.FullName;
                         computer.EmailAddress = (string)data.EmailAddress;
+                        computer.LastTimeControllerRecievedMessageFromBootstrap = DateTime.UtcNow;
+                        computer.LastTimeBootstrapSentAMessage = lastSendTime;
+                        computer.LastTimeBootstrapRecievedAMessageFromControllerAndAckedIt = lastRecieveTime;
                         computerToSubmit = computer;
                     }
 

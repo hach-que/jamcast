@@ -30,10 +30,14 @@ namespace GooglePubSub
                 }
             };
             var requestSerialized = JsonConvert.SerializeObject(request);
-            var responseSerialized = _client.UploadString(
-                _subscriptionUrl,
-                "POST",
-                requestSerialized);
+            try
+            {
+                var responseSerialized = _client.UploadString(
+                    _subscriptionUrl,
+                    "POST",
+                    requestSerialized);
+            }
+            catch { }
         }
     }
 }

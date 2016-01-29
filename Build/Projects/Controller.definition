@@ -90,6 +90,8 @@
     <None Include="Resources\bullet_orange.png" />
     <None Include="Resources\bullet_red.png" />
     <None Include="Resources\monitor.png" />
+    <None Include="Resources\monitor_never_sent.fw.png" />
+    <None Include="Resources\monitor_not_authed.png" />
     <None Include="Resources\photo.png" />
     <None Include="Resources\transmit.png" />
     <None Include="Resources\transmit_delete.png" />

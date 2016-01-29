@@ -47,7 +47,7 @@
             this.c_JamHierarchy.Location = new System.Drawing.Point(0, 0);
             this.c_JamHierarchy.Name = "c_JamHierarchy";
             this.c_JamHierarchy.SelectedImageIndex = 0;
-            this.c_JamHierarchy.Size = new System.Drawing.Size(323, 541);
+            this.c_JamHierarchy.Size = new System.Drawing.Size(510, 541);
             this.c_JamHierarchy.TabIndex = 1;
             this.c_JamHierarchy.AfterLabelEdit += new System.Windows.Forms.NodeLabelEditEventHandler(this.c_JamHierarchy_AfterLabelEdit);
             this.c_JamHierarchy.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.c_JamHierarchy_NodeMouseDoubleClick);
@@ -79,6 +79,9 @@
             this.imageList1.Images.SetKeyName(6, "transmit_delete.png");
             this.imageList1.Images.SetKeyName(7, "transmit_go.png");
             this.imageList1.Images.SetKeyName(8, "error.png");
+            this.imageList1.Images.SetKeyName(9, "monitor_never_sent.fw.png");
+            this.imageList1.Images.SetKeyName(10, "monitor_not_authed.png");
+            this.imageList1.Images.SetKeyName(11, "monitor_not_responding.fw.png");
             // 
             // MainForm
             // 

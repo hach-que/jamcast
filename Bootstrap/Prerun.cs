@@ -11,8 +11,8 @@ namespace Bootstrap
 
         internal static void Main(string[] args)
         {
-            if (IsRunningOnMono) // It's everyone's favorite mono runtime!
-                ExtractAllSatellites();
+            //if (IsRunningOnMono) // It's everyone's favorite mono runtime!
+            ExtractAllSatellites();
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             Program.RealMain(args);
@@ -59,6 +59,10 @@ namespace Bootstrap
         {
             foreach (var item in Assembly.GetExecutingAssembly().GetManifestResourceNames())
             {
+                if (item.Contains(".dll") && File.Exists(Path.Combine(Platform.AssemblyLocation, item)))
+                {
+                    File.Delete(Path.Combine(Platform.AssemblyLocation, item));
+                }
                 if (item.Contains(".dll") && !File.Exists(Path.Combine(Platform.AssemblyLocation, item)))
                 {
                     using (var assemblyStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(item))

@@ -422,5 +422,16 @@ namespace Controller.Forms
             var uploadName = Path.GetFileNameWithoutExtension(filename) + "." + unixTimestamp + Path.GetExtension(filename);
             return storage.Upload(data, uploadName, progress).Result;
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // Just do this inline.
+            if (JamTreeNode.Jam._pubSubController == null || JamTreeNode.Jam._pubSubController._currentPubSub == null)
+            {
+                return;
+            }
+
+            JamTreeNode.Jam._pubSubController._currentPubSub.ClearQueue();
+        }
     }
 }

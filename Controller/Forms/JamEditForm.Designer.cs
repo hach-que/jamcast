@@ -54,6 +54,8 @@
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this._pubSubOperationsText = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.button1 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -223,7 +225,7 @@
             this.m_SlackConnectionStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.m_SlackConnectionStatus.BackColor = System.Drawing.Color.LightCoral;
             this.m_SlackConnectionStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.m_SlackConnectionStatus.Location = new System.Drawing.Point(-2, 553);
+            this.m_SlackConnectionStatus.Location = new System.Drawing.Point(-2, 600);
             this.m_SlackConnectionStatus.Name = "m_SlackConnectionStatus";
             this.m_SlackConnectionStatus.Size = new System.Drawing.Size(410, 35);
             this.m_SlackConnectionStatus.TabIndex = 9;
@@ -233,7 +235,7 @@
             // label2
             // 
             this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label2.Location = new System.Drawing.Point(12, 444);
+            this.label2.Location = new System.Drawing.Point(12, 491);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(240, 41);
             this.label2.TabIndex = 11;
@@ -243,7 +245,7 @@
             // c_PackageAndDeploy
             // 
             this.c_PackageAndDeploy.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.c_PackageAndDeploy.Location = new System.Drawing.Point(262, 442);
+            this.c_PackageAndDeploy.Location = new System.Drawing.Point(262, 489);
             this.c_PackageAndDeploy.Name = "c_PackageAndDeploy";
             this.c_PackageAndDeploy.Size = new System.Drawing.Size(124, 43);
             this.c_PackageAndDeploy.TabIndex = 10;
@@ -254,7 +256,7 @@
             // label3
             // 
             this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label3.Location = new System.Drawing.Point(12, 496);
+            this.label3.Location = new System.Drawing.Point(12, 543);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(240, 41);
             this.label3.TabIndex = 13;
@@ -264,7 +266,7 @@
             // c_PackageAndDeployNoBootstrap
             // 
             this.c_PackageAndDeployNoBootstrap.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.c_PackageAndDeployNoBootstrap.Location = new System.Drawing.Point(262, 494);
+            this.c_PackageAndDeployNoBootstrap.Location = new System.Drawing.Point(262, 541);
             this.c_PackageAndDeployNoBootstrap.Name = "c_PackageAndDeployNoBootstrap";
             this.c_PackageAndDeployNoBootstrap.Size = new System.Drawing.Size(124, 43);
             this.c_PackageAndDeployNoBootstrap.TabIndex = 12;
@@ -300,11 +302,31 @@
             this.label8.TabIndex = 1;
             this.label8.Text = "Pub/Sub Operations:";
             // 
+            // label9
+            // 
+            this.label9.Location = new System.Drawing.Point(12, 442);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(240, 41);
+            this.label9.TabIndex = 15;
+            this.label9.Text = "Clears the entire queue of all bootstrap messages.";
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(262, 440);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(124, 43);
+            this.button1.TabIndex = 14;
+            this.button1.Text = "Clear Entire Message Queue";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // JamEditForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(406, 588);
+            this.ClientSize = new System.Drawing.Size(406, 635);
+            this.Controls.Add(this.label9);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.c_PackageAndDeployNoBootstrap);
@@ -356,5 +378,7 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.TextBox _macAddressReportingEndpoint;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Button button1;
     }
 }

@@ -44,6 +44,14 @@
             this._close = new System.Windows.Forms.Button();
             this._viewScreen = new System.Windows.Forms.Button();
             this._updateTimer = new System.Windows.Forms.Timer(this.components);
+            this._lastTimeControllerSentMessageToBootstrapTextBox = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this._lastTimeControllerRecievedMessageFromBootstrapTextBox = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this._lastTimeBootstrapSentAMessageTextBox = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this._lastTimeBootstrapRecievedAMessageFromControllerAndAckedItTextBox = new System.Windows.Forms.TextBox();
+            this.label9 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label4
@@ -60,7 +68,7 @@
             this._emailAddress.Enabled = false;
             this._emailAddress.Location = new System.Drawing.Point(141, 12);
             this._emailAddress.Name = "_emailAddress";
-            this._emailAddress.Size = new System.Drawing.Size(253, 20);
+            this._emailAddress.Size = new System.Drawing.Size(286, 20);
             this._emailAddress.TabIndex = 0;
             // 
             // _fullName
@@ -68,7 +76,7 @@
             this._fullName.Enabled = false;
             this._fullName.Location = new System.Drawing.Point(141, 38);
             this._fullName.Name = "_fullName";
-            this._fullName.Size = new System.Drawing.Size(253, 20);
+            this._fullName.Size = new System.Drawing.Size(286, 20);
             this._fullName.TabIndex = 2;
             // 
             // c_ControllerSlackAPITokenLabel
@@ -94,13 +102,14 @@
             this._hostname.Enabled = false;
             this._hostname.Location = new System.Drawing.Point(141, 64);
             this._hostname.Name = "_hostname";
-            this._hostname.Size = new System.Drawing.Size(253, 20);
+            this._hostname.Size = new System.Drawing.Size(286, 20);
             this._hostname.TabIndex = 4;
             // 
             // label2
             // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(11, 93);
+            this.label2.Location = new System.Drawing.Point(11, 204);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(120, 13);
             this.label2.TabIndex = 7;
@@ -108,26 +117,29 @@
             // 
             // _ipAddresses
             // 
+            this._ipAddresses.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this._ipAddresses.Enabled = false;
-            this._ipAddresses.Location = new System.Drawing.Point(13, 116);
+            this._ipAddresses.Location = new System.Drawing.Point(13, 227);
             this._ipAddresses.Multiline = true;
             this._ipAddresses.Name = "_ipAddresses";
-            this._ipAddresses.Size = new System.Drawing.Size(380, 110);
+            this._ipAddresses.Size = new System.Drawing.Size(413, 110);
             this._ipAddresses.TabIndex = 8;
             // 
             // _macAddresses
             // 
+            this._macAddresses.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this._macAddresses.Enabled = false;
-            this._macAddresses.Location = new System.Drawing.Point(14, 260);
+            this._macAddresses.Location = new System.Drawing.Point(14, 371);
             this._macAddresses.Multiline = true;
             this._macAddresses.Name = "_macAddresses";
-            this._macAddresses.Size = new System.Drawing.Size(380, 110);
+            this._macAddresses.Size = new System.Drawing.Size(413, 110);
             this._macAddresses.TabIndex = 10;
             // 
             // label3
             // 
+            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 237);
+            this.label3.Location = new System.Drawing.Point(12, 348);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(133, 13);
             this.label3.TabIndex = 9;
@@ -135,16 +147,18 @@
             // 
             // _cloudOperations
             // 
+            this._cloudOperations.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this._cloudOperations.Enabled = false;
-            this._cloudOperations.Location = new System.Drawing.Point(141, 376);
+            this._cloudOperations.Location = new System.Drawing.Point(141, 487);
             this._cloudOperations.Name = "_cloudOperations";
-            this._cloudOperations.Size = new System.Drawing.Size(253, 20);
+            this._cloudOperations.Size = new System.Drawing.Size(286, 20);
             this._cloudOperations.TabIndex = 11;
             // 
             // label5
             // 
+            this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(11, 379);
+            this.label5.Location = new System.Drawing.Point(11, 490);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(91, 13);
             this.label5.TabIndex = 12;
@@ -152,7 +166,8 @@
             // 
             // _close
             // 
-            this._close.Location = new System.Drawing.Point(12, 407);
+            this._close.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this._close.Location = new System.Drawing.Point(12, 518);
             this._close.Name = "_close";
             this._close.Size = new System.Drawing.Size(189, 42);
             this._close.TabIndex = 13;
@@ -162,8 +177,9 @@
             // 
             // _viewScreen
             // 
+            this._viewScreen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this._viewScreen.Enabled = false;
-            this._viewScreen.Location = new System.Drawing.Point(204, 407);
+            this._viewScreen.Location = new System.Drawing.Point(237, 518);
             this._viewScreen.Name = "_viewScreen";
             this._viewScreen.Size = new System.Drawing.Size(189, 42);
             this._viewScreen.TabIndex = 14;
@@ -175,11 +191,87 @@
             this._updateTimer.Enabled = true;
             this._updateTimer.Tick += new System.EventHandler(this._updateTimer_Tick);
             // 
+            // _lastTimeControllerSentMessageToBootstrapTextBox
+            // 
+            this._lastTimeControllerSentMessageToBootstrapTextBox.Enabled = false;
+            this._lastTimeControllerSentMessageToBootstrapTextBox.Location = new System.Drawing.Point(287, 90);
+            this._lastTimeControllerSentMessageToBootstrapTextBox.Name = "_lastTimeControllerSentMessageToBootstrapTextBox";
+            this._lastTimeControllerSentMessageToBootstrapTextBox.Size = new System.Drawing.Size(139, 20);
+            this._lastTimeControllerSentMessageToBootstrapTextBox.TabIndex = 15;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(10, 93);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(234, 13);
+            this.label6.TabIndex = 16;
+            this.label6.Text = "Last time controller sent a message to bootstrap:";
+            // 
+            // _lastTimeControllerRecievedMessageFromBootstrapTextBox
+            // 
+            this._lastTimeControllerRecievedMessageFromBootstrapTextBox.Enabled = false;
+            this._lastTimeControllerRecievedMessageFromBootstrapTextBox.Location = new System.Drawing.Point(287, 116);
+            this._lastTimeControllerRecievedMessageFromBootstrapTextBox.Name = "_lastTimeControllerRecievedMessageFromBootstrapTextBox";
+            this._lastTimeControllerRecievedMessageFromBootstrapTextBox.Size = new System.Drawing.Size(140, 20);
+            this._lastTimeControllerRecievedMessageFromBootstrapTextBox.TabIndex = 17;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(11, 119);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(266, 13);
+            this.label7.TabIndex = 18;
+            this.label7.Text = "Last time controller recieved a message from bootstrap:";
+            // 
+            // _lastTimeBootstrapSentAMessageTextBox
+            // 
+            this._lastTimeBootstrapSentAMessageTextBox.Enabled = false;
+            this._lastTimeBootstrapSentAMessageTextBox.Location = new System.Drawing.Point(286, 142);
+            this._lastTimeBootstrapSentAMessageTextBox.Name = "_lastTimeBootstrapSentAMessageTextBox";
+            this._lastTimeBootstrapSentAMessageTextBox.Size = new System.Drawing.Size(140, 20);
+            this._lastTimeBootstrapSentAMessageTextBox.TabIndex = 19;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(10, 145);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(176, 13);
+            this.label8.TabIndex = 20;
+            this.label8.Text = "Last time bootstrap sent a message:";
+            // 
+            // _lastTimeBootstrapRecievedAMessageFromControllerAndAckedItTextBox
+            // 
+            this._lastTimeBootstrapRecievedAMessageFromControllerAndAckedItTextBox.Enabled = false;
+            this._lastTimeBootstrapRecievedAMessageFromControllerAndAckedItTextBox.Location = new System.Drawing.Point(287, 168);
+            this._lastTimeBootstrapRecievedAMessageFromControllerAndAckedItTextBox.Name = "_lastTimeBootstrapRecievedAMessageFromControllerAndAckedItTextBox";
+            this._lastTimeBootstrapRecievedAMessageFromControllerAndAckedItTextBox.Size = new System.Drawing.Size(140, 20);
+            this._lastTimeBootstrapRecievedAMessageFromControllerAndAckedItTextBox.TabIndex = 21;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(11, 171);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(255, 13);
+            this.label9.TabIndex = 22;
+            this.label9.Text = "Last time bootstrap acked a message from controller:";
+            // 
             // ClientEditForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(405, 459);
+            this.ClientSize = new System.Drawing.Size(438, 570);
+            this.Controls.Add(this._lastTimeBootstrapRecievedAMessageFromControllerAndAckedItTextBox);
+            this.Controls.Add(this.label9);
+            this.Controls.Add(this._lastTimeBootstrapSentAMessageTextBox);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this._lastTimeControllerRecievedMessageFromBootstrapTextBox);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this._lastTimeControllerSentMessageToBootstrapTextBox);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this._viewScreen);
             this.Controls.Add(this._close);
             this.Controls.Add(this._cloudOperations);
@@ -197,6 +289,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "ClientEditForm";
             this.Text = "ClientEditForm";
+            this.Load += new System.EventHandler(this.ClientEditForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -219,5 +312,13 @@
         private System.Windows.Forms.Button _close;
         private System.Windows.Forms.Button _viewScreen;
         private System.Windows.Forms.Timer _updateTimer;
+        private System.Windows.Forms.TextBox _lastTimeControllerSentMessageToBootstrapTextBox;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox _lastTimeControllerRecievedMessageFromBootstrapTextBox;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox _lastTimeBootstrapSentAMessageTextBox;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox _lastTimeBootstrapRecievedAMessageFromControllerAndAckedItTextBox;
+        private System.Windows.Forms.Label label9;
     }
 }

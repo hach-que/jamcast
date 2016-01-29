@@ -37,6 +37,28 @@ namespace Controller.Forms
             _ipAddresses.Text = ComputerTreeNode.Computer.IPAddresses.Select(x => x.ToString()).DefaultIfEmpty("None reported").Aggregate((a, b) => a + Environment.NewLine + b);
             _macAddresses.Text = ComputerTreeNode.Computer.MACAddresses.Select(x => x.ToString()).DefaultIfEmpty("None reported").Aggregate((a, b) => a + Environment.NewLine + b);
             _cloudOperations.Text = ComputerTreeNode.Computer.CloudOperationsRequested.ToString();
+
+            _lastTimeBootstrapSentAMessageTextBox.Text = FromDateTime(ComputerTreeNode.Computer.LastTimeBootstrapSentAMessage, "(no last sent message)");
+            _lastTimeControllerSentMessageToBootstrapTextBox.Text = FromDateTime(ComputerTreeNode.Computer.LastTimeControllerSentMessageToBootstrap, "(controller never sent message)");
+            _lastTimeControllerRecievedMessageFromBootstrapTextBox.Text = FromDateTime(ComputerTreeNode.Computer.LastTimeControllerRecievedMessageFromBootstrap, "(controller never recieved message)");
+            _lastTimeBootstrapRecievedAMessageFromControllerAndAckedItTextBox.Text = FromDateTime(ComputerTreeNode.Computer.LastTimeBootstrapRecievedAMessageFromControllerAndAckedIt, "(never acked)");
+        }
+
+        private string FromDateTime(DateTime? lastTimeBootstrapSentAMessage, string v)
+        {
+            if (lastTimeBootstrapSentAMessage == null)
+            {
+                return v;
+            }
+            else
+            {
+                return lastTimeBootstrapSentAMessage.Value.ToLocalTime().ToString();
+            }
+        }
+
+        private void ClientEditForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -20,6 +20,7 @@ namespace Controller
             foreach (var files in new DirectoryInfo(Environment.CurrentDirectory).GetFiles("*.jam"))
             {
                 var jam = Jam.Load(files.FullName);
+                jam._pubSubController = PubSubController;
                 var node = new JamTreeNode(jam);
                 jam.SetTreeNode(node);
                 c_JamHierarchy.Nodes.Add(node);
@@ -30,6 +31,7 @@ namespace Controller
         private void newJamToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var jam = new Jam(Guid.NewGuid(), "My New Jam");
+            jam._pubSubController = PubSubController;
             jam.Save();
             var node = new JamTreeNode(jam);
             jam.SetTreeNode(node);
