@@ -81,7 +81,7 @@ namespace Controller
             }
         }
 
-        public void ReceivedClientMessage(string source, dynamic data)
+        public void ReceivedClientMessage(PubSubController controller, string source, dynamic data)
         {
             switch ((string) data.Type)
             {
@@ -136,8 +136,6 @@ namespace Controller
                             FullName = (string)data.FullName,
                             EmailAddress = (string)data.EmailAddress,
                         };
-                        Computers.Add(computer);
-                        _node.NewComputerRegistered(computer);
                         computerToSubmit = computer;
                     }
                     else
@@ -153,11 +151,26 @@ namespace Controller
                         computer.CloudOperationsRequested = ((int?)data.CloudOperationsRequested ?? 0);
                         computer.FullName = (string)data.FullName;
                         computer.EmailAddress = (string)data.EmailAddress;
-                        foreach (var node in _node.Nodes.OfType<ComputerTreeNode>())
+                        computerToSubmit = computer;
+                    }
+
+                    if (!computerToSubmit.HasReceivedVersionInformation)
+                    {
+                        computerToSubmit.SentVersionInformation = true;
+                        controller.SendPong(guid, this);
+                    }
+
+                    if (Computers.All(x => x.Guid != guid))
+                    {
+                        Computers.Add(computerToSubmit);
+                        _node.NewComputerRegistered(computerToSubmit);
+                    }
+                    else
+                    {
+                        foreach (var node in _node.Nodes.OfType<ComputerTreeNode>().Where(x => x.Computer == computerToSubmit))
                         {
                             node.Update();
                         }
-                        computerToSubmit = computer;
                     }
 
                     if (!string.IsNullOrWhiteSpace(MacAddressReportingEndpointURL))

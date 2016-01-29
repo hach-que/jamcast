@@ -155,7 +155,14 @@ namespace Controller.TreeNode
             }
             else if (!Computer.HasReceivedVersionInformation)
             {
-                this.ImageKey = @"error.png";
+                if (Computer.SentVersionInformation)
+                {
+                    this.ImageKey = @"transmit.png";
+                }
+                else
+                {
+                    this.ImageKey = @"error.png";
+                }
             }
             else
             {

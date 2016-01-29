@@ -33,6 +33,8 @@ namespace Bootstrap
 	    private static MenuItem _threadWaitForMessagesMenuItem;
         private static MenuItem _threadUpdateContextMenuMenuItem;
         private static MenuItem _threadApplicationPumpMenuItem;
+        private static MenuItem _sendTimeMenuItem;
+        private static MenuItem _lastRecieveTimeMenuItem;
 
         public static void PlatformTraySetup()
 		{
@@ -63,6 +65,9 @@ namespace Bootstrap
                             _threadWaitForMessagesMenuItem = new MenuItem("Thread - Wait for Messages: " + GetStatusForThread(ThreadWaitForMessages)) { Enabled = false },
                             _threadUpdateContextMenuMenuItem = new MenuItem("Thread - Update Context Menu: " + GetStatusForThread(ThreadUpdateContextMenu)) { Enabled = false },
                             _threadApplicationPumpMenuItem = new MenuItem("Thread - Application Pump: " + GetStatusForThread(ThreadApplication)) { Enabled = false },
+                            new MenuItem("-"),
+                            _sendTimeMenuItem = new MenuItem("Last Message Sent: " + _sendTime) { Enabled = false },
+                            _lastRecieveTimeMenuItem = new MenuItem("Last Message Acked: " + (_lastRecieveTime == null ? "(no message recieved with timestamp yet)" : _lastRecieveTime.ToString())) { Enabled = false },
                             new MenuItem("-"),
 							_bootstrapVersionMenuItem = new MenuItem("Bootstrap Version: " + (Bootstrap == null ? "..." : Bootstrap.Version)) { Enabled = false },
 							_clientVersionMenuItem = new MenuItem("Client Version: " + (Client == null ? "..." : Client.Version)) { Enabled = false },
@@ -109,7 +114,10 @@ namespace Bootstrap
 								_projectorAvailableVersionMenuItem.Text = "Projector Available Version: " +
 								(Projector == null ? "..." : Projector.AvailableVersion);
 
-								if (LastContact == null || LastContact < DateTime.Now.AddSeconds(-60))
+                                _sendTimeMenuItem.Text = "Last Message Sent: " + _sendTime;
+                                _lastRecieveTimeMenuItem.Text = "Last Message Acked: " + (_lastRecieveTime == null ? "(no message recieved with timestamp yet)" : _lastRecieveTime.ToString());
+
+                                if (LastContact == null || LastContact < DateTime.Now.AddSeconds(-60))
 								{
 									_trayIcon.Icon = _trayIconNoContact;
 								}

@@ -78,6 +78,8 @@ namespace Bootstrap
         private static Thread ThreadUpdateContextMenu;
         private static Guid guid;
         private static string pingTopic;
+        private static DateTime _sendTime;
+        private static DateTime? _lastRecieveTime;
 
         private static Package Active
         {
@@ -469,6 +471,8 @@ namespace Bootstrap
                 }
             }
 
+            _sendTime = DateTime.UtcNow;
+
             pubsub.Publish(pingTopic, Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
             {
                 Source = guid.ToString(),
@@ -481,7 +485,9 @@ namespace Bootstrap
 				HWAddresses = hwaddresses,
                 CloudOperationsRequested = PubSub.OperationsRequested + 1,
                 FullName = fullName,
-                EmailAddress = emailAddress
+                EmailAddress = emailAddress,
+                SendTime = _sendTime,
+                LastRecieveTime = (DateTime?)_lastRecieveTime,
             }))), null);
         }
 
@@ -516,6 +522,19 @@ namespace Bootstrap
                                         // not for this client.
                                         continue;
                                     }
+                                }
+
+                                var lastRecieveTime = (DateTime?)m.SendTime;
+                                if (lastRecieveTime != null)
+                                {
+                                    if (_lastRecieveTime != null && lastRecieveTime < _lastRecieveTime)
+                                    {
+                                        // This message is out-of-order or out-of-date.
+                                        Debug.WriteLine("IGNORED OUT-OF-DATE MESSAGE: " + (string)m.Type);
+                                        continue;
+                                    }
+
+                                    _lastRecieveTime = lastRecieveTime;
                                 }
 
                                 Debug.WriteLine("GOT MESSAGE: " + (string) m.Type);

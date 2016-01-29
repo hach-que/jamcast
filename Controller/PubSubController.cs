@@ -24,6 +24,7 @@ namespace Controller
         private ConcurrentDictionary<Guid, PubSubConnectionStatus> m_IsConnected;
         private Dictionary<Guid, ConcurrentQueue<dynamic>> m_JamQueues;
         private Dictionary<Guid, int> _pubSubOperations;
+        private PubSub _currentPubSub;
 
         public PubSubController(MainForm form)
         {
@@ -112,6 +113,8 @@ namespace Controller
                             pubsub.CreateTopic("game-jam-controller");
                             pubsub.Subscribe("game-jam-controller", "controller");
 
+                            _currentPubSub = pubsub;
+
                             var pubsubCancellationSource = new CancellationTokenSource();
                             var pubsubCancellationToken = pubsubCancellationSource.Token;
                             var pubsubPollThread = new Thread(() =>
@@ -135,7 +138,7 @@ namespace Controller
                                                 var source = (string) m.Source;
                                                 _form.Invoke(new Action(() =>
                                                 {
-                                                    jam.ReceivedClientMessage(source, m);
+                                                    jam.ReceivedClientMessage(this, source, m);
                                                 }));
                                             }
                                             catch (Exception ex)
@@ -210,7 +213,7 @@ namespace Controller
                                 pubsub.Unsubscribe("game-jam-controller", "controller");
                             }
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
                             break;
                         }
@@ -233,13 +236,18 @@ namespace Controller
             }
         }
 
+        internal void SendPong(Guid guid, Jam jam)
+        {
+            SendPong(_currentPubSub, guid.ToString(), jam);
+        }
+
         private void SendPong(PubSub pubsub, string bootstrapGuid, Jam jam)
         {
             var bootstrapTopic = GetBootstrapTopic(pubsub, bootstrapGuid);
 
             pubsub.Publish(bootstrapTopic, Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
             {
-                Target = "",
+                Target = bootstrapGuid ?? "",
                 Type = "pong",
                 AvailableClientVersion = jam.AvailableClientVersion,
                 AvailableProjectorVersion = jam.AvailableProjectorVersion,

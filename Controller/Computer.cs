@@ -20,5 +20,7 @@ namespace Controller
 
         [NonSerialized]
         public bool HasWaitingTask;
+
+        public bool SentVersionInformation { get; internal set; }
     }
 }
