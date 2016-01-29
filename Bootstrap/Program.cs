@@ -136,7 +136,11 @@ namespace Bootstrap
 			}
 		}
 
-        internal static void RealMain(string[] args)
+#if PLATFORM_MACOS
+		internal static void InternalMain(string[] args)
+#else
+		internal static void Main(string[] args)
+#endif
         {
             int? processToKillOnSuccess = null;
             if (args.Length >= 1)
@@ -173,23 +177,14 @@ namespace Bootstrap
 
             Status = "Reading Configuration";
 
-            string project;
-            var projectStream = typeof(Program).Assembly.GetManifestResourceStream("Bootstrap.project.txt");
-            using (var reader = new StreamReader(projectStream))
-            {
-                project = reader.ReadToEnd().Trim();
-            }
-            var endpointStream = typeof(Program).Assembly.GetManifestResourceStream("Bootstrap.endpoint.txt");
-            using (var reader = new StreamReader(endpointStream))
-            {
-                _oAuthEndpoint = reader.ReadToEnd().Trim();
-            }
+            string project = null;
 
-			
+			_oAuthEndpoint = "http://melbggj16.info/jamcast/gettoken/api";
+			project = "melbourne-global-game-jam-16";
 
-			if (string.IsNullOrWhiteSpace (project) && File.Exists (Path.Combine (Platform.AssemblyLocation, "project.txt")))
+			if (File.Exists (Path.Combine (Platform.AssemblyLocation, "project.txt")))
 				project = File.ReadAllText (Path.Combine (Platform.AssemblyLocation, "project.txt")).Trim();
-			if (string.IsNullOrWhiteSpace (_oAuthEndpoint) && File.Exists (Path.Combine (Platform.AssemblyLocation, "endpoint.txt")))
+			if (File.Exists (Path.Combine (Platform.AssemblyLocation, "endpoint.txt")))
 				_oAuthEndpoint = File.ReadAllText (Path.Combine (Platform.AssemblyLocation, "endpoint.txt")).Trim();
 
             if (string.IsNullOrWhiteSpace(project) || string.IsNullOrWhiteSpace(_oAuthEndpoint))
@@ -208,17 +203,10 @@ namespace Bootstrap
                 "JamCast");
             Directory.CreateDirectory(path);
             BasePath = path;
-//            if (Platform.GetPlatform().Platform == PlatformID.MacOSX)
-//            {
-//                BasePath = new DirectoryInfo(Platform.AssemblyLocation).Parent.FullName; // HACK: Keep it in the bundle.
-//            }
 
             Client = new Package(BasePath, "Client");
             Projector = new Package(BasePath, "Projector");
-            if (Platform.GetPlatform().Platform == PlatformID.MacOSX)
-                Bootstrap = new Package(new DirectoryInfo(Platform.AssemblyLocation).Parent.FullName, "Bootstrap");
-            else
-                Bootstrap = new Package(BasePath, "Bootstrap");
+            Bootstrap = new Package(BasePath, "Bootstrap");
 
             // Check whether we're running from one of the blue-green folders
             // from the bootstrap package, and set the active mode appropriately
@@ -579,15 +567,30 @@ namespace Bootstrap
                                         SendPing(PubSub, pingTopic, guid);
                                         Status = "Sent Ping";
 
-                                        Client.SetAvailableVersions(
-                                            (string) m.AvailableClientVersion,
-                                            (string) m.AvailableClientFile);
-                                        Projector.SetAvailableVersions(
-                                            (string) m.AvailableProjectorVersion,
-                                            (string) m.AvailableProjectorFile);
-                                        Bootstrap.SetAvailableVersions(
-                                            (string) m.AvailableBootstrapVersion,
-                                            (string) m.AvailableBootstrapFile);
+										if (Platform.IsRunningOnMono)
+										{
+											Client.SetAvailableVersions(
+												(string) m.AvailableMacOSClientVersion,
+												(string) m.AvailableMacOSClientFile);
+											Projector.SetAvailableVersions(
+												(string) m.AvailableMacOSProjectorVersion,
+												(string) m.AvailableMacOSProjectorFile);
+											Bootstrap.SetAvailableVersions(
+												(string) m.AvailableMacOSBootstrapVersion,
+												(string) m.AvailableMacOSBootstrapFile);
+										}
+										else
+										{
+	                                        Client.SetAvailableVersions(
+	                                            (string) m.AvailableClientVersion,
+	                                            (string) m.AvailableClientFile);
+	                                        Projector.SetAvailableVersions(
+	                                            (string) m.AvailableProjectorVersion,
+	                                            (string) m.AvailableProjectorFile);
+	                                        Bootstrap.SetAvailableVersions(
+	                                            (string) m.AvailableBootstrapVersion,
+	                                            (string) m.AvailableBootstrapFile);
+										}
 
                                         Status = "Updating Software";
                                         UpdateVersions(Role);

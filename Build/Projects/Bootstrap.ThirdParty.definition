@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ExternalProject Name="Bootstrap.ThirdParty">
 
+  <Platform Type="Windows">
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+  </Platform>
   
 </ExternalProject>

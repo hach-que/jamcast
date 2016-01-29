@@ -23,7 +23,14 @@ namespace Bootstrap
             CachedVersionPath = Path.Combine(basePath, name + ".version.txt");
             ActiveModePath = Path.Combine(basePath, name + ".mode.txt");
             SettingsPath = Path.Combine(basePath, name.ToLowerInvariant() + "-settings.json");
-            ExecutableName = name + ".exe";
+			if (Platform.IsRunningOnMono)
+			{
+				ExecutableName = name + ".app";
+			}
+			else
+			{
+            	ExecutableName = name + ".exe";
+			}
 
             // Try and find the active mode from somewhere...
             if (File.Exists(ActiveModePath))
@@ -226,8 +233,8 @@ namespace Bootstrap
             {
                 if (Platform.IsRunningOnMono)
                 {
-                    startInfo.FileName = Platform.MonoPath;
-                    startInfo.Arguments = clientPath;
+                    startInfo.FileName = "/usr/bin/open";
+                    startInfo.Arguments = "-a \"" + clientPath + "\"";
                 }
                 else
                 {
@@ -282,6 +289,11 @@ namespace Bootstrap
 
         public void KillUnmonitoredProcesses()
         {
+			if (Platform.IsRunningOnMono)
+			{
+				return;
+			}
+
             var thisId = Process.GetCurrentProcess().Id;
             foreach (var process in Process.GetProcesses())
             {
@@ -319,7 +331,7 @@ namespace Bootstrap
                             while (!File.Exists(output))
                                 output = output.Substring(output.IndexOf(' ')).Trim();
                             // Now we've got that out of the way...
-                            isMatchingProcess = output.EndsWith(ExecutableName, StringComparison.InvariantCultureIgnoreCase);
+							isMatchingProcess = output.EndsWith(ExecutableName.Replace(".exe", ".app"), StringComparison.InvariantCultureIgnoreCase);
                         }
                         else
                         {
