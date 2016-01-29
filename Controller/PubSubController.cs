@@ -9,6 +9,7 @@ using GooglePubSub;
 using Newtonsoft.Json;
 using System.Linq;
 using System.Linq.Expressions;
+using Microsoft.CSharp.RuntimeBinder;
 
 namespace Controller
 {
@@ -185,13 +186,20 @@ namespace Controller
                                     dynamic value;
                                     if (m_JamQueues[jam.Guid].TryDequeue(out value))
                                     {
-                                        if ((string)value.Target != null)
+                                        try
                                         {
-                                            var computer = jam.Computers.FirstOrDefault(x => x.Guid.ToString() == (string)value.Target);
-                                            if (computer != null)
+                                            if ((string)value.Target != null)
                                             {
-                                                computer.LastTimeControllerSentMessageToBootstrap = DateTime.UtcNow;
+                                                var computer = jam.Computers.FirstOrDefault(x => x.Guid.ToString() == (string)value.Target);
+                                                if (computer != null)
+                                                {
+                                                    computer.LastTimeControllerSentMessageToBootstrap = DateTime.UtcNow;
+                                                }
                                             }
+                                        }
+                                        catch (RuntimeBinderException ex)
+                                        {
+                                            // Ignore this error, it just means there's no target.
                                         }
 
                                         switch ((string) value.Type)

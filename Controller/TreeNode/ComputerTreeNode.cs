@@ -144,8 +144,15 @@ namespace Controller.TreeNode
             Text = Computer.Hostname;
             if (Computer.WaitingForPing)
             {
-                var span = DateTime.UtcNow - Computer.LastTimeControllerRecievedMessageFromBootstrap;
-                Text += " (" + (int)Math.Floor(span.TotalMinutes) + ":" + span.Seconds.ToString("D2") + " since last contact)";
+                if (Computer.LastTimeControllerRecievedMessageFromBootstrap == null)
+                {
+                    Text += " (never received information?)";
+                }
+                else
+                {
+                    var span = DateTime.UtcNow - Computer.LastTimeControllerRecievedMessageFromBootstrap;
+                    Text += " (" + (int)Math.Floor(span.Value.TotalMinutes) + ":" + span.Value.Seconds.ToString("D2") + " since last contact)";
+                }
             }
             else if (Computer.EmailAddress != null)
             {
@@ -180,11 +187,7 @@ namespace Controller.TreeNode
                 {
                     case Role.Client:
                         {
-                            if (Computer.LastTimeControllerSentMessageToBootstrap == null)
-                            {
-                                this.ImageKey = @"monitor_never_sent.fw.png";
-                            }
-                            else if (Computer.LastTimeControllerRecievedMessageFromBootstrap < DateTime.UtcNow.AddMinutes(-10))
+                            if (Computer.LastTimeControllerRecievedMessageFromBootstrap < DateTime.UtcNow.AddMinutes(-10))
                             {
                                 this.ImageKey = @"monitor_not_responding.fw.png";
                             }
