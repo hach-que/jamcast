@@ -208,14 +208,17 @@ namespace Bootstrap
                 "JamCast");
             Directory.CreateDirectory(path);
             BasePath = path;
-            if (Platform.GetPlatform().Platform == PlatformID.MacOSX)
-            {
-                BasePath = new DirectoryInfo(Platform.AssemblyLocation).Parent.FullName; // HACK: Keep it in the bundle.
-            }
+//            if (Platform.GetPlatform().Platform == PlatformID.MacOSX)
+//            {
+//                BasePath = new DirectoryInfo(Platform.AssemblyLocation).Parent.FullName; // HACK: Keep it in the bundle.
+//            }
 
             Client = new Package(BasePath, "Client");
             Projector = new Package(BasePath, "Projector");
-            Bootstrap = new Package(BasePath, "Bootstrap");
+            if (Platform.GetPlatform().Platform == PlatformID.MacOSX)
+                Bootstrap = new Package(new DirectoryInfo(Platform.AssemblyLocation).Parent.FullName, "Bootstrap");
+            else
+                Bootstrap = new Package(BasePath, "Bootstrap");
 
             // Check whether we're running from one of the blue-green folders
             // from the bootstrap package, and set the active mode appropriately

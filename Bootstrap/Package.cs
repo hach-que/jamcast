@@ -321,7 +321,7 @@ namespace Bootstrap
                         }
                     }
                 }
-                catch (Exception c) { Console.WriteLine(c); }
+                catch (Exception c) { }
                 if (isMatchingProcess)
                 {
                     process.Kill();
