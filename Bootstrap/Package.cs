@@ -118,6 +118,8 @@ namespace Bootstrap
 
         public string ExecutableName { get; private set; }
 
+        public DateTime? LastStartTime { get; private set; }
+
         public string ActivePath
         {
             get { return ActiveMode == "Blue" ? BluePath : GreenPath; }
@@ -262,6 +264,14 @@ namespace Bootstrap
             {
                 // Ignore
             }
+
+            if (LastStartTime != null && LastStartTime.Value > DateTime.UtcNow.AddMinutes(-1))
+            {
+                // Never restart it again if we tried to start it in the last 60 seconds.
+                return false;
+            }
+
+            LastStartTime = DateTime.UtcNow;
 
             MonitoredProcess = new Process();
             MonitoredProcess.StartInfo = startInfo;
