@@ -8,6 +8,7 @@ using System.Threading;
 using GooglePubSub;
 using Newtonsoft.Json;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace Controller
 {
@@ -289,23 +290,35 @@ namespace Controller
             }
             catch (WebException ex)
             {
-                var httpWebResponse = (HttpWebResponse)ex.Response;
-                if (httpWebResponse.StatusCode == HttpStatusCode.NotFound)
+                var httpWebResponse = ex.Response as HttpWebResponse;
+                if (httpWebResponse != null)
                 {
-                    // Try to send to the global bootstrap topic instead.
-                    pubsub.Publish(GetBootstrapTopic(pubsub, null), Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
+                    if (httpWebResponse.StatusCode == HttpStatusCode.NotFound)
                     {
-                        Target = bootstrapGuid ?? "",
-                        Type = "pong",
-                        AvailableClientVersion = jam.AvailableClientVersion,
-                        AvailableProjectorVersion = jam.AvailableProjectorVersion,
-                        AvailableBootstrapVersion = jam.AvailableBootstrapVersion,
-                        AvailableClientFile = jam.AvailableClientFile,
-                        AvailableProjectorFile = jam.AvailableProjectorFile,
-                        AvailableBootstrapFile = jam.AvailableBootstrapFile,
-                        SendTime = sendTime,
-                        LastRecieveTime = lastRecieveTime,
-                    }))), null);
+                        // Try to send to the global bootstrap topic instead.
+                        pubsub.Publish(GetBootstrapTopic(pubsub, null),
+                            Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
+                            {
+                                Target = bootstrapGuid ?? "",
+                                Type = "pong",
+                                AvailableClientVersion = jam.AvailableClientVersion,
+                                AvailableProjectorVersion = jam.AvailableProjectorVersion,
+                                AvailableBootstrapVersion = jam.AvailableBootstrapVersion,
+                                AvailableClientFile = jam.AvailableClientFile,
+                                AvailableProjectorFile = jam.AvailableProjectorFile,
+                                AvailableBootstrapFile = jam.AvailableBootstrapFile,
+                                SendTime = sendTime,
+                                LastRecieveTime = lastRecieveTime,
+                            }))), null);
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                else
+                {
+                    throw;
                 }
             }
         }

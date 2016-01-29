@@ -397,21 +397,46 @@ namespace Controller.Forms
 
         private static OAuthToken GetOAuthTokenFromEndpoint(string currentEndpoint, string controllerSecret)
         {
-            var client = new WebClient();
-            var jsonResult = client.DownloadString(currentEndpoint + "?controller_secret=" + controllerSecret);
-            var json = JsonConvert.DeserializeObject<dynamic>(jsonResult);
-            if (!(bool)json.has_error)
+            while (true)
             {
-                var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-                dtDateTime = dtDateTime.AddSeconds((double)(json.result.created + json.result.expires_in));
-                return new OAuthToken
+                try
                 {
-                    ExpiryUtc = dtDateTime,
-                    AccessToken = json.result.access_token
-                };
-            }
+                    var client = new WebClient();
+                    var jsonResult = client.DownloadString(currentEndpoint + "?controller_secret=" + controllerSecret);
+                    var json = JsonConvert.DeserializeObject<dynamic>(jsonResult);
+                    if (!(bool) json.has_error)
+                    {
+                        var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+                        dtDateTime = dtDateTime.AddSeconds((double) (json.result.created + json.result.expires_in));
+                        return new OAuthToken
+                        {
+                            ExpiryUtc = dtDateTime,
+                            AccessToken = json.result.access_token
+                        };
+                    }
 
-            throw new Exception("Error when retrieving access token: " + json.error);
+                    throw new Exception("Error when retrieving access token: " + json.error);
+                }
+                catch (WebException ex)
+                {
+                    if (ex.Status == WebExceptionStatus.Timeout)
+                    {
+                        continue;
+                    }
+
+                    var response = ex.Response as HttpWebResponse;
+                    if (response != null)
+                    {
+                        if (response.StatusCode == HttpStatusCode.RequestTimeout ||
+                            response.StatusCode == HttpStatusCode.GatewayTimeout)
+                        {
+                            continue;
+                        }
+                    }
+
+                    throw;
+                }
+            }
         }
 
         private string UploadFile(string filename, byte[] data, Action<double> progress)

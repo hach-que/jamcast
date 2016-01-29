@@ -17,8 +17,8 @@ namespace Controller
         public string EmailAddress;
         public string FullName;
 
-        public DateTime LastTimeControllerSentMessageToBootstrap;
-        public DateTime LastTimeControllerRecievedMessageFromBootstrap;
+        public DateTime? LastTimeControllerSentMessageToBootstrap;
+        public DateTime? LastTimeControllerRecievedMessageFromBootstrap;
         public DateTime? LastTimeBootstrapSentAMessage;
         public DateTime? LastTimeBootstrapRecievedAMessageFromControllerAndAckedIt;
 

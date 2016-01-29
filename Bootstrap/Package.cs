@@ -247,16 +247,18 @@ namespace Bootstrap
                 return false;
             }
 
+            try
+            {
+                KillUnmonitoredProcesses();
+            }
+            catch
+            {
+                // Ignore
+            }
+
             MonitoredProcess = new Process();
             MonitoredProcess.StartInfo = startInfo;
             MonitoredProcess.EnableRaisingEvents = true;
-            MonitoredProcess.Exited += (sender, args) =>
-            {
-                if (ProcessShouldBeRunning)
-                {
-                    StartProcess();
-                }
-            };
             MonitoredProcess.Start();
 
             return true;
@@ -285,10 +287,14 @@ namespace Bootstrap
             {
                 if (process.Id == thisId)
                     continue;
+                if (MonitoredProcess != null && !MonitoredProcess.HasExited && process.Id == MonitoredProcess.Id)
+                {
+                    continue;
+                }
                 var isMatchingProcess = false;
                 try
                 {
-                    isMatchingProcess = process.MainModule.FileName.StartsWith(InactivePath,
+                    isMatchingProcess = process.MainModule.FileName.EndsWith(ExecutableName,
                         StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch
@@ -313,7 +319,7 @@ namespace Bootstrap
                             while (!File.Exists(output))
                                 output = output.Substring(output.IndexOf(' ')).Trim();
                             // Now we've got that out of the way...
-                            isMatchingProcess = output.StartsWith(InactivePath, StringComparison.InvariantCultureIgnoreCase);
+                            isMatchingProcess = output.EndsWith(ExecutableName, StringComparison.InvariantCultureIgnoreCase);
                         }
                         else
                         {
