@@ -88,6 +88,14 @@ namespace Controller
                 case "ping":
                     var guid = Guid.Parse(source);
 
+                    var lastRecievedTime = (DateTime?)data.SendTime;
+
+                    if (lastRecievedTime != null && lastRecievedTime < DateTime.UtcNow.AddMinutes(-10))
+                    {
+                        System.Diagnostics.Debug.WriteLine("Ignored message from " + (string)data.Hostname + " because it's too old.");
+                        return;
+                    }
+
                     var ipaddresses = new List<IPAddress>();
                     if (data.IPAddresses != null && data.IPAddresses is JArray)
                     {
@@ -157,7 +165,7 @@ namespace Controller
                     if (!computerToSubmit.HasReceivedVersionInformation)
                     {
                         computerToSubmit.SentVersionInformation = true;
-                        controller.SendPong(guid, this);
+                        controller.SendPong(guid, computerToSubmit, this);
                     }
 
                     if (Computers.All(x => x.Guid != guid))

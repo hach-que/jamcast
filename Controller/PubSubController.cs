@@ -175,7 +175,7 @@ namespace Controller
                                     _form.RefreshConnectionStatus(jam);
                                 }));
 
-                                this.SendPong(pubsub, null, jam);
+                                this.SendPong(pubsub, null, null, jam);
                                 
                                 while (currentEndpoint == jam.GoogleCloudOAuthEndpointURL && currentProjectID == jam.GoogleCloudProjectID &&
                                         currentStorageSecret == jam.GoogleCloudStorageSecret)
@@ -186,7 +186,7 @@ namespace Controller
                                         switch ((string) value.Type)
                                         {
                                             case "pong":
-                                                this.SendPong(pubsub, null, jam);
+                                                this.SendPong(pubsub, null, null, jam);
                                                 break;
                                             case "designate":
                                                 this.SendDesignate(pubsub, null, value.Target,
@@ -236,26 +236,61 @@ namespace Controller
             }
         }
 
-        internal void SendPong(Guid guid, Jam jam)
+        internal void SendPong(Guid guid, Computer computer, Jam jam)
         {
-            SendPong(_currentPubSub, guid.ToString(), jam);
+            SendPong(_currentPubSub, guid.ToString(), computer, jam);
         }
 
-        private void SendPong(PubSub pubsub, string bootstrapGuid, Jam jam)
+        private void SendPong(PubSub pubsub, string bootstrapGuid, Computer computer, Jam jam)
         {
             var bootstrapTopic = GetBootstrapTopic(pubsub, bootstrapGuid);
 
-            pubsub.Publish(bootstrapTopic, Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
+            var sendTime = DateTime.UtcNow;
+            DateTime? lastRecieveTime = null;
+
+            if (computer != null)
             {
-                Target = bootstrapGuid ?? "",
-                Type = "pong",
-                AvailableClientVersion = jam.AvailableClientVersion,
-                AvailableProjectorVersion = jam.AvailableProjectorVersion,
-                AvailableBootstrapVersion = jam.AvailableBootstrapVersion,
-                AvailableClientFile = jam.AvailableClientFile,
-                AvailableProjectorFile = jam.AvailableProjectorFile,
-                AvailableBootstrapFile = jam.AvailableBootstrapFile,
-            }))), null);
+                computer.SendTime = DateTime.UtcNow;
+                sendTime = computer.SendTime;
+                lastRecieveTime = computer.LastRecieveTime;
+            }
+
+            try {
+                pubsub.Publish(bootstrapTopic, Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
+                {
+                    Target = bootstrapGuid ?? "",
+                    Type = "pong",
+                    AvailableClientVersion = jam.AvailableClientVersion,
+                    AvailableProjectorVersion = jam.AvailableProjectorVersion,
+                    AvailableBootstrapVersion = jam.AvailableBootstrapVersion,
+                    AvailableClientFile = jam.AvailableClientFile,
+                    AvailableProjectorFile = jam.AvailableProjectorFile,
+                    AvailableBootstrapFile = jam.AvailableBootstrapFile,
+                    SendTime = sendTime,
+                    LastRecieveTime = lastRecieveTime,
+                }))), null);
+            }
+            catch (WebException ex)
+            {
+                var httpWebResponse = (HttpWebResponse)ex.Response;
+                if (httpWebResponse.StatusCode == HttpStatusCode.NotFound)
+                {
+                    // Try to send to the global bootstrap topic instead.
+                    pubsub.Publish(GetBootstrapTopic(pubsub, null), Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new
+                    {
+                        Target = bootstrapGuid ?? "",
+                        Type = "pong",
+                        AvailableClientVersion = jam.AvailableClientVersion,
+                        AvailableProjectorVersion = jam.AvailableProjectorVersion,
+                        AvailableBootstrapVersion = jam.AvailableBootstrapVersion,
+                        AvailableClientFile = jam.AvailableClientFile,
+                        AvailableProjectorFile = jam.AvailableProjectorFile,
+                        AvailableBootstrapFile = jam.AvailableBootstrapFile,
+                        SendTime = sendTime,
+                        LastRecieveTime = lastRecieveTime,
+                    }))), null);
+                }
+            }
         }
 
         private void SendDesignate(PubSub pubsub, string bootstrapGuid, string target, string role)

@@ -18,6 +18,9 @@ namespace Controller
         public string EmailAddress;
         public string FullName;
 
+        public DateTime? LastRecieveTime;
+        public DateTime SendTime;
+
         [NonSerialized]
         public bool HasWaitingTask;
 
