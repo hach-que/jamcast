@@ -219,6 +219,9 @@ namespace Controller
                                                 this.SendSettings(pubsub, null, value.Target,
                                                     "projector-settings", value.Settings);
                                                 break;
+                                            case "update-clients":
+                                                this.SendUpdateClients(pubsub, value);
+                                                break;
                                             default:
                                                 this.SendCustom(pubsub, null, value);
                                                 break;
@@ -254,6 +257,11 @@ namespace Controller
                     Thread.Sleep(5000);
                 }
             }
+        }
+
+        private void SendUpdateClients(PubSub pubsub, object value)
+        {
+            pubsub.Publish("projectors", Convert.ToBase64String(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(value))), null);
         }
 
         internal void SendPong(Guid guid, Computer computer, Jam jam)

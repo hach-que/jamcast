@@ -6,6 +6,7 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
 using Projector;
+using Projector.Controllers;
 
 namespace JamCast
 {
@@ -28,176 +29,138 @@ namespace JamCast
             this.SetStyle(ControlStyles.UserPaint, true);
         }
 
-		public void AddControl(Control c)
-		{
-			this.Controls.Add (c);
-		}
-
         private void Broadcast_Paint(object sender, PaintEventArgs e)
         {
-            // Hide mouse cursor.
-            Cursor.Hide();
-
-            // Clear our window first.
-            e.Graphics.Clear(Color.Black);
-
-            // Get our bitmap data from the Manager.
-            BitmapTracker.Purge();
-
-            // Get a center string style.
-            StringFormat left = new StringFormat();
-            left.Alignment = StringAlignment.Near;
-            left.LineAlignment = StringAlignment.Center;
-            StringFormat right = new StringFormat();
-            right.Alignment = StringAlignment.Far;
-            right.LineAlignment = StringAlignment.Center;
-            StringFormat center = new StringFormat();
-            center.Alignment = StringAlignment.Center;
-            center.LineAlignment = StringAlignment.Center;
-            StringFormat tleft = new StringFormat();
-            tleft.Alignment = StringAlignment.Near;
-            tleft.LineAlignment = StringAlignment.Near;
-
-            var currentClient = this.m_Manager.CurrentClientObject;
-            if (currentClient != null)
+            try
             {
-                if (currentClient.FfplayProcess != null && !currentClient.FfplayProcess.HasExited)
+                // Hide mouse cursor.
+                Cursor.Hide();
+
+                // Clear our window first.
+                e.Graphics.Clear(Color.Black);
+
+                // Get a center string style.
+                StringFormat left = new StringFormat();
+                left.Alignment = StringAlignment.Near;
+                left.LineAlignment = StringAlignment.Center;
+                StringFormat right = new StringFormat();
+                right.Alignment = StringAlignment.Far;
+                right.LineAlignment = StringAlignment.Center;
+                StringFormat center = new StringFormat();
+                center.Alignment = StringAlignment.Center;
+                center.LineAlignment = StringAlignment.Center;
+                StringFormat tleft = new StringFormat();
+                tleft.Alignment = StringAlignment.Near;
+                tleft.LineAlignment = StringAlignment.Near;
+
+                if (m_Manager._ffmpegProcessController != null &&
+                    m_Manager._ffmpegProcessController.FfplayProcess != null
+                        && !m_Manager._ffmpegProcessController.FfplayProcess.HasExited)
                 {
-                    FfplayStreamController.AlignToFormBounds(
-                        currentClient.FfplayProcess,
+                    FfmpegStreamAPI.AlignToFormBounds(
+                        m_Manager._ffmpegProcessController.FfplayProcess,
                         this,
-                        new Rectangle(0, 64, this.ClientSize.Width - (AppSettings.SlackEnabled ? 256 : 0), this.ClientSize.Height - 128));
+                        new Rectangle(
+                            0,
+                            64,
+                            this.ClientSize.Width - (AppSettings.SlackEnabled ? 256 : 0),
+                            this.ClientSize.Height - 128));
                 }
-            }
-            else
-            {
-                // ... there's no clients.
-                e.Graphics.DrawString(
-                    "Waiting on clients...",
-                    new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
-                    new SolidBrush(Color.White),
-                    new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height),
-                    center
-                    );
-            }
-
-            /*
-            if (b != null)
-            {
-                try
+                else if (m_Manager._ffmpegProcessController.WaitingOn != null)
                 {
-                    // .. and draw it.
-                    Rectangle r = this.ScaleToFit(
-                            new Rectangle(0, 0, this.ClientSize.Width - (AppSettings.EnableChat ? 256 : 0), this.ClientSize.Height - 128),
-                            new Rectangle(0, 0, b.Width, b.Height)
-                            );
-                    r.Location = new Point(r.Location.X, r.Location.Y + 64);
-                    e.Graphics.DrawImage(b, r, new Rectangle(0, 0, b.Width, b.Height), GraphicsUnit.Pixel);
-                    e.Graphics.TextRenderingHint = TextRenderingHint.AntiAlias;
-                    e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-
-                    // Draw the top overlay.
-                    e.Graphics.FillRectangle(new SolidBrush(Color.White), 0, 0, this.ClientSize.Width, 64);
                     e.Graphics.DrawString(
-                        (this.m_Manager.CurrentClient + 1).ToString() + ": " + this.m_Manager.CurrentClientName + " (" + b.Width + "x" + b.Height + ")",
-                        new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
-                        new SolidBrush(Color.Black),
-                        new Rectangle(32, 0, this.ClientSize.Width, 64),
-                        left
-                        );
-                }
-                catch (Exception)
-                {
-                    // ... there's no clients.
-                    e.Graphics.DrawString(
-                        "Failed to render known clients...",
+                        "Waiting on " + m_Manager._ffmpegProcessController.WaitingOn + "'s computer to stream...",
                         new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
                         new SolidBrush(Color.White),
                         new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height),
-                        center
-                        );
-                }
-            }
-            else
-            {
-            }*/
-
-            // Draw memory usage (top-middle)
-            string mem = (Process.GetCurrentProcess().WorkingSet64 / 1024 / 1024).ToString() + "MB";
-            e.Graphics.DrawString(
-                mem,
-                new Font(FontFamily.GenericSansSerif, 10, FontStyle.Regular, GraphicsUnit.Pixel),
-                new SolidBrush(Color.Gray),
-                new Rectangle(this.ClientSize.Width / 2 - 64, 0, 128, 64),
-                center
-                );
-
-            // Draw the COUNTDOWN! (top-right)
-            TimeSpan span = new TimeSpan(AppSettings.EndTime.Ticks - DateTime.Now.Ticks);
-            string ms = span.Milliseconds.ToString().PadLeft(4, '0').Substring(1, 3);
-            string hrs = (span.Hours + (span.Days * 24)).ToString();
-            string sstr = hrs + " hours " + span.Minutes + " minutes " + span.Seconds + "." + ms + " seconds ";
-            if (span.Ticks <= 0)
-                sstr = "GAME JAM OVER!";
-            e.Graphics.DrawString(
-                sstr,
-                new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
-                new SolidBrush(Color.Red),
-                new Rectangle(0, 0, this.ClientSize.Width - 32, 64),
-                right
-                );
-
-            if (span.TotalHours < 2)
-            {
-                string str = "";
-                if (span.Ticks < 0)
-                    str = "GAME JAM OVER!";
-                else
-                    str = hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ";
-
-                if (span.TotalHours > 1 || Math.Floor((double)span.Milliseconds / 500) % 2 == 0 || span.Seconds < 0)
-                {
-                    // Draw the COUNTDOWN! (center)
-                    e.Graphics.DrawString(
-                        str,
-                        new Font(FontFamily.GenericSansSerif, 128, FontStyle.Regular, GraphicsUnit.Pixel),
-                        new SolidBrush(Color.FromArgb(200 + this.m_Random.Next(32), 0, 0)),
-                        new PointF(this.ClientSize.Width / 2, this.ClientSize.Height / 2),
-                        center
-                        );
+                        center);
                 }
                 else
                 {
-                    // Draw the COUNTDOWN! (center)
                     e.Graphics.DrawString(
-                        str,
-                        new Font(FontFamily.GenericSansSerif, 128, FontStyle.Regular, GraphicsUnit.Pixel),
+                        "Finding a computer to stream from...",
+                        new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
                         new SolidBrush(Color.White),
-                        new PointF(this.ClientSize.Width / 2, this.ClientSize.Height / 2),
-                        center
-                        );
+                        new Rectangle(0, 0, this.ClientSize.Width, this.ClientSize.Height),
+                        center);
+                }
+                
+                // Draw connection status.
+                if (m_Manager._pubSubController != null)
+                {
+                    string connectionStatus = m_Manager._pubSubController.Status.ToString();
+                    e.Graphics.DrawString(
+                        connectionStatus,
+                        new Font(FontFamily.GenericSansSerif, 10, FontStyle.Regular, GraphicsUnit.Pixel),
+                        new SolidBrush(Color.Gray),
+                        new Rectangle(this.ClientSize.Width / 2 - 64, 0, 128, 64),
+                        center);
                 }
 
-                // Draw border.
-                GraphicsPath gp = new GraphicsPath();
-                gp.AddString(
-                    str,
-                    FontFamily.GenericSansSerif,
-                    (int)FontStyle.Regular,
-                    128,
-                    new PointF(this.ClientSize.Width / 2, this.ClientSize.Height / 2),
-                    center
-                    );
-                e.Graphics.DrawPath(new Pen(Brushes.Black, 2), gp);
-            }
+                // Draw the COUNTDOWN! (top-right)
+                TimeSpan span = new TimeSpan(AppSettings.EndTime.Ticks - DateTime.Now.Ticks);
+                string ms = span.Milliseconds.ToString().PadLeft(4, '0').Substring(1, 3);
+                string hrs = (span.Hours + (span.Days * 24)).ToString();
+                string sstr = hrs + " hours " + span.Minutes + " minutes " + span.Seconds + "." + ms + " seconds ";
+                if (span.Ticks <= 0) sstr = "GAME JAM OVER!";
+                e.Graphics.DrawString(
+                    sstr,
+                    new Font(FontFamily.GenericSansSerif, 24, FontStyle.Regular, GraphicsUnit.Pixel),
+                    new SolidBrush(Color.Red),
+                    new Rectangle(0, 0, this.ClientSize.Width - 32, 64),
+                    right);
 
-            // Draw the bottom overlay.
-            e.Graphics.FillRectangle(new SolidBrush(Color.Black), 0, this.ClientSize.Height - 64, this.ClientSize.Width, 64);
+                if (span.TotalHours < 2)
+                {
+                    string str = "";
+                    if (span.Ticks < 0) str = "GAME JAM OVER!";
+                    else str = hrs + " HOURS\n" + span.Minutes + " MINUTES\n" + span.Seconds + "." + ms + " SECS ";
 
-            if (AppSettings.TwitterEnabled)
-            {
-                // Draw the TWEETS! ~.o
-                string st = this.m_Manager.GetTweetStream();
+                    if (span.TotalHours > 1 || Math.Floor((double)span.Milliseconds / 500) % 2 == 0 || span.Seconds < 0)
+                    {
+                        // Draw the COUNTDOWN! (center)
+                        e.Graphics.DrawString(
+                            str,
+                            new Font(FontFamily.GenericSansSerif, 128, FontStyle.Regular, GraphicsUnit.Pixel),
+                            new SolidBrush(Color.FromArgb(200 + this.m_Random.Next(32), 0, 0)),
+                            new PointF(this.ClientSize.Width / 2, this.ClientSize.Height / 2),
+                            center);
+                    }
+                    else
+                    {
+                        // Draw the COUNTDOWN! (center)
+                        e.Graphics.DrawString(
+                            str,
+                            new Font(FontFamily.GenericSansSerif, 128, FontStyle.Regular, GraphicsUnit.Pixel),
+                            new SolidBrush(Color.White),
+                            new PointF(this.ClientSize.Width / 2, this.ClientSize.Height / 2),
+                            center);
+                    }
+
+                    // Draw border.
+                    GraphicsPath gp = new GraphicsPath();
+                    gp.AddString(
+                        str,
+                        FontFamily.GenericSansSerif,
+                        (int)FontStyle.Regular,
+                        128,
+                        new PointF(this.ClientSize.Width / 2, this.ClientSize.Height / 2),
+                        center);
+                    e.Graphics.DrawPath(new Pen(Brushes.Black, 2), gp);
+                }
+
+                // Draw the bottom overlay.
+                e.Graphics.FillRectangle(
+                    new SolidBrush(Color.Black),
+                    0,
+                    this.ClientSize.Height - 64,
+                    this.ClientSize.Width,
+                    64);
+
+                if (AppSettings.TwitterEnabled)
+                {
+                    // Draw the TWEETS! ~.o
+                    /* string st = this.m_Manager.GetTweetStream();
                 SizeF size = e.Graphics.MeasureString(st,
                     new Font(FontFamily.GenericSansSerif, 16, FontStyle.Bold, GraphicsUnit.Pixel));
 
@@ -214,7 +177,12 @@ namespace JamCast
                     new Rectangle(this.m_StreamX + 32, this.ClientSize.Height - 64,
                         (int) size.Width*9 + this.ClientSize.Width, 64),
                     left
-                    );
+                    );*/
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
             }
         }
 
@@ -264,11 +232,6 @@ namespace JamCast
             {
                 // Shutdown.
                 Application.Exit();
-            }
-            else if (e.KeyCode == Keys.Space)
-            {
-                // Next client.
-                this.m_Manager.NextClient();
             }
         }
     }

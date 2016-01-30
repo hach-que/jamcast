@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 namespace Projector
 {
-    public class FfplayStreamController
+    public class FfmpegStreamAPI
     {
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);

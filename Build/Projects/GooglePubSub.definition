@@ -8,8 +8,12 @@
   </References>
   <Files>
     <Compile Include="Message.cs" />
+    <Compile Include="MessageReceivedEventHandler.cs" />
+    <Compile Include="MessageReceivedEventHandlerArgs.cs" />
     <Compile Include="OAuthToken.cs" />
     <Compile Include="PubSub.cs" />
+    <Compile Include="PubSubPersistent.cs" />
+    <Compile Include="PubSubPersistentStatus.cs" />
     <Compile Include="ShortTimeoutWebClient.cs">
       <SubType>Component</SubType>
     </Compile>

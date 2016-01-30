@@ -14,20 +14,26 @@
     <Reference Include="System.Xml" />
     <Reference Include="Projector.ThirdParty" />
     <Reference Include="GooglePubSub" />
-    <Reference Include="NetCast" />
     <Reference Include="Newtonsoft.Json" />
   </References>
   <Files>
     <Compile Include="AppSettings.cs" />
-    <Compile Include="BitmapTracker.cs" />
     <Compile Include="Broadcast.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Broadcast.Designer.cs">
       <DependentUpon>Broadcast.cs</DependentUpon>
     </Compile>
-    <Compile Include="Client.cs" />
-    <Compile Include="FfplayStreamController.cs" />
+    <Compile Include="ClientListEntry.cs" />
+    <Compile Include="Controllers\ClientListController.cs" />
+    <Compile Include="Controllers\ClientSelectionController.cs" />
+    <Compile Include="Controllers\FfmpegProcessController.cs" />
+    <Compile Include="Controllers\PubSubController.cs" />
+    <Compile Include="Controllers\StreamController.cs" />
+    <Compile Include="Controllers\TwitterProcessingController.cs" />
+    <Compile Include="Controllers\TwitterRetrieveController.cs" />
+    <Compile Include="FfmpegStreamAPI.cs" />
+    <Compile Include="IController.cs" />
     <Compile Include="Manager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -41,7 +47,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Twitter.cs" />
     <EmbeddedResource Include="Broadcast.resx">
       <DependentUpon>Broadcast.cs</DependentUpon>
     </EmbeddedResource>

@@ -1,16 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Threading;
-using NetCast;
-using NetCast.Messages;
 
+using GooglePubSub;
 namespace Client
 {
     public partial class Manager
     {
-        private Queue _netCast = null;
+        private PubSubPersistent _pubSub;
         private string _name = "Unknown!";
         private string _email = string.Empty;
+
+        private string _guid;
 
         /// <summary>
         /// Starts the manager cycle.
@@ -20,78 +23,71 @@ namespace Client
 			LoadUsername();
 
 			ListenForApplicationExit(OnStop);
+            
+            using (var reader = new StreamReader(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "JamCast", "guid.txt")))
+            {
+                _guid = reader.ReadToEnd().Trim();
+            }
 
-            // Start the NetCast listener.
-            this._netCast = new Queue(12000, 12001);
-            this._netCast.OnReceived += new EventHandler<MessageEventArgs>(p_NetCast_OnReceived);
+            _pubSub = new PubSubPersistent();
+            this._pubSub.TopicsToCreate.Add("projectors");
+            this._pubSub.TopicsToCreate.Add("client-" + _guid);
+            this._pubSub.SubscriptionsToCreate.Add(new KeyValuePair<string, string>(
+                "client-" + _guid,
+                "client-" + _guid));
+            this._pubSub.Reconfigure(
+                "http://melbggj16.info/jamcast/gettoken/api",
+                "melbourne-global-game-jam-16");
+            this._pubSub.MessageRecieved += PubSubOnMessageRecieved;
 
 			ConfigureSystemTrayIcon();
+        }
 
-            // Advertise client service to the server.
-            var t = new Thread(() =>
-                {
-                    while (true)
+        private void PubSubOnMessageRecieved(object sender, MessageReceivedEventHandlerArgs args)
+        {
+            var message = args.Message;
+
+            switch ((string)message.Type)
+            {
+                case "countdown":
+                    this.SetTrayIconToCountdown();
+                    break;
+                case "start":
                     {
-                        var message = new ClientServiceStartingMessage(this._netCast.TcpSelf, this._name);
-                        message.SendUDP(new IPEndPoint(IPAddress.Broadcast, 13000));
-                        Thread.Sleep(1000);
+                        SetTrayIconToOn();
+
+                        var address = IPAddress.Parse((string)message.DesiredIPAddress);
+
+                        string sdp;
+                        StartStreaming(address, out sdp, () =>
+                        {
+                            SetTrayIconToOff();
+
+                            StopStreaming(address);
+
+                            this._pubSub.Publish("projectors", new { Type = "stop-streaming", ClientGuid = _guid });
+                        });
+
+                        this._pubSub.Publish("projectors", new { Type = "started-streaming", ClientGuid = _guid, Sdp = sdp });
                     }
-                });
-            t.IsBackground = true;
-            t.Start();
-        }
+                    break;
+                case "stop":
+                    {
+                        SetTrayIconToOff();
 
-		private void OnStop()
-        {
-            var message = new ClientServiceStoppingMessage(this._netCast.TcpSelf);
-            message.SendUDP(new IPEndPoint(IPAddress.Broadcast, 13000));
-            Thread.Sleep(1000);
-            this._netCast.Stop();
-        }
+                        var address = IPAddress.Parse((string)message.DesiredIPAddress);
 
-        /// <summary>
-        /// This event is fired when a network message has been received.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void p_NetCast_OnReceived(object sender, MessageEventArgs e)
-        {
-            if (e.Message is CountdownBroadcastMessage)
-            {
-				SetTrayIconToCountdown();
-            }
-            else if (e.Message is BeginStreamingMessage)
-            {
-				SetTrayIconToOn();
+                        StopStreaming(address);
 
-                string sdp;
-                StartStreaming(e.Message.Source.Address, out sdp, () =>
-                {
-                    SetTrayIconToOff();
-
-                    StopStreaming(e.Message.Source.Address);
-
-                    var stoppedMessage = new StreamingStoppedMessage(this._netCast.TcpSelf);
-                    stoppedMessage.SendTCP(e.Message.Source);
-                });
-
-                var startedMessage = new StreamingStartedMessage(this._netCast.TcpSelf, sdp);
-                startedMessage.SendTCP(e.Message.Source);
-            }
-            else if (e.Message is EndStreamingMessage)
-            {
-                SetTrayIconToOff();
-
-                StopStreaming(e.Message.Source.Address);
-
-                var stoppedMessage = new StreamingStoppedMessage(this._netCast.TcpSelf);
-                stoppedMessage.SendTCP(e.Message.Source);
+                        this._pubSub.Publish("projectors", new { Type = "stop-streaming", ClientGuid = _guid });
+                    }
+                    break;
             }
         }
 
-        public Queue NetCast
+        private void OnStop()
         {
-            get { return this._netCast; }
+            this._pubSub.Stop();
         }
 
         public string User { get { return this._name; } }

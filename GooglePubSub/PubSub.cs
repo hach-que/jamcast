@@ -262,9 +262,15 @@ namespace GooglePubSub
                                 "POST",
                                 requestSerialized);
                         }
+                        catch (Exception ex)
+                        {
+                            // This is expected for long polling.
+                            responseSerialized = "{}";
+                        }
+                        /*
                         catch (WebException ex)
                         {
-                            if (ex.Status == WebExceptionStatus.KeepAliveFailure)
+                            if (ex.Status == WebExceptionStatus.KeepAliveFailure || ex.Status == WebExceptionStatus.RequestCanceled)
                             {
                                 // This is expected for long polling.
                                 responseSerialized = "{}";
@@ -272,14 +278,19 @@ namespace GooglePubSub
                             else
                             {
                                 var exx = ex.Response as HttpWebResponse;
-                                if (exx.StatusCode == HttpStatusCode.BadGateway || exx.StatusCode == HttpStatusCode.GatewayTimeout)
+                                if (exx != null)
                                 {
-                                    // Just let the long poll happen again.
-                                    responseSerialized = "{}";
+                                    if (exx.StatusCode == HttpStatusCode.BadGateway
+                                        || exx.StatusCode == HttpStatusCode.GatewayTimeout)
+                                    {
+                                        // Just let the long poll happen again.
+                                        responseSerialized = "{}";
+                                    }
                                 }
                                 throw;
                             }
                         }
+                        */
 
                         Debug.WriteLine("POLL TASK RESPONSE RECEIVED");
 
@@ -306,11 +317,11 @@ namespace GooglePubSub
 
             if (immediate)
             {
-                Task.WaitAll(tasks);
+                Task.WaitAll(tasks, Timeout * 1000);
             }
             else
             {
-                Task.WaitAny(tasks);
+                Task.WaitAny(tasks, Timeout * 1000);
                 foreach (var client in webClients)
                 {
                     client.CancelAsync();
@@ -318,7 +329,7 @@ namespace GooglePubSub
                 cancellationTokenSource.Cancel();
                 try
                 {
-                    Task.WaitAll(tasks);
+                    Task.WaitAll(tasks, 500);
                 }
                 catch (Exception)
                 {
@@ -326,7 +337,7 @@ namespace GooglePubSub
                 }
             }
             
-            Debug.WriteLine("POLL FINISHED");
+            Debug.WriteLine("POLL FINISHED WITH " + messages.Count + " MESSAGES");
 
             if (immediate && tasks.Any(x => x.Status == TaskStatus.Faulted))
             {

@@ -9,7 +9,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="NetCast" />
+    <Reference Include="GooglePubSub" />
     <Reference Include="Newtonsoft.Json" />
     <Reference Include="Microsoft.CSharp" />
   </References>

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Windows.Forms;
 using Controller.Forms;
 
@@ -31,28 +33,47 @@ namespace Controller.TreeNode
                 mainForm.PubSubController.ScanComputers(this.Jam.Guid);
             });
             this.ContextMenuStrip.Items.Add("Push Client IPs to Projectors", null, (sender, args) =>
-            {
-                var iplist = new List<object>();
-
+                {
+                    var clients = new List<dynamic>();
+                    
                 foreach (var node in this.Nodes.OfType<ComputerTreeNode>())
                 {
                     if (node.Computer.Role == Role.Client)
                     {
+                        IPAddress ipv4 = null;
                         foreach (var ip in node.Computer.IPAddresses)
                         {
-                            iplist.Add(new { IPAddress = ip.ToString(), Name = node.Computer.Hostname });
+                            if (ip.AddressFamily == AddressFamily.InterNetwork)
+                                {
+                                    if (ip.ToString().StartsWith("10.") || ip.ToString().StartsWith("136."))
+                                    {
+                                        ipv4 = ip;
+                                        break;
+                                    }
+                                }
+                        }
+
+                        if (ipv4 != null)
+                        {
+                            clients.Add(
+                                new
+                                    {
+                                        Guid = node.Computer.Guid,
+                                        IPv4Address = ipv4.ToString(),
+                                        UserFullName = node.Computer.FullName
+                                    });
                         }
                     }
                 }
 
                 var data = new
                 {
-                    Type = "ipaddress-list",
-                    IPAddresses = iplist,
+                    Type = "update-clients",
+                    Clients = clients,
                 };
 
                 var mainForm = this.TreeView.FindForm() as MainForm;
-                mainForm.PubSubController.SendCustomMessage(this.Jam.Guid, data);
+                mainForm.PubSubController.SendCustomMessage(Jam.Guid, data);
             });
 
             this.ImageKey = @"bullet_red.png";

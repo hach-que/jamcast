@@ -19,18 +19,10 @@
     <Compile Include="Program.MacOS.cs">
       <Platforms>MacOS</Platforms>
     </Compile>
-    <Compile Include="Program.Windows.cs">
-      <Platforms>Windows</Platforms>
-    </Compile>
-    <EmbeddedResource Include="satellite-16.png">
-      <Platforms>Windows</Platforms>
-    </EmbeddedResource>
-    <EmbeddedResource Include="satellite-16-downloading.png">
-      <Platforms>Windows</Platforms>
-    </EmbeddedResource>
-    <EmbeddedResource Include="satellite-16-nocontact.png">
-      <Platforms>Windows</Platforms>
-    </EmbeddedResource>
+    <Compile Include="Program.Windows.cs" />
+    <EmbeddedResource Include="satellite-16.png" />
+    <EmbeddedResource Include="satellite-16-downloading.png" />
+    <EmbeddedResource Include="satellite-16-nocontact.png" />
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
