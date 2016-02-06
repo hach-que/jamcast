@@ -170,7 +170,7 @@ namespace Bootstrap
                     if (File.Exists(urlFile))
                         File.Delete(urlFile);
                     var registryKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-                    registryKey?.SetValue("Jamcast Bootstrap", Assembly.GetExecutingAssembly().Location);
+                    registryKey?.DeleteValue("Jamcast Bootstrap");//, Assembly.GetExecutingAssembly().Location);
                 }
                 catch { }
             }

@@ -19,7 +19,9 @@
     <Compile Include="Program.MacOS.cs">
       <Platforms>MacOS</Platforms>
     </Compile>
-    <Compile Include="Program.Windows.cs" />
+    <Compile Include="Program.Windows.cs">
+      <Platforms>Windows</Platforms>
+    </Compile>
     <EmbeddedResource Include="satellite-16.png" />
     <EmbeddedResource Include="satellite-16-downloading.png" />
     <EmbeddedResource Include="satellite-16-nocontact.png" />
